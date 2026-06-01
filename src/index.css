@@ -1,0 +1,93 @@
+@import "tailwindcss";
+
+:root {
+	--primary-green: #7CBB15;
+	--primary-green-dark: #65A30D;
+	--bg: #ffffff;
+	--muted: #6b7280;
+}
+
+@layer base {
+	html, body, #root { height: 100%; }
+	body {
+		@apply antialiased;
+		font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+		background: radial-gradient(ellipse at top left, rgba(124,187,21,0.06), transparent 20%), radial-gradient(ellipse at bottom right, rgba(101,163,13,0.04), transparent 18%), #f8fafc;
+		color: #0f172a;
+	}
+}
+
+@layer components {
+	.card {
+		@apply bg-white rounded-2xl shadow-md border border-transparent;
+		box-shadow: 0 8px 20px rgba(124,187,21,0.06), 0 2px 6px rgba(0,0,0,0.04);
+	}
+
+	.card-glass {
+		@apply bg-white/95 rounded-2xl border border-white/10 backdrop-blur;
+		box-shadow: 0 10px 30px rgba(124,187,21,0.06);
+	}
+
+	.btn-primary {
+		background-color: var(--primary-green);
+		color: white;
+		border-radius: 9999px;
+		padding: 0.6rem 1.2rem;
+		font-weight: 600;
+	}
+	.btn-primary:hover { background-color: var(--primary-green-dark); }
+
+	input[type="file"]::file-selector-button {
+		@apply bg-[var(--primary-green)] text-white px-3 py-2 rounded;
+	}
+}
+
+@layer utilities {
+	.shadow-green-soft { box-shadow: 0 6px 18px rgba(124,187,21,0.12); }
+
+	.responsive-table {
+		width: 100%;
+		border-collapse: collapse;
+	}
+
+	@media (max-width: 768px) {
+		.responsive-table,
+		.responsive-table thead,
+		.responsive-table tbody,
+		.responsive-table tr,
+		.responsive-table th,
+		.responsive-table td {
+			display: block;
+			width: 100%;
+		}
+
+		.responsive-table thead tr {
+			position: absolute;
+			top: -9999px;
+			left: -9999px;
+		}
+
+		.responsive-table tr {
+			margin-bottom: 1rem;
+			border: 1px solid rgba(148,163,184,0.25);
+			border-radius: 1.25rem;
+			padding: 1rem;
+		}
+
+		.responsive-table td {
+			padding: 0.75rem 0;
+			border: none;
+		}
+
+		.responsive-table td::before {
+			content: attr(data-label);
+			display: block;
+			margin-bottom: 0.35rem;
+			font-size: 0.75rem;
+			font-weight: 700;
+			text-transform: uppercase;
+			color: #475569;
+		}
+	}
+}
+
