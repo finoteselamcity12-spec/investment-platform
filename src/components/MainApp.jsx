@@ -5,6 +5,7 @@ import InvestPage from './InvestPage'
 import DepositPage from './DepositPage'
 import HistoryPage from './HistoryPage'
 import SupportPage from './SupportPage'
+import Withdraw from '../pages/Withdraw'
 
 export default function MainApp() {
   const [activePage, setActivePage] = useState('home')
@@ -19,6 +20,8 @@ export default function MainApp() {
         return <InvestPage ctx={ctx} />
       case 'history':
         return <HistoryPage ctx={ctx} />
+      case 'withdraw':
+        return <Withdraw />
       case 'support':
         return <SupportPage ctx={ctx} />
       default:

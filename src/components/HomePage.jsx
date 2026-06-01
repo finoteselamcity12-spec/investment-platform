@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { TrendingUp, Wallet, Gift, ArrowUpRight } from 'lucide-react'
 
-const PRIMARY_BLUE = '#0066CC'
+const PRIMARY_GREEN = '#84CC16'
 
 export default function HomePage({ ctx }) {
   const {
@@ -45,8 +45,8 @@ export default function HomePage({ ctx }) {
         <div
           className="rounded-3xl p-6 text-white shadow-lg"
           style={{
-            background: `linear-gradient(135deg, ${PRIMARY_BLUE}, #005BB3)`,
-            boxShadow: `0 8px 24px ${PRIMARY_BLUE}30`,
+            background: `linear-gradient(135deg, ${PRIMARY_GREEN}, #6bb01a)`,
+            boxShadow: `0 8px 24px ${PRIMARY_GREEN}30`,
           }}
         >
           <p className="text-sm font-semibold opacity-90">Total Balance</p>
@@ -71,40 +71,40 @@ export default function HomePage({ ctx }) {
             onClick={() => setActivePage?.('deposit')}
             className="rounded-2xl bg-slate-100 px-4 py-5 font-bold text-slate-950 active:scale-95 transition"
             style={{
-              borderLeft: `4px solid ${PRIMARY_BLUE}`,
+              borderLeft: `4px solid ${PRIMARY_GREEN}`,
             }}
           >
-            <Wallet size={28} className="mx-auto mb-2" style={{ color: PRIMARY_BLUE }} />
+            <Wallet size={28} className="mx-auto mb-2" style={{ color: PRIMARY_GREEN }} />
             <span className="text-sm">Deposit</span>
           </button>
           <button
             onClick={() => setActivePage?.('invest')}
             className="rounded-2xl bg-slate-100 px-4 py-5 font-bold text-slate-950 active:scale-95 transition"
             style={{
-              borderLeft: `4px solid ${PRIMARY_BLUE}`,
+              borderLeft: `4px solid ${PRIMARY_GREEN}`,
             }}
           >
-            <TrendingUp size={28} className="mx-auto mb-2" style={{ color: PRIMARY_BLUE }} />
+            <TrendingUp size={28} className="mx-auto mb-2" style={{ color: PRIMARY_GREEN }} />
             <span className="text-sm">Invest</span>
           </button>
           <button
             onClick={() => setActivePage?.('history')}
             className="rounded-2xl bg-slate-100 px-4 py-5 font-bold text-slate-950 active:scale-95 transition"
             style={{
-              borderLeft: `4px solid ${PRIMARY_BLUE}`,
+              borderLeft: `4px solid ${PRIMARY_GREEN}`,
             }}
           >
-            <ArrowUpRight size={28} className="mx-auto mb-2" style={{ color: PRIMARY_BLUE }} />
+            <ArrowUpRight size={28} className="mx-auto mb-2" style={{ color: PRIMARY_GREEN }} />
             <span className="text-sm">History</span>
           </button>
           <button
             onClick={() => setActivePage?.('support')}
             className="rounded-2xl bg-slate-100 px-4 py-5 font-bold text-slate-950 active:scale-95 transition"
             style={{
-              borderLeft: `4px solid ${PRIMARY_BLUE}`,
+              borderLeft: `4px solid ${PRIMARY_GREEN}`,
             }}
           >
-            <Gift size={28} className="mx-auto mb-2" style={{ color: PRIMARY_BLUE }} />
+            <Gift size={28} className="mx-auto mb-2" style={{ color: PRIMARY_GREEN }} />
             <span className="text-sm">Support</span>
           </button>
         </div>
@@ -125,8 +125,8 @@ export default function HomePage({ ctx }) {
             disabled={!claimAvailable}
             className="w-full mt-4 rounded-2xl px-4 py-3 font-bold text-white active:scale-95 transition disabled:opacity-60"
             style={{
-              backgroundColor: claimAvailable ? PRIMARY_BLUE : '#CBD5E1',
-              boxShadow: claimAvailable ? `0 4px 12px ${PRIMARY_BLUE}30` : 'none',
+              backgroundColor: claimAvailable ? PRIMARY_GREEN : '#CBD5E1',
+              boxShadow: claimAvailable ? `0 4px 12px ${PRIMARY_GREEN}30` : 'none',
             }}
           >
             {claimAvailable ? '🎁 Claim Daily Reward' : `Available in ${claimRemainingHours}h`}

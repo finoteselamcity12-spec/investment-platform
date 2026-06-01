@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { CheckCircle, Clock, AlertCircle } from 'lucide-react'
 
-const PRIMARY_BLUE = '#0066CC'
+const PRIMARY_GREEN = '#84CC16'
 
 export default function HistoryPage({ ctx }) {
   const { transactions, historyFilter, setHistoryFilter, historyFilters, formatCurrency } = ctx
@@ -40,9 +40,9 @@ export default function HistoryPage({ ctx }) {
               onClick={() => setHistoryFilter(filter)}
               className={`whitespace-nowrap px-4 py-2 rounded-full font-semibold text-sm transition-all active:scale-95`}
               style={{
-                backgroundColor: historyFilter === filter ? PRIMARY_BLUE : '#F3F4F6',
+                backgroundColor: historyFilter === filter ? PRIMARY_GREEN : '#F3F4F6',
                 color: historyFilter === filter ? '#FFFFFF' : '#4B5563',
-                boxShadow: historyFilter === filter ? `0 2px 8px ${PRIMARY_BLUE}30` : 'none',
+                boxShadow: historyFilter === filter ? `0 2px 8px ${PRIMARY_GREEN}30` : 'none',
               }}
             >
               {filter}

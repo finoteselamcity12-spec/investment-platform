@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { TrendingUp, Clock, Gift, Star, ArrowRight } from 'lucide-react'
 
-const PRIMARY_BLUE = '#0066CC'
+const PRIMARY_GREEN = '#84CC16'
 
 export default function InvestPage({ ctx }) {
   const {
@@ -89,9 +89,9 @@ export default function InvestPage({ ctx }) {
                   ? 'text-white shadow-md'
                   : 'text-slate-600'
               }`}
-              style={{
-                backgroundColor: selectedCurrency === currency ? PRIMARY_BLUE : 'transparent',
-                boxShadow: selectedCurrency === currency ? `0 2px 8px ${PRIMARY_BLUE}30` : 'none',
+                style={{
+                backgroundColor: selectedCurrency === currency ? PRIMARY_GREEN : 'transparent',
+                boxShadow: selectedCurrency === currency ? `0 2px 8px ${PRIMARY_GREEN}30` : 'none',
               }}
             >
               {currency === 'USD' ? '$ USD' : 'Br ETB'}
@@ -103,8 +103,8 @@ export default function InvestPage({ ctx }) {
         <div
           className="rounded-3xl p-6 text-white shadow-lg"
           style={{
-            background: `linear-gradient(135deg, ${PRIMARY_BLUE}, #005BB3)`,
-            boxShadow: `0 8px 24px ${PRIMARY_BLUE}30`,
+            background: `linear-gradient(135deg, ${PRIMARY_GREEN}, #6bb01a)`,
+            boxShadow: `0 8px 24px ${PRIMARY_GREEN}30`,
           }}
         >
           <p className="text-sm font-semibold opacity-90">Available Balance</p>
@@ -125,7 +125,7 @@ export default function InvestPage({ ctx }) {
                 <div>
                   <p
                     className="text-2xl font-bold"
-                    style={{ color: PRIMARY_BLUE }}
+                    style={{ color: PRIMARY_GREEN }}
                   >
                     {selectedCurrency === 'USD' ? `$${tier.amount}` : `${tier.amount.toLocaleString()}`}
                   </p>
@@ -136,8 +136,8 @@ export default function InvestPage({ ctx }) {
                 <div
                   className="flex h-12 w-12 items-center justify-center rounded-2xl text-white"
                   style={{
-                    backgroundColor: `${PRIMARY_BLUE}20`,
-                    color: PRIMARY_BLUE,
+                    backgroundColor: `${PRIMARY_GREEN}20`,
+                    color: PRIMARY_GREEN,
                   }}
                 >
                   <TrendingUp size={24} />
@@ -148,14 +148,14 @@ export default function InvestPage({ ctx }) {
               <div className="grid grid-cols-3 gap-2 mb-5 p-3 bg-white rounded-2xl border border-slate-200">
                 {/* Days */}
                 <div className="text-center">
-                  <Clock size={16} className="mx-auto mb-1" style={{ color: PRIMARY_BLUE }} />
+                  <Clock size={16} className="mx-auto mb-1" style={{ color: PRIMARY_GREEN }} />
                   <p className="text-xs text-slate-500 font-semibold">Days</p>
                   <p className="font-bold text-sm text-slate-950">{tier.days}</p>
                 </div>
 
                 {/* Daily Earnings */}
                 <div className="text-center">
-                  <Gift size={16} className="mx-auto mb-1" style={{ color: PRIMARY_BLUE }} />
+                  <Gift size={16} className="mx-auto mb-1" style={{ color: PRIMARY_GREEN }} />
                   <p className="text-xs text-slate-500 font-semibold">Daily</p>
                   <p className="font-bold text-sm text-slate-950">
                     {selectedCurrency === 'USD' ? `$${tier.dailyProfit.toFixed(1)}` : `${Math.round(tier.dailyProfit)} Br`}
@@ -164,7 +164,7 @@ export default function InvestPage({ ctx }) {
 
                 {/* Total Return */}
                 <div className="text-center">
-                  <Star size={16} className="mx-auto mb-1" style={{ color: PRIMARY_BLUE }} />
+                  <Star size={16} className="mx-auto mb-1" style={{ color: PRIMARY_GREEN }} />
                   <p className="text-xs text-slate-500 font-semibold">Total</p>
                   <p className="font-bold text-sm text-slate-950">
                     {selectedCurrency === 'USD'
@@ -180,8 +180,8 @@ export default function InvestPage({ ctx }) {
                 disabled={balance < tier.amount}
                 className="w-full rounded-2xl px-4 py-4 font-bold text-white active:scale-95 transition disabled:opacity-60"
                 style={{
-                  backgroundColor: balance < tier.amount ? '#CBD5E1' : PRIMARY_BLUE,
-                  boxShadow: balance >= tier.amount ? `0 4px 12px ${PRIMARY_BLUE}30` : 'none',
+                  backgroundColor: balance < tier.amount ? '#CBD5E1' : PRIMARY_GREEN,
+                  boxShadow: balance >= tier.amount ? `0 4px 12px ${PRIMARY_GREEN}30` : 'none',
                 }}
               >
                 {balance >= tier.amount ? 'Invest Now' : 'Insufficient Balance'}

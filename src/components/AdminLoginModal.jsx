@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Lock, User, X } from 'lucide-react'
 
-const PRIMARY_BLUE = '#0066CC'
+const PRIMARY_GREEN = '#84CC16'
 const ADMIN_CREDENTIALS = {
   name: 'investment',
   password: '1q2w3e4r5t6y7@investment',
@@ -76,7 +76,7 @@ export default function AdminLoginModal({ isOpen, onClose }) {
                 placeholder="investment"
                 className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 pl-12 text-base text-slate-950 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
                 style={{
-                  focusBorder: `${PRIMARY_BLUE}80`,
+                  focusBorder: `${PRIMARY_GREEN}80`,
                 }}
               />
             </div>
@@ -121,8 +121,8 @@ export default function AdminLoginModal({ isOpen, onClose }) {
             disabled={isLoading}
             className="w-full rounded-2xl px-4 py-4 text-base font-bold text-white transition active:scale-95 disabled:opacity-60"
             style={{
-              backgroundColor: PRIMARY_BLUE,
-              boxShadow: `0 4px 12px ${PRIMARY_BLUE}30`,
+              backgroundColor: PRIMARY_GREEN,
+              boxShadow: `0 4px 12px ${PRIMARY_GREEN}30`,
             }}
           >
             {isLoading ? 'Verifying...' : 'Login'}

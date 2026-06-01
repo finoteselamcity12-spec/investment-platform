@@ -4,6 +4,7 @@ import {
   Home,
   Wallet,
   TrendingUp,
+  ArrowUpCircle,
   Clock4,
   HelpCircle,
   Copy,
@@ -13,7 +14,7 @@ import {
 import supabase from '../lib/supabase'
 import AdminLoginModal from './AdminLoginModal'
 
-const PRIMARY_BLUE = '#0066CC'
+const PRIMARY_GREEN = '#84CC16'
 
 // Premium tier naming
 const premiumTierNames = {
@@ -132,9 +133,9 @@ export default function AppShell({ children, activePage, setActivePage }) {
 
   const navItems = [
     { id: 'home', label: 'Home', icon: Home },
-    { id: 'deposit', label: 'Deposit', icon: Wallet },
     { id: 'invest', label: 'Invest', icon: TrendingUp },
-    { id: 'history', label: 'History', icon: Clock4 },
+    { id: 'deposit', label: 'Deposit', icon: Wallet },
+    { id: 'withdraw', label: 'Withdraw', icon: ArrowUpCircle },
     { id: 'support', label: 'Support', icon: HelpCircle },
   ]
 
@@ -173,6 +174,7 @@ export default function AppShell({ children, activePage, setActivePage }) {
     usdTiers, etbTiers, withdrawMethods, historyFilters, formatCurrency, marketData,
     premiumTierNames, claimCooldownMs,
     setActivePage,
+    setShowAdminLogin,
   }
 
   return (
@@ -187,8 +189,8 @@ export default function AppShell({ children, activePage, setActivePage }) {
           onClick={() => setShowAdminLogin(true)}
           className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm transition hover:scale-110 transform"
           style={{
-            backgroundColor: PRIMARY_BLUE,
-            boxShadow: `0 4px 12px ${PRIMARY_BLUE}40`,
+            backgroundColor: PRIMARY_GREEN,
+            boxShadow: `0 4px 12px ${PRIMARY_GREEN}40`,
           }}
         >
           {userFullName.charAt(0).toUpperCase()}
@@ -213,12 +215,13 @@ export default function AppShell({ children, activePage, setActivePage }) {
                   : 'text-slate-600'
               }`}
               style={{
-                backgroundColor: activePage === id ? PRIMARY_BLUE : '#F3F4F6',
-                boxShadow: activePage === id ? `0 4px 12px ${PRIMARY_BLUE}30` : 'none',
+                backgroundColor: activePage === id ? PRIMARY_GREEN : '#F3F4F6',
+                boxShadow: activePage === id ? `0 4px 12px ${PRIMARY_GREEN}30` : 'none',
               }}
             >
               <Icon size={24} className="mx-auto mb-1" />
               <span className="text-xs">{label}</span>
+
 
               {id === 'support' && (
                 <span
