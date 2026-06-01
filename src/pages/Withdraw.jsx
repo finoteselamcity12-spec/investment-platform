@@ -99,20 +99,19 @@ export default function Withdraw() {
   }
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-b from-black via-slate-950 to-black text-slate-100 pb-32">
-      <div className="pt-20 px-4">
-        <div className="max-w-md mx-auto space-y-6">
-          {/* Header */}
-          <div className="text-center mb-6">
-            <h1 className="text-3xl font-bold text-white mb-2">Withdrawal</h1>
-            <p className="text-slate-400 text-sm">Request a payout from your wallet</p>
+    <div className="min-h-screen bg-slate-50 text-slate-950 pb-20">
+      <div className="mx-auto max-w-xl px-4 py-12 sm:px-6 lg:px-8">
+        <div className="rounded-[2rem] bg-white border border-slate-200 p-8 shadow-[0_30px_80px_-20px_rgba(15,23,42,0.16)]">
+          <div className="mb-8 text-center">
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-600">Withdrawal</p>
+            <h1 className="mt-3 text-4xl font-bold text-slate-950">Request Your Payout</h1>
+            <p className="mt-3 text-slate-500">Select your bank, enter account details, and submit a withdrawal request.</p>
           </div>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-6">
             {/* Amount Input */}
-            <div className="app-card">
-              <label className="block text-sm font-semibold text-white mb-2">Amount</label>
+            <div className="rounded-[1.75rem] bg-white border border-slate-200 p-5 shadow-sm">
+              <label className="block text-sm font-semibold text-slate-950 mb-2">Amount</label>
               <input
                 type="number"
                 min="0"
@@ -120,17 +119,17 @@ export default function Withdraw() {
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder="Enter withdrawal amount"
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                className="w-full bg-slate-100 border border-slate-200 rounded-3xl px-4 py-3 text-slate-950 placeholder-slate-400 focus:outline-none focus:border-[#84CC16] focus:ring-2 focus:ring-[#84CC16]/20"
               />
             </div>
 
             {/* Bank Selection */}
-            <div className="app-card">
-              <label className="block text-sm font-semibold text-white mb-2">Bank / Method</label>
+            <div className="rounded-[1.75rem] bg-white border border-slate-200 p-5 shadow-sm">
+              <label className="block text-sm font-semibold text-slate-950 mb-2">Bank / Method</label>
               <select
                 value={bank}
                 onChange={(e) => setBank(e.target.value)}
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                className="w-full bg-slate-100 border border-slate-200 rounded-3xl px-4 py-3 text-slate-950 focus:outline-none focus:border-[#84CC16] focus:ring-2 focus:ring-[#84CC16]/20"
               >
                 {banks.map((b) => (
                   <option key={b} value={b}>{b}</option>
@@ -139,20 +138,20 @@ export default function Withdraw() {
             </div>
 
             {/* Account Name */}
-            <div className="app-card">
-              <label className="block text-sm font-semibold text-white mb-2">Account Name</label>
+            <div className="rounded-[1.75rem] bg-white border border-slate-200 p-5 shadow-sm">
+              <label className="block text-sm font-semibold text-slate-950 mb-2">Account Name</label>
               <input
                 type="text"
                 value={accountName}
                 onChange={(e) => setAccountName(e.target.value)}
                 placeholder="Full account holder name"
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                className="w-full bg-slate-100 border border-slate-200 rounded-3xl px-4 py-3 text-slate-950 placeholder-slate-400 focus:outline-none focus:border-[#84CC16] focus:ring-2 focus:ring-[#84CC16]/20"
               />
             </div>
 
             {/* Account Number */}
-            <div className="app-card">
-              <label className="block text-sm font-semibold text-white mb-2">
+            <div className="rounded-[1.75rem] bg-white border border-slate-200 p-5 shadow-sm">
+              <label className="block text-sm font-semibold text-slate-950 mb-2">
                 {bank === 'USDT' ? 'TRC20 Address' : 'Account Number'}
               </label>
               <input
@@ -160,7 +159,7 @@ export default function Withdraw() {
                 value={accountNumber}
                 onChange={(e) => setAccountNumber(e.target.value)}
                 placeholder={bank === 'USDT' ? 'T...' : 'Account/Phone number'}
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500"
+                className="w-full bg-slate-100 border border-slate-200 rounded-3xl px-4 py-3 text-slate-950 placeholder-slate-400 focus:outline-none focus:border-[#84CC16] focus:ring-2 focus:ring-[#84CC16]/20"
               />
             </div>
 
@@ -176,8 +175,8 @@ export default function Withdraw() {
           </form>
 
           {/* Info Card */}
-          <div className="app-card bg-green-950/30 border border-green-900/50 p-4 rounded-xl">
-            <p className="text-sm text-green-300">
+          <div className="rounded-[1.75rem] bg-slate-50 border border-slate-200 p-5 shadow-sm">
+            <p className="text-sm text-slate-600">
               ✓ <strong>Your withdrawal will be processed within 24 hours</strong>
             </p>
           </div>

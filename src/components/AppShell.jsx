@@ -212,6 +212,7 @@ export default function AppShell({ children, activePage, setActivePage }) {
       {/* Admin Login Modal */}
       {showAdminLogin && (
         <AdminLoginModal
+          isOpen={showAdminLogin}
           onClose={() => setShowAdminLogin(false)}
           userEmail={userEmail}
         />

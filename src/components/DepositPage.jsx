@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { Upload, Wallet, Copy, Check } from 'lucide-react'
+import { Upload, Copy, Check } from 'lucide-react'
 
-export default function DepositPage({ ctx }) {
+export default function DepositPage({ ctx = {} }) {
   const { setUsdBalance, setEtbBalance, addTransaction, showToast, userEmail } = ctx
 
   const [currency, setCurrency] = useState('ETB')
@@ -11,6 +11,8 @@ export default function DepositPage({ ctx }) {
   const [screenshot, setScreenshot] = useState(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [copiedField, setCopiedField] = useState('')
+  const [toast, setToast] = useState('')
+  const [toastType, setToastType] = useState('success')
 
   const paymentMethods = {
     ETB: [
@@ -24,6 +26,7 @@ export default function DepositPage({ ctx }) {
 
   const currentMethods = paymentMethods[currency]
   const selectedPaymentData = currentMethods.find(m => m.label === paymentMethod) || currentMethods[0]
+  const activeUserEmail = userEmail || localStorage.getItem('current_user_email') || 'user@example.com'
 
   const handleCopy = (text, field) => {
     navigator.clipboard.writeText(text)
@@ -31,11 +34,21 @@ export default function DepositPage({ ctx }) {
     setTimeout(() => setCopiedField(''), 2000)
   }
 
+  function displayToast(message, type = 'success') {
+    if (typeof showToast === 'function') {
+      showToast(message, type)
+      return
+    }
+    setToastType(type)
+    setToast(message)
+    setTimeout(() => setToast(''), 3000)
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     
     if (!amount || !transactionId || !screenshot) {
-      showToast('Please fill all fields and upload a receipt', 'error')
+      displayToast('Please fill all fields and upload a receipt', 'error')
       return
     }
 
@@ -45,7 +58,7 @@ export default function DepositPage({ ctx }) {
       // Create pending deposit record
       const pendingDeposit = {
         id: `deposit-${Date.now()}`,
-        userId: userEmail,
+        userId: activeUserEmail,
         amount: parseFloat(amount),
         currency,
         paymentMethod: selectedPaymentData.label,
@@ -72,7 +85,7 @@ export default function DepositPage({ ctx }) {
         date: new Date().toISOString(),
       })
 
-      showToast('Deposit submitted! Waiting for admin approval.', 'success')
+      displayToast('Deposit submitted! Waiting for admin approval.', 'success')
       
       // Reset form
       setAmount('')
@@ -80,28 +93,30 @@ export default function DepositPage({ ctx }) {
       setScreenshot(null)
       
       // Store pending state
-      localStorage.setItem(`user_pending_deposit_${userEmail}`, pendingDeposit.id)
+      localStorage.setItem(`user_pending_deposit_${activeUserEmail}`, pendingDeposit.id)
     } catch (error) {
-      showToast('Error submitting deposit. Please try again.', 'error')
+      displayToast('Error submitting deposit. Please try again.', 'error')
     } finally {
       setIsSubmitting(false)
     }
   }
 
   return (
-    <div className="space-y-6">
-      {/* Info Card */}
-      <div className="app-card bg-green-950/30 border border-green-900/50 p-4 rounded-xl">
-        <p className="text-sm text-green-300">
-          📌 <strong>Important:</strong> Send your payment first, then provide proof of transaction below. Admin approval required.
-        </p>
-      </div>
+    <div className="min-h-screen bg-slate-50 text-slate-950 pb-20">
+      <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
+        <div className="space-y-6">
+          {/* Info Card */}
+          <div className="rounded-[2rem] bg-white border border-slate-200 p-6 shadow-xl">
+            <p className="text-sm text-slate-700">
+              📌 <strong>Important:</strong> Send your payment first, then provide proof of transaction below. Admin approval required.
+            </p>
+          </div>
 
       {/* Deposit Form */}
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Currency Selection */}
-        <div className="app-card">
-          <label className="block text-sm font-semibold text-white mb-3">Currency</label>
+        <div className="rounded-[1.75rem] bg-white border border-slate-200 p-5 shadow-sm">
+          <label className="block text-sm font-semibold text-slate-950 mb-3">Currency</label>
           <div className="flex gap-3">
             {['ETB', 'USD'].map((curr) => (
               <button
@@ -124,12 +139,12 @@ export default function DepositPage({ ctx }) {
         </div>
 
         {/* Payment Method Dropdown */}
-        <div className="app-card">
-          <label className="block text-sm font-semibold text-white mb-2">Payment Method</label>
+        <div className="rounded-[1.75rem] bg-white border border-slate-200 p-5 shadow-sm">
+          <label className="block text-sm font-semibold text-slate-950 mb-2">Payment Method</label>
           <select
             value={paymentMethod}
             onChange={(e) => setPaymentMethod(e.target.value)}
-            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500"
+            className="w-full bg-slate-100 border border-slate-200 rounded-3xl px-4 py-3 text-slate-950 focus:outline-none focus:border-[#84CC16] focus:ring-2 focus:ring-[#84CC16]/20"
           >
             {currentMethods.map((method) => (
               <option key={method.label} value={method.label}>
@@ -140,60 +155,33 @@ export default function DepositPage({ ctx }) {
         </div>
 
         {/* Payment Details Card */}
-        <div className="app-card bg-slate-900/50 border border-slate-800 p-4 rounded-xl">
-          <h3 className="text-sm font-bold text-white mb-3">Payment Details</h3>
+        <div className="rounded-[1.75rem] bg-white border border-slate-200 p-5 shadow-sm">
+          <h3 className="text-sm font-bold text-slate-950 mb-3">Payment Details</h3>
           <div className="space-y-2 text-sm">
-            <div className="flex justify-between items-center p-2 bg-slate-950 rounded">
-              <div>
-                <p className="text-slate-400 text-xs">Name</p>
-                <p className="text-white font-semibold">{selectedPaymentData.name}</p>
-              </div>
+            <div className="rounded-3xl bg-slate-50 p-4">
+              <p className="text-slate-500 text-xs">Name</p>
+              <p className="mt-2 text-slate-950 font-semibold">{selectedPaymentData.name}</p>
             </div>
-            <div className="flex justify-between items-center p-2 bg-slate-950 rounded">
-              <div>
-                <p className="text-slate-400 text-xs">{currency === 'USD' ? 'TRC20 Address' : 'Account ID'}</p>
-                <p className="text-green-400 font-mono text-xs break-all">{selectedPaymentData.id}</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => handleCopy(selectedPaymentData.id, 'payment')}
-                className="ml-2 p-2 hover:bg-slate-800 rounded transition-all"
-              >
-                {copiedField === 'payment' ? (
-                  <Check size={16} className="text-green-500" />
-                ) : (
-                  <Copy size={16} className="text-slate-400" />
-                )}
-              </button>
+            <div className="rounded-3xl bg-slate-50 p-4">
+              <p className="text-slate-500 text-xs">{currency === 'USD' ? 'TRC20 Address' : 'Account ID'}</p>
+              <p className="mt-2 text-slate-950 font-semibold font-mono text-xs break-all">{selectedPaymentData.id}</p>
             </div>
-          </div>
-        </div>
-
-        {/* Payment Method */}
-        <div className="app-card">
-          <label className="block text-sm font-semibold text-slate-200 mb-2">Payment Method</label>
-          <select
-            value={paymentMethod}
-            onChange={(e) => setPaymentMethod(e.target.value)}
-            className="w-full rounded-3xl border border-slate-700 bg-slate-900 px-4 py-3 text-slate-100 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
-          >
-            {paymentOptions.map((option) => (
-              <option key={option.id} value={option.id}>{option.label}</option>
-            ))}
-          </select>
-          <div className="mt-3 rounded-3xl bg-slate-950/80 border border-slate-800 p-4 text-sm text-slate-300">
-            <p className="text-slate-200 font-semibold">Selected:</p>
-            {paymentOptions.filter((opt) => opt.id === paymentMethod).map((option) => (
-              <div key={option.id} className="space-y-1">
-                <p>{option.name}</p>
-                <p className="text-slate-400">{option.details}</p>
-              </div>
-            ))}
+            <button
+              type="button"
+              onClick={() => handleCopy(selectedPaymentData.id, 'payment')}
+              className="rounded-full bg-slate-100 p-2 text-slate-700 transition hover:bg-slate-200"
+            >
+              {copiedField === 'payment' ? (
+                <Check size={16} className="text-green-500" />
+              ) : (
+                <Copy size={16} className="text-slate-400" />
+              )}
+            </button>
           </div>
         </div>
 
         {/* Amount Input */}
-        <div className="app-card">
+        <div className="rounded-[1.75rem] bg-white border border-slate-200 p-5 shadow-sm">
           <label className="block text-sm font-semibold text-slate-200 mb-2">Amount</label>
           <div className="relative">
             <span className="absolute left-4 top-3.5 text-slate-400">
@@ -205,26 +193,26 @@ export default function DepositPage({ ctx }) {
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               placeholder="Enter amount"
-              className="w-full bg-slate-800 border border-slate-700 rounded-3xl pl-10 pr-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+              className="w-full bg-slate-100 border border-slate-200 rounded-3xl pl-10 pr-4 py-3 text-slate-950 placeholder-slate-400 focus:outline-none focus:border-[#84CC16] focus:ring-2 focus:ring-[#84CC16]/20 transition-all"
             />
           </div>
         </div>
 
         {/* Transaction ID Input */}
-        <div className="app-card">
-          <label className="block text-sm font-semibold text-white mb-2">Transaction ID</label>
+        <div className="rounded-[1.75rem] bg-white border border-slate-200 p-5 shadow-sm">
+          <label className="block text-sm font-semibold text-slate-950 mb-2">Transaction ID</label>
           <input
             type="text"
             value={transactionId}
             onChange={(e) => setTransactionId(e.target.value)}
             placeholder="e.g., TX123456 or Telebirr TX ID"
-            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-green-500 focus:ring-1 focus:ring-green-500"
+            className="w-full bg-slate-100 border border-slate-200 rounded-3xl px-4 py-3 text-slate-950 placeholder-slate-400 focus:outline-none focus:border-[#84CC16] focus:ring-2 focus:ring-[#84CC16]/20"
           />
         </div>
 
         {/* File Upload */}
-        <div className="app-card">
-          <label className="block text-sm font-semibold text-white mb-3">Upload Receipt</label>
+        <div className="rounded-[1.75rem] bg-white border border-slate-200 p-5 shadow-sm">
+          <label className="block text-sm font-semibold text-slate-950 mb-3">Upload Receipt</label>
           <div className="relative">
             <input
               type="file"
@@ -235,11 +223,11 @@ export default function DepositPage({ ctx }) {
             />
             <label
               htmlFor="receipt-upload"
-              className="flex items-center justify-center gap-3 border-2 border-dashed border-slate-600 rounded-lg p-6 cursor-pointer hover:border-green-500 hover:bg-slate-900/50 transition-all"
+              className="flex items-center justify-center gap-3 border-2 border-dashed border-slate-300 rounded-3xl p-6 cursor-pointer hover:border-[#84CC16] hover:bg-slate-100 transition-all"
             >
               <Upload size={24} className="text-slate-400" />
               <div>
-                <p className="text-white font-semibold">{screenshot?.name || 'Click to upload'}</p>
+                <p className="text-slate-950 font-semibold">{screenshot?.name || 'Click to upload'}</p>
                 <p className="text-xs text-slate-400">JPG, PNG up to 5MB</p>
               </div>
             </label>
@@ -255,6 +243,19 @@ export default function DepositPage({ ctx }) {
           {isSubmitting ? 'Submitting...' : 'Submit Deposit'}
         </button>
       </form>
+
+      {toast && (
+        <div
+          className={
+            'fixed bottom-8 left-4 right-4 z-50 rounded-3xl px-5 py-4 text-sm font-semibold shadow-xl ' +
+            (toastType === 'success' ? 'bg-emerald-600 text-white' : 'bg-red-600 text-white')
+          }
+        >
+          {toast}
+        </div>
+      )}
+        </div>
+      </div>
     </div>
   )
 }
