@@ -70,7 +70,7 @@ export default function InvestPage({ ctx }) {
   }
 
   return (
-    <div className="bg-white pb-4">
+    <div className="bg-white pb-24 pt-6 max-w-5xl mx-auto" style={{ minHeight: 'calc(100vh - 14rem)' }}>
       <div className="space-y-5">
         {/* Header */}
         <div>

@@ -7,10 +7,6 @@ export default function Support({ ctx }) {
   const [message, setMessage] = useState('')
   const [isSending, setIsSending] = useState(false)
 
-  const handleTelegramClick = () => {
-    window.open('https://t.me/investment_platform_3', '_blank', 'noopener,noreferrer')
-  }
-
   const handleSubmit = async (event) => {
     event.preventDefault()
 
@@ -50,9 +46,10 @@ export default function Support({ ctx }) {
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <button
-            type="button"
-            onClick={handleTelegramClick}
+            <a
+            href="https://t.me/investment_platform_3"
+            target="_blank"
+            rel="noopener noreferrer"
             className="flex items-center justify-center gap-3 rounded-3xl border border-slate-200 bg-white px-5 py-5 text-left transition hover:border-[#84CC16] hover:shadow-lg"
           >
             <span className="inline-flex h-12 w-12 items-center justify-center rounded-3xl bg-[#84CC16]/10 text-[#84CC16]">
@@ -62,7 +59,7 @@ export default function Support({ ctx }) {
               <p className="text-sm font-semibold text-slate-950">Telegram</p>
               <p className="text-xs text-slate-500 mt-1">@investment_platform_3</p>
             </div>
-          </button>
+          </a>
 
           <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex items-center gap-3">

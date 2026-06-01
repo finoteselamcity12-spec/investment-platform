@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Navigate } from 'react-router-dom'
 import { Check, Eye, LogOut, X } from 'lucide-react'
 
 const ADMIN_CREDENTIALS = {
@@ -22,6 +23,7 @@ function groupBy(items, key) {
 
 export default function AdminDashboard() {
   const [adminSession, setAdminSession] = useState(null)
+  const [isLoadingSession, setIsLoadingSession] = useState(true)
   const [loginName, setLoginName] = useState('')
   const [loginPassword, setLoginPassword] = useState('')
   const [loginId, setLoginId] = useState('')
@@ -44,6 +46,7 @@ export default function AdminDashboard() {
       setAdminSession(JSON.parse(session))
     }
     loadAdminData()
+    setIsLoadingSession(false)
   }, [])
 
   function showToast(message, type = 'success') {
@@ -220,61 +223,12 @@ export default function AdminDashboard() {
     [pendingWithdrawals, approvedWithdrawals, rejectedWithdrawals]
   )
 
+  if (isLoadingSession) {
+    return null
+  }
+
   if (!adminSession) {
-    return (
-      <div className="min-h-screen bg-slate-50 text-slate-950 flex items-center justify-center px-4 py-16">
-        <div className="w-full max-w-md rounded-[2rem] bg-white border border-slate-200 p-8 shadow-xl">
-          <div className="mb-6 text-center">
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-600">Admin Access</p>
-            <h1 className="mt-3 text-3xl font-bold text-slate-950">Secure Admin Login</h1>
-            <p className="mt-2 text-sm text-slate-500">Enter your official credentials to manage deposits and withdrawals.</p>
-          </div>
-
-          <form className="space-y-5" onSubmit={handleAdminLogin}>
-            <div>
-              <label className="block text-sm font-semibold text-slate-900">Admin Name</label>
-              <input
-                value={loginName}
-                onChange={(e) => setLoginName(e.target.value)}
-                placeholder="Admin name"
-                className="mt-2 w-full rounded-3xl border border-slate-300 bg-slate-100 px-4 py-3 text-slate-950 focus:border-[#84CC16] focus:outline-none focus:ring-2 focus:ring-[#84CC16]/20"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-slate-900">Admin ID</label>
-              <input
-                value={loginId}
-                onChange={(e) => setLoginId(e.target.value)}
-                placeholder="Admin ID"
-                className="mt-2 w-full rounded-3xl border border-slate-300 bg-slate-100 px-4 py-3 text-slate-950 focus:border-[#84CC16] focus:outline-none focus:ring-2 focus:ring-[#84CC16]/20"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-semibold text-slate-900">Password</label>
-              <input
-                type="password"
-                value={loginPassword}
-                onChange={(e) => setLoginPassword(e.target.value)}
-                placeholder="Enter password"
-                className="mt-2 w-full rounded-3xl border border-slate-300 bg-slate-100 px-4 py-3 text-slate-950 focus:border-[#84CC16] focus:outline-none focus:ring-2 focus:ring-[#84CC16]/20"
-              />
-            </div>
-
-            {loginError && <div className="rounded-3xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{loginError}</div>}
-
-            <button
-              type="submit"
-              className="w-full rounded-3xl bg-[#84CC16] px-4 py-4 text-white font-bold text-lg shadow-lg shadow-[#84CC16]/20 transition hover:bg-lime-500 active:scale-95"
-            >
-              Login as Admin
-            </button>
-          </form>
-
-        </div>
-      </div>
-    )
+    return <Navigate to="/admin-login" replace />
   }
 
   return (
