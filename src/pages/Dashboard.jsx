@@ -895,7 +895,7 @@ export default function Dashboard() {
                       type="button"
                       onClick={handleClaimRewards}
                       disabled={!claimAvailable}
-                      className="mt-6 inline-flex items-center justify-center gap-2 rounded-3xl bg-[#1d4ed8] px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-60"
+                      className="touch-button disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       <ArrowUpCircle className="h-4 w-4" />
                       {claimAvailable ? 'Claim 24h Earnings' : `Claim again in ${claimRemainingMinutes}m`}
@@ -1015,7 +1015,7 @@ export default function Dashboard() {
                         <button
                           type="button"
                           onClick={() => handleInvest({ ...tier, currency: investTab })}
-                          className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-3xl bg-[#1d4ed8] px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-[#1e40af]"
+                          className="touch-button text-xs"
                         >
                           Invest Now
                           <ArrowRight className="h-3 w-3" />
@@ -1196,7 +1196,7 @@ export default function Dashboard() {
                             const file = event.target.files?.[0]
                             setDepositForm((prev) => ({ ...prev, screenshot: file || null }))
                           }}
-                          className="mt-2 w-full rounded-3xl border border-gray-200 bg-slate-50 px-4 py-3 text-zinc-950"
+                          className="touch-input"
                         />
                         {depositForm.screenshot && (
                           <p className="mt-2 text-sm text-zinc-950">Selected file: {depositForm.screenshot.name}</p>
@@ -1324,7 +1324,7 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                <div className="overflow-hidden rounded-[1.75rem] border border-gray-200 shadow-sm">
+                <div className="card-panel-compact overflow-hidden">
                   <table className="table-minimal responsive-table min-w-full text-left text-sm">
                     <thead className="bg-slate-50">
                       <tr>

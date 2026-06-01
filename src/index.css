@@ -11,8 +11,13 @@
 }
 
 @layer base {
+	*, *::before, *::after {
+		box-sizing: border-box;
+	}
+
 	html {
 		scroll-behavior: smooth;
+		text-rendering: optimizeLegibility;
 	}
 
 	html, body, #root {
@@ -24,6 +29,7 @@
 		font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 		background: radial-gradient(circle at top left, rgba(59,130,246,0.12), transparent 24%), radial-gradient(circle at bottom right, rgba(59,130,246,0.08), transparent 28%), #f8fafc;
 		color: var(--text-primary);
+		overflow-x: hidden;
 	}
 
 	button, input, textarea, select {
@@ -45,14 +51,22 @@
 
 	.card-surface {
 		@apply rounded-[2rem] bg-white border border-slate-200 shadow-sm;
+		padding: 1.75rem;
+	}
+
+	.card-panel-compact {
+		@apply rounded-[2rem] bg-white border border-slate-200 shadow-sm;
+		padding: 0;
 	}
 
 	.touch-input {
-		@apply w-full rounded-[2rem] border border-slate-300 bg-slate-50 px-5 py-4 text-base text-slate-950 transition focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20;
+		@apply w-full rounded-[2rem] border border-slate-300 bg-slate-50 px-5 py-4 text-base text-slate-950 transition duration-200 ease-out focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20;
+		min-height: 3rem;
 	}
 
 	.touch-button {
-		@apply inline-flex w-full items-center justify-center gap-2 rounded-[2rem] bg-blue-600 px-6 py-4 text-base font-semibold text-white shadow-lg transition duration-200 ease-out;
+		@apply inline-flex w-full items-center justify-center gap-3 rounded-[2rem] bg-blue-600 px-6 py-4 text-base font-semibold text-white shadow-lg transition duration-200 ease-out;
+		min-height: 3.5rem;
 	}
 
 	.touch-button:hover {
