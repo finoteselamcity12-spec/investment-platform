@@ -129,9 +129,9 @@ export default function Auth() {
   }
 
   return (
-    <div className="min-h-screen w-full bg-[#7CBB15] flex flex-col items-center justify-center p-4 relative">
+    <div className="min-h-screen w-full bg-slate-950 flex flex-col items-center justify-center p-4 relative">
       <div className="text-center">
-        <h1 className="text-white font-bold text-3xl md:text-4xl tracking-tight mb-6 drop-shadow-md text-center">
+        <h1 className="text-white font-bold text-3xl md:text-4xl tracking-tight mb-6 drop-shadow-lg text-center">
           INVESTMENT PLATFORM
         </h1>
       </div>
@@ -142,7 +142,7 @@ export default function Auth() {
             type="button"
             onClick={() => setIsLogin(true)}
             className={`flex-1 rounded-2xl px-4 py-3 text-sm font-bold transition ${
-              isLogin ? 'bg-white text-[#7CBB15] shadow' : 'text-zinc-500'
+              isLogin ? 'bg-white text-blue-600 shadow' : 'text-zinc-500'
             }`}
           >
             Sign In
@@ -151,7 +151,7 @@ export default function Auth() {
             type="button"
             onClick={() => setIsLogin(false)}
             className={`flex-1 rounded-2xl px-4 py-3 text-sm font-bold transition ${
-              !isLogin ? 'bg-white text-[#7CBB15] shadow' : 'text-zinc-500'
+              !isLogin ? 'bg-white text-blue-600 shadow' : 'text-zinc-500'
             }`}
           >
             Create Account
@@ -167,7 +167,7 @@ export default function Auth() {
                 value={form.fullName}
                 onChange={(event) => setForm({ ...form, fullName: event.target.value })}
                 placeholder="Your full name"
-                className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 p-3 text-zinc-950 font-bold placeholder:text-zinc-400 focus:border-[#7CBB15] focus:outline-none focus:ring-2 focus:ring-[#7CBB15]/20"
+                className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 p-3 text-zinc-950 font-bold placeholder:text-zinc-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
               />
             </div>
           )}
@@ -179,7 +179,7 @@ export default function Auth() {
               value={form.email}
               onChange={(event) => setForm({ ...form, email: event.target.value })}
               placeholder="name@investmentplatform.com"
-              className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 p-3 text-zinc-950 font-bold placeholder:text-zinc-400 focus:border-[#7CBB15] focus:outline-none focus:ring-2 focus:ring-[#7CBB15]/20"
+              className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 p-3 text-zinc-950 font-bold placeholder:text-zinc-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             />
           </div>
 
@@ -190,7 +190,7 @@ export default function Auth() {
               value={form.password}
               onChange={(event) => setForm({ ...form, password: event.target.value })}
               placeholder="Enter your password"
-              className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 p-3 text-zinc-950 font-bold placeholder:text-zinc-400 focus:border-[#7CBB15] focus:outline-none focus:ring-2 focus:ring-[#7CBB15]/20"
+              className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 p-3 text-zinc-950 font-bold placeholder:text-zinc-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             />
           </div>
 
@@ -202,7 +202,7 @@ export default function Auth() {
                 value={form.confirmPassword}
                 onChange={(event) => setForm({ ...form, confirmPassword: event.target.value })}
                 placeholder="Confirm password"
-                className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 p-3 text-zinc-950 font-bold placeholder:text-zinc-400 focus:border-[#7CBB15] focus:outline-none focus:ring-2 focus:ring-[#7CBB15]/20"
+                className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 p-3 text-zinc-950 font-bold placeholder:text-zinc-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
               />
             </div>
           )}
@@ -210,13 +210,13 @@ export default function Auth() {
           <button
             type="submit"
             disabled={!canSubmit || loading}
-            className="w-full rounded-2xl bg-[#7CBB15] hover:bg-[#6ba212] text-white font-bold text-lg py-3 shadow-md transition-all disabled:cursor-not-allowed disabled:opacity-60"
+            className="w-full rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg py-3 shadow-md transition-all disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? 'Working...' : isLogin ? 'LOGIN' : 'Create Account'}
           </button>
 
           {message && (
-            <div className="rounded-2xl border border-[#7CBB15]/20 bg-[#7CBB15]/10 px-4 py-3 text-sm font-bold text-zinc-950">
+            <div className="rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-bold text-slate-950">
               {message}
             </div>
           )}

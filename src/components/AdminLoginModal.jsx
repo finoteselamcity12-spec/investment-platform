@@ -67,13 +67,13 @@ export default function AdminLoginModal({ isOpen, onClose }) {
           <div>
             <label className="block text-sm font-bold text-zinc-950">Admin Name</label>
             <div className="relative mt-2">
-              <User className="absolute left-3 top-3 h-5 w-5 text-[#7CBB15]" />
+              <User className="absolute left-3 top-3 h-5 w-5 text-blue-600" />
               <input
                 type="text"
                 value={adminName}
                 onChange={(e) => setAdminName(e.target.value)}
                 placeholder="Enter admin name"
-                className="w-full rounded-lg border border-gray-300 bg-slate-50 pl-10 pr-4 py-3 text-zinc-950 focus:border-[#7CBB15] focus:outline-none focus:ring-2 focus:ring-[#7CBB15]/20"
+                className="w-full rounded-lg border border-gray-300 bg-slate-50 pl-10 pr-4 py-3 text-zinc-950 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
               />
             </div>
           </div>
@@ -81,13 +81,13 @@ export default function AdminLoginModal({ isOpen, onClose }) {
           <div>
             <label className="block text-sm font-bold text-zinc-950">Admin ID</label>
             <div className="relative mt-2">
-              <Lock className="absolute left-3 top-3 h-5 w-5 text-[#7CBB15]" />
+              <Lock className="absolute left-3 top-3 h-5 w-5 text-blue-600" />
               <input
                 type="text"
                 value={adminId}
                 onChange={(e) => setAdminId(e.target.value)}
                 placeholder="Enter admin ID"
-                className="w-full rounded-lg border border-gray-300 bg-slate-50 pl-10 pr-4 py-3 text-zinc-950 focus:border-[#7CBB15] focus:outline-none focus:ring-2 focus:ring-[#7CBB15]/20"
+                className="w-full rounded-lg border border-gray-300 bg-slate-50 pl-10 pr-4 py-3 text-zinc-950 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
               />
             </div>
           </div>
@@ -95,13 +95,13 @@ export default function AdminLoginModal({ isOpen, onClose }) {
           <div>
             <label className="block text-sm font-bold text-zinc-950">Password</label>
             <div className="relative mt-2">
-              <Lock className="absolute left-3 top-3 h-5 w-5 text-[#7CBB15]" />
+              <Lock className="absolute left-3 top-3 h-5 w-5 text-blue-600" />
               <input
                 type="password"
                 value={adminPassword}
                 onChange={(e) => setAdminPassword(e.target.value)}
                 placeholder="Enter password"
-                className="w-full rounded-lg border border-gray-300 bg-slate-50 pl-10 pr-4 py-3 text-zinc-950 focus:border-[#7CBB15] focus:outline-none focus:ring-2 focus:ring-[#7CBB15]/20"
+                className="w-full rounded-lg border border-gray-300 bg-slate-50 pl-10 pr-4 py-3 text-zinc-950 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
               />
             </div>
           </div>
@@ -111,7 +111,7 @@ export default function AdminLoginModal({ isOpen, onClose }) {
           <button
             type="submit"
             disabled={isLoading}
-            className="mt-6 w-full rounded-lg bg-[#7CBB15] px-4 py-3 font-bold text-white transition hover:bg-[#6aa010] disabled:opacity-50"
+            className="mt-6 w-full rounded-lg bg-blue-600 px-4 py-3 font-bold text-white transition hover:bg-blue-700 disabled:opacity-50"
           >
             {isLoading ? 'Verifying...' : 'Login as Admin'}
           </button>

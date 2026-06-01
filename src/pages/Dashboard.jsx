@@ -724,10 +724,10 @@ export default function Dashboard() {
                     src="https://images.unsplash.com/photo-1603415526960-f7e0328c90c0?auto=format&fit=crop&w=256&q=80"
                     alt={`${userFullName || 'Account'} profile`}
                     onError={() => setAvatarFailed(true)}
-                    className="h-16 w-16 rounded-full border-2 border-[#7CBB15] object-cover shadow-md"
+                    className="h-16 w-16 rounded-full border-2 border-[#1d4ed8] object-cover shadow-md"
                   />
                 ) : (
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-white bg-[#7CBB15] text-white shadow-inner">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-white bg-[#1d4ed8] text-white shadow-inner">
                     <User className="h-7 w-7" />
                   </div>
                 )}
@@ -736,7 +736,7 @@ export default function Dashboard() {
                   <p className="mt-2 text-lg font-bold text-zinc-900">{userFullName || 'Account'}</p>
                 </div>
               </div>
-              <div className="rounded-3xl bg-[#7CBB15]/10 p-3 text-[#7CBB15] shadow-sm">
+              <div className="rounded-3xl bg-[#1d4ed8]/10 p-3 text-[#1d4ed8] shadow-sm">
                 <Wallet className="h-5 w-5" />
               </div>
             </div>
@@ -750,10 +750,10 @@ export default function Dashboard() {
                     type="button"
                     onClick={() => setActivePage(item.key)}
                     className={`flex w-full items-center gap-3 rounded-3xl px-4 py-3 text-left text-sm font-bold transition ${
-                      activePage === item.key ? 'bg-[#7CBB15] text-white shadow' : 'bg-slate-50 text-zinc-950 hover:bg-slate-100'
+                      activePage === item.key ? 'bg-[#1d4ed8] text-white shadow' : 'bg-slate-50 text-zinc-950 hover:bg-slate-100'
                     }`}
                   >
-                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-3xl bg-slate-100 text-[#7CBB15]">
+                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-3xl bg-slate-100 text-[#1d4ed8]">
                       <Icon className="h-5 w-5" />
                     </span>
                     {item.label}
@@ -775,7 +775,7 @@ export default function Dashboard() {
               <button
                 type="button"
                 onClick={handleSignOut}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#7CBB15] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#6aa010]"
+                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#1d4ed8] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1e40af]"
               >
                 Sign Out
               </button>
@@ -798,7 +798,7 @@ export default function Dashboard() {
                 <button
                   type="button"
                   onClick={() => setIsMobileMenuOpen((prev) => !prev)}
-                  className="inline-flex h-11 min-w-[3rem] items-center justify-center rounded-3xl bg-[#7CBB15] px-4 text-sm font-bold text-white shadow-sm transition hover:bg-[#69a90d]"
+                  className="inline-flex h-11 min-w-[3rem] items-center justify-center rounded-3xl bg-[#1d4ed8] px-4 text-sm font-bold text-white shadow-sm transition hover:bg-[#1d4ed8]"
                 >
                   <Menu className="h-5 w-5" />
                 </button>
@@ -828,11 +828,11 @@ export default function Dashboard() {
                             setIsMobileMenuOpen(false)
                           }}
                           className={`w-full rounded-3xl px-4 py-3 text-left text-sm font-bold transition ${
-                            activePage === item.key ? 'bg-[#7CBB15] text-white shadow' : 'bg-slate-50 text-zinc-950 hover:bg-slate-100'
+                            activePage === item.key ? 'bg-[#1d4ed8] text-white shadow' : 'bg-slate-50 text-zinc-950 hover:bg-slate-100'
                           }`}
                         >
                           <div className="flex items-center gap-3">
-                            <span className="inline-flex h-10 w-10 items-center justify-center rounded-3xl bg-slate-100 text-[#7CBB15]">
+                            <span className="inline-flex h-10 w-10 items-center justify-center rounded-3xl bg-slate-100 text-[#1d4ed8]">
                               <Icon className="h-5 w-5" />
                             </span>
                             {item.label}
@@ -851,7 +851,7 @@ export default function Dashboard() {
                     <p className="text-sm uppercase tracking-tight text-zinc-950">Main overview</p>
                     <h1 className="mt-2 text-2xl font-bold text-zinc-950">Dashboard & Daily Earnings</h1>
                   </div>
-                  <div className="rounded-3xl bg-[#7CBB15]/10 p-4 text-white shadow-sm sm:text-right">
+                  <div className="rounded-3xl bg-[#1d4ed8]/10 p-4 text-white shadow-sm sm:text-right">
                     <p className="text-xs uppercase tracking-tight text-zinc-950">24h Earnings Pool</p>
                     <p className="mt-2 text-xl font-bold text-zinc-950">{`${formatCurrency(usdDailyReward, 'USD')} + ${formatCurrency(etbDailyReward, 'ETB')}`}</p>
                   </div>
@@ -879,7 +879,7 @@ export default function Dashboard() {
                         <p className="text-sm uppercase tracking-tight text-zinc-950">Mining Nodes / Daily Claim Pool</p>
                         <h2 className="mt-3 text-2xl font-extrabold text-zinc-950">{activeInvestmentsCount} Active Nodes</h2>
                       </div>
-                      <div className="inline-flex items-center rounded-3xl bg-[#7CBB15]/10 px-4 py-3 text-sm font-bold text-[#30670f]">{myActiveInvestmentsList.length} active tiers</div>
+                      <div className="inline-flex items-center rounded-3xl bg-[#1d4ed8]/10 px-4 py-3 text-sm font-bold text-[#1d4ed8]">{myActiveInvestmentsList.length} active tiers</div>
                     </div>
                     <div className="mt-6 grid gap-4 sm:grid-cols-2">
                       <div className="rounded-3xl bg-slate-50 p-4">
@@ -895,7 +895,7 @@ export default function Dashboard() {
                       type="button"
                       onClick={handleClaimRewards}
                       disabled={!claimAvailable}
-                      className="mt-6 inline-flex items-center justify-center gap-2 rounded-3xl bg-[#7CBB15] px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#69a90d] disabled:cursor-not-allowed disabled:opacity-60"
+                      className="mt-6 inline-flex items-center justify-center gap-2 rounded-3xl bg-[#1d4ed8] px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       <ArrowUpCircle className="h-4 w-4" />
                       {claimAvailable ? 'Claim 24h Earnings' : `Claim again in ${claimRemainingMinutes}m`}
@@ -929,7 +929,7 @@ export default function Dashboard() {
                           <button
                             type="button"
                             onClick={handleCopyLink}
-                            className="inline-flex h-11 items-center justify-center rounded-3xl bg-[#7CBB15] px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-[#69a90d]"
+                            className="inline-flex h-11 items-center justify-center rounded-3xl bg-[#1d4ed8] px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-[#1d4ed8]"
                           >
                             {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                           </button>
@@ -971,7 +971,7 @@ export default function Dashboard() {
                         type="button"
                         onClick={() => setInvestTab(tab)}
                         className={`rounded-3xl px-5 py-3 text-sm font-bold transition ${
-                          investTab === tab ? 'bg-[#7CBB15] text-white shadow' : 'text-zinc-950 hover:bg-slate-100'
+                          investTab === tab ? 'bg-[#1d4ed8] text-white shadow' : 'text-zinc-950 hover:bg-slate-100'
                         }`}
                       >
                         {tab === 'USD' ? 'USD' : 'ETB'}
@@ -987,7 +987,7 @@ export default function Dashboard() {
                     return (
                       <div key={tier.id} className="rounded-[1.75rem] border border-gray-200 bg-white p-6 shadow-sm">
                         <div className="flex items-center justify-between gap-4">
-                          <div className="inline-flex h-14 w-14 items-center justify-center rounded-3xl bg-[#7CBB15]/10 text-[#7CBB15]">
+                          <div className="inline-flex h-14 w-14 items-center justify-center rounded-3xl bg-[#1d4ed8]/10 text-[#1d4ed8]">
                             <PremiumIcon className="h-7 w-7" />
                           </div>
                           <div className="rounded-3xl bg-black px-3 py-2 text-xs font-extrabold uppercase tracking-tight text-white">{badgeLabel(investTab)}</div>
@@ -998,15 +998,15 @@ export default function Dashboard() {
                             <h2 className="mt-2 text-lg font-semibold text-zinc-950 tracking-tight">{premiumName}</h2>
                           </div>
                           <div className="grid gap-2 sm:grid-cols-3">
-                            <div className="rounded-2xl bg-[#7CBB15] px-2 py-2 text-center">
+                            <div className="rounded-2xl bg-[#1d4ed8] px-2 py-2 text-center">
                               <p className="text-xs font-bold uppercase tracking-wide text-white">Days</p>
                               <p className="mt-1 text-base font-bold text-white">{tier.days}</p>
                             </div>
-                            <div className="rounded-2xl bg-[#7CBB15] px-2 py-2 text-center">
+                            <div className="rounded-2xl bg-[#1d4ed8] px-2 py-2 text-center">
                               <p className="text-xs font-bold uppercase tracking-wide text-white">Daily</p>
                               <p className="mt-1 text-base font-bold text-white">{formatCurrency(tier.dailyProfit, investTab)}</p>
                             </div>
-                            <div className="rounded-2xl bg-[#7CBB15] px-2 py-2 text-center">
+                            <div className="rounded-2xl bg-[#1d4ed8] px-2 py-2 text-center">
                               <p className="text-xs font-bold uppercase tracking-wide text-white">Bonus</p>
                               <p className="mt-1 text-base font-bold text-white">{formatCurrency(tier.bonus, investTab)}</p>
                             </div>
@@ -1015,7 +1015,7 @@ export default function Dashboard() {
                         <button
                           type="button"
                           onClick={() => handleInvest({ ...tier, currency: investTab })}
-                          className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-3xl bg-[#7CBB15] px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-[#6aa010]"
+                          className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-3xl bg-[#1d4ed8] px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-[#1e40af]"
                         >
                           Invest Now
                           <ArrowRight className="h-3 w-3" />
@@ -1040,7 +1040,7 @@ export default function Dashboard() {
                     <select
                       value={depositChannel}
                       onChange={(event) => setDepositChannel(event.target.value)}
-                      className="mt-3 w-full rounded-3xl border border-gray-200 bg-white px-4 py-3 text-zinc-950 font-bold focus:border-[#7CBB15] focus:outline-none focus:ring-2 focus:ring-[#7CBB15]/20"
+                      className="mt-3 w-full rounded-3xl border border-gray-200 bg-white px-4 py-3 text-zinc-950 font-bold focus:border-[#1d4ed8] focus:outline-none focus:ring-2 focus:ring-[#1d4ed8]/20"
                     >
                       <option value="merchant">Merchant</option>
                       <option value="personal">Personal</option>
@@ -1064,7 +1064,7 @@ export default function Dashboard() {
                                 <button
                                   type="button"
                                   onClick={() => handleCopyText('900675', 'Merchant id')}
-                                  className="inline-flex items-center justify-center rounded-3xl bg-[#7CBB15] px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-[#69a90d]"
+                                  className="inline-flex items-center justify-center rounded-3xl bg-[#1d4ed8] px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-[#1d4ed8]"
                                 >
                                   {copiedText === 'Merchant id' ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                                 </button>
@@ -1087,7 +1087,7 @@ export default function Dashboard() {
                                 <button
                                   type="button"
                                   onClick={() => handleCopyText('0993855459', 'Personal number')}
-                                  className="inline-flex items-center justify-center rounded-3xl bg-[#7CBB15] px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-[#69a90d]"
+                                  className="inline-flex items-center justify-center rounded-3xl bg-[#1d4ed8] px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-[#1d4ed8]"
                                 >
                                   {copiedText === 'Personal number' ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                                 </button>
@@ -1112,7 +1112,7 @@ export default function Dashboard() {
                               <button
                                 type="button"
                                 onClick={() => handleCopyText('TQjEAMhuezFdqKww9o5NWFBJhNKTgTpLMU', 'USDT address')}
-                                className="inline-flex items-center justify-center rounded-3xl bg-[#7CBB15] px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-[#69a90d]"
+                                className="inline-flex items-center justify-center rounded-3xl bg-[#1d4ed8] px-4 py-2 text-sm font-bold text-white shadow-sm transition hover:bg-[#1d4ed8]"
                               >
                                 {copiedText === 'USDT address' ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                               </button>
@@ -1146,7 +1146,7 @@ export default function Dashboard() {
                             if (depositError) setDepositError('')
                           }}
                           placeholder="e.g., DEU9H517C7"
-                          className="mt-2 w-full rounded-3xl border border-gray-200 bg-slate-50 px-4 py-3 text-zinc-950 focus:border-[#7CBB15] focus:outline-none focus:ring-2 focus:ring-[#7CBB15]/20"
+                          className="mt-2 w-full rounded-3xl border border-gray-200 bg-slate-50 px-4 py-3 text-zinc-950 focus:border-[#1d4ed8] focus:outline-none focus:ring-2 focus:ring-[#1d4ed8]/20"
                         />
                         {depositForm.transactionId && (
                           <p className={`mt-2 text-xs ${depositIdValid ? 'text-emerald-700' : 'text-red-600'}`}>
@@ -1168,7 +1168,7 @@ export default function Dashboard() {
                             setDepositIdValid(validateDepositTransactionId(depositForm.transactionId, newCurrency))
                           }}
                           onBlur={(event) => setDepositIdValid(validateDepositTransactionId(depositForm.transactionId, event.target.value))}
-                          className="mt-2 w-full rounded-3xl border border-gray-200 bg-slate-50 px-4 py-3 text-zinc-950 focus:border-[#7CBB15] focus:outline-none focus:ring-2 focus:ring-[#7CBB15]/20"
+                          className="mt-2 w-full rounded-3xl border border-gray-200 bg-slate-50 px-4 py-3 text-zinc-950 focus:border-[#1d4ed8] focus:outline-none focus:ring-2 focus:ring-[#1d4ed8]/20"
                         >
                           <option value="ETB">ETB (Birr)</option>
                           <option value="USDT">USDT (TRC20)</option>
@@ -1184,7 +1184,7 @@ export default function Dashboard() {
                           value={depositForm.amount}
                           onChange={(event) => setDepositForm((prev) => ({ ...prev, amount: event.target.value }))}
                           placeholder="Enter amount"
-                          className="mt-2 w-full rounded-3xl border border-gray-200 bg-slate-50 px-4 py-3 text-zinc-950 focus:border-[#7CBB15] focus:outline-none focus:ring-2 focus:ring-[#7CBB15]/20"
+                          className="mt-2 w-full rounded-3xl border border-gray-200 bg-slate-50 px-4 py-3 text-zinc-950 focus:border-[#1d4ed8] focus:outline-none focus:ring-2 focus:ring-[#1d4ed8]/20"
                         />
                       </div>
                       <div>
@@ -1210,7 +1210,7 @@ export default function Dashboard() {
                       <button
                         type="submit"
                         disabled={isVerifyingDeposit || depositWaiting}
-                        className="inline-flex w-full items-center justify-center gap-2 rounded-3xl bg-[#7CBB15] px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#69a90d] disabled:cursor-not-allowed disabled:opacity-60"
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-3xl bg-[#1d4ed8] px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         <CreditCard className="h-4 w-4" />
                         {isVerifyingDeposit ? 'Verifying Receipt...' : 'Submit Deposit Ticket'}
@@ -1250,7 +1250,7 @@ export default function Dashboard() {
                           value={withdrawName}
                           onChange={(event) => setWithdrawName(event.target.value)}
                           placeholder="Your full name"
-                          className="mt-2 w-full rounded-3xl border border-gray-200 bg-slate-50 px-4 py-3 text-zinc-950 focus:border-[#7CBB15] focus:outline-none focus:ring-2 focus:ring-[#7CBB15]/20"
+                          className="mt-2 w-full rounded-3xl border border-gray-200 bg-slate-50 px-4 py-3 text-zinc-950 focus:border-[#1d4ed8] focus:outline-none focus:ring-2 focus:ring-[#1d4ed8]/20"
                         />
                       </div>
                       <div>
@@ -1258,7 +1258,7 @@ export default function Dashboard() {
                         <select
                           value={withdrawMethod}
                           onChange={(event) => setWithdrawMethod(event.target.value)}
-                          className="mt-2 w-full rounded-3xl border border-gray-200 bg-slate-50 px-4 py-3 text-zinc-950 focus:border-[#7CBB15] focus:outline-none focus:ring-2 focus:ring-[#7CBB15]/20"
+                          className="mt-2 w-full rounded-3xl border border-gray-200 bg-slate-50 px-4 py-3 text-zinc-950 focus:border-[#1d4ed8] focus:outline-none focus:ring-2 focus:ring-[#1d4ed8]/20"
                         >
                           {withdrawMethods.map((method) => (
                             <option key={method} value={method}>{method}</option>
@@ -1272,7 +1272,7 @@ export default function Dashboard() {
                           value={withdrawAccount}
                           onChange={(event) => setWithdrawAccount(event.target.value)}
                           placeholder="Enter account or wallet address"
-                          className="mt-2 w-full rounded-3xl border border-gray-200 bg-slate-50 px-4 py-3 text-zinc-950 focus:border-[#7CBB15] focus:outline-none focus:ring-2 focus:ring-[#7CBB15]/20"
+                          className="mt-2 w-full rounded-3xl border border-gray-200 bg-slate-50 px-4 py-3 text-zinc-950 focus:border-[#1d4ed8] focus:outline-none focus:ring-2 focus:ring-[#1d4ed8]/20"
                         />
                       </div>
                       <div>
@@ -1284,12 +1284,12 @@ export default function Dashboard() {
                           value={withdrawAmount}
                           onChange={(event) => setWithdrawAmount(event.target.value)}
                           placeholder="Enter payout amount"
-                          className="mt-2 w-full rounded-3xl border border-gray-200 bg-slate-50 px-4 py-3 text-zinc-950 focus:border-[#7CBB15] focus:outline-none focus:ring-2 focus:ring-[#7CBB15]/20"
+                          className="mt-2 w-full rounded-3xl border border-gray-200 bg-slate-50 px-4 py-3 text-zinc-950 focus:border-[#1d4ed8] focus:outline-none focus:ring-2 focus:ring-[#1d4ed8]/20"
                         />
                       </div>
                       <button
                         type="submit"
-                        className="inline-flex w-full items-center justify-center gap-2 rounded-3xl bg-[#7CBB15] px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#69a90d]"
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-3xl bg-[#1d4ed8] px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#1d4ed8]"
                       >
                         <Wallet className="h-4 w-4" />
                         Request Cashout
@@ -1315,7 +1315,7 @@ export default function Dashboard() {
                         type="button"
                         onClick={() => setHistoryFilter(filter)}
                         className={`rounded-3xl px-4 py-3 text-sm font-bold transition ${
-                          historyFilter === filter ? 'bg-[#7CBB15] text-white shadow' : 'text-zinc-950 hover:bg-slate-100'
+                          historyFilter === filter ? 'bg-[#1d4ed8] text-white shadow' : 'text-zinc-950 hover:bg-slate-100'
                         }`}
                       >
                         {filter}
@@ -1343,17 +1343,17 @@ export default function Dashboard() {
                       ) : (
                         filteredHistory.map((item) => (
                           <tr key={item.id} className="hover:bg-slate-50">
-                            <td className="px-6 py-4 font-bold text-zinc-950">{item.type}</td>
-                            <td className="px-6 py-4 text-zinc-950">{item.title}</td>
-                            <td className="px-6 py-4 text-zinc-950">{formatCurrency(item.amount, item.currency)}</td>
-                            <td className="px-6 py-4">
+                            <td className="px-6 py-4 font-bold text-zinc-950" data-label="Type">{item.type}</td>
+                            <td className="px-6 py-4 text-zinc-950" data-label="Details">{item.title}</td>
+                            <td className="px-6 py-4 text-zinc-950" data-label="Amount">{formatCurrency(item.amount, item.currency)}</td>
+                            <td className="px-6 py-4" data-label="Status">
                               <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold uppercase tracking-tight ${
                                 item.status === 'Success' ? 'bg-emerald-100 text-emerald-700' : item.status === 'Active' ? 'bg-sky-100 text-sky-700' : 'bg-amber-100 text-amber-700'
                               }`}>
                                 {item.status}
                               </span>
                             </td>
-                            <td className="px-6 py-4 text-zinc-950">{new Date(item.date).toLocaleString()}</td>
+                            <td className="px-6 py-4 text-zinc-950" data-label="Date">{new Date(item.date).toLocaleString()}</td>
                           </tr>
                         ))
                       )}
@@ -1367,7 +1367,7 @@ export default function Dashboard() {
       </div>
 
       {toastMessage && (
-        <div className={`fixed bottom-6 right-6 z-50 rounded-3xl px-5 py-4 text-sm font-bold shadow-xl ${toastType === 'success' ? 'bg-[#7CBB15] text-white' : 'bg-rose-500 text-white'}`}>
+        <div className={`fixed bottom-6 right-6 z-50 rounded-3xl px-5 py-4 text-sm font-bold shadow-xl ${toastType === 'success' ? 'bg-[#1d4ed8] text-white' : 'bg-rose-500 text-white'}`}>
           {toastMessage}
         </div>
       )}

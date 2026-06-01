@@ -106,7 +106,7 @@ export default function Withdraw() {
                 step="0.01"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="mt-2 w-full rounded-3xl border border-gray-200 bg-slate-50 px-4 py-3 text-zinc-950 focus:border-[#7CBB15] focus:outline-none"
+                className="mt-2 w-full rounded-3xl border border-gray-200 bg-slate-50 px-4 py-3 text-zinc-950 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                 placeholder="Enter amount"
               />
             </div>
@@ -122,7 +122,7 @@ export default function Withdraw() {
                   if (m === 'USDT') setAccountValid(TRC20_REGEX.test(account.trim()))
                   else setAccountValid(TELEBIRR_ACCOUNT_REGEX.test(account.trim()))
                 }}
-                className="mt-2 w-full rounded-3xl border border-gray-200 bg-slate-50 px-4 py-3 text-zinc-950 focus:border-[#7CBB15] focus:outline-none"
+                className="mt-2 w-full rounded-3xl border border-gray-200 bg-slate-50 px-4 py-3 text-zinc-950 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
               >
                 <option>Telebirr</option>
                 <option>USDT</option>
@@ -143,7 +143,7 @@ export default function Withdraw() {
                     setAccountValid(TELEBIRR_ACCOUNT_REGEX.test(v))
                   }
                 }}
-                className="mt-2 w-full rounded-3xl border border-gray-200 bg-slate-50 px-4 py-3 text-zinc-950 focus:border-[#7CBB15] focus:outline-none"
+                className="mt-2 w-full rounded-3xl border border-gray-200 bg-slate-50 px-4 py-3 text-zinc-950 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                 placeholder="Recipient number or wallet address"
               />
               {!accountValid && (
@@ -154,7 +154,7 @@ export default function Withdraw() {
             <button
               type="submit"
               disabled={!accountValid || !amount || Number(amount) <= 0}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-3xl bg-[#7CBB15] px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#69a90d] disabled:opacity-60 disabled:cursor-not-allowed"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-3xl bg-blue-600 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed"
             >
               <Wallet className="h-4 w-4" />
               Submit Request
@@ -164,7 +164,7 @@ export default function Withdraw() {
       </div>
 
       {toast && (
-        <div className={`fixed bottom-6 right-6 z-50 rounded-3xl px-5 py-4 text-sm font-bold shadow-xl ${toastType === 'success' ? 'bg-[#7CBB15] text-white' : 'bg-rose-500 text-white'}`}>
+        <div className={`fixed bottom-6 right-6 z-50 rounded-3xl px-5 py-4 text-sm font-bold shadow-xl ${toastType === 'success' ? 'bg-blue-600 text-white' : 'bg-rose-500 text-white'}`}>
           {toast}
         </div>
       )}

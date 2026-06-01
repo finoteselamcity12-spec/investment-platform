@@ -261,11 +261,11 @@ export default function AdminDashboard() {
                   <tbody>
                     {users.map((user) => (
                       <tr key={user.id} className="border-b border-gray-100 hover:bg-slate-50">
-                        <td className="px-4 py-3 text-zinc-950">{user.fullName || user.email}</td>
-                        <td className="px-4 py-3 text-zinc-700">{user.email}</td>
-                        <td className="px-4 py-3 text-zinc-700">${(user.usdBalance || 0).toFixed(2)}</td>
-                        <td className="px-4 py-3 text-zinc-700">{(user.etbBalance || 0).toLocaleString()} Birr</td>
-                        <td className="px-4 py-3 text-center">
+                        <td className="px-4 py-3 text-zinc-950" data-label="Name">{user.fullName || user.email}</td>
+                        <td className="px-4 py-3 text-zinc-700" data-label="Email">{user.email}</td>
+                        <td className="px-4 py-3 text-zinc-700" data-label="USD Balance">${(user.usdBalance || 0).toFixed(2)}</td>
+                        <td className="px-4 py-3 text-zinc-700" data-label="ETB Balance">{(user.etbBalance || 0).toLocaleString()} Birr</td>
+                        <td className="px-4 py-3 text-center" data-label="Action">
                           <button
                             onClick={() => deleteUser(user.id)}
                             className="inline-flex items-center gap-1 rounded bg-red-600 px-3 py-1 text-xs font-bold text-white transition hover:bg-red-700"
@@ -301,17 +301,17 @@ export default function AdminDashboard() {
                 <tbody>
                   {deposits.map((deposit) => (
                     <tr key={deposit.id} className="border-b border-gray-100 hover:bg-slate-50">
-                      <td className="px-4 py-3 text-zinc-950">{deposit.userEmail}</td>
-                      <td className="px-4 py-3 text-zinc-950">
+                      <td className="px-4 py-3 text-zinc-950" data-label="User">{deposit.userEmail}</td>
+                      <td className="px-4 py-3 text-zinc-950" data-label="Amount">
                         {deposit.currency === 'USDT' ? `$${deposit.amount.toFixed(2)} USDT` : `${deposit.amount} Birr`}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3" data-label="Gateway">
                         <span className="inline-block rounded-full bg-slate-100 px-3 py-1 text-xs text-zinc-700">
                           {deposit.gateway === 'merchant' ? 'Merchant' : deposit.gateway === 'personal' ? 'Personal' : 'USDT'}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-zinc-700 font-mono text-xs">{deposit.transactionId}</td>
-                      <td className="px-4 py-3 text-center">
+                      <td className="px-4 py-3 text-zinc-700 font-mono text-xs" data-label="Transaction ID">{deposit.transactionId}</td>
+                      <td className="px-4 py-3 text-center" data-label="Receipt">
                         {deposit.receiptDataUrl ? (
                           <button
                             onClick={() => handleViewReceipt(deposit)}
@@ -329,7 +329,7 @@ export default function AdminDashboard() {
                           </button>
                         )}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3" data-label="Actions">
                         <div className="flex justify-center gap-2">
                           <button
                             onClick={() => handleApproveDeposit(deposit.id)}
@@ -375,13 +375,13 @@ export default function AdminDashboard() {
                 <tbody>
                   {withdrawalRequests.map((withdrawal, index) => (
                     <tr key={index} className="border-b border-gray-100 hover:bg-slate-50">
-                      <td className="px-4 py-3 text-zinc-950">{withdrawal.userName}</td>
-                      <td className="px-4 py-3 text-zinc-950">
+                      <td className="px-4 py-3 text-zinc-950" data-label="User">{withdrawal.userName}</td>
+                      <td className="px-4 py-3 text-zinc-950" data-label="Amount">
                         {withdrawal.currency === 'USD' ? `$${withdrawal.amount.toFixed(2)}` : `${withdrawal.amount} Birr`}
                       </td>
-                      <td className="px-4 py-3 text-zinc-700">{withdrawal.method}</td>
-                      <td className="px-4 py-3 text-zinc-700 font-mono text-xs">{withdrawal.account}</td>
-                      <td className="px-4 py-3 text-center">
+                      <td className="px-4 py-3 text-zinc-700" data-label="Method">{withdrawal.method}</td>
+                      <td className="px-4 py-3 text-zinc-700 font-mono text-xs" data-label="Account">{withdrawal.account}</td>
+                      <td className="px-4 py-3 text-center" data-label="Action">
                         <button
                           onClick={() => handleApprovePayout(withdrawal.id, index)}
                           className="inline-flex items-center gap-1 rounded bg-green-600 px-3 py-1 text-xs font-bold text-white transition hover:bg-green-700"
