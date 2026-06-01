@@ -1,6 +1,8 @@
 import { useMemo } from 'react'
 import { CheckCircle, Clock, AlertCircle } from 'lucide-react'
 
+const PRIMARY_BLUE = '#0066CC'
+
 export default function HistoryPage({ ctx }) {
   const { transactions, historyFilter, setHistoryFilter, historyFilters, formatCurrency } = ctx
 
@@ -22,25 +24,26 @@ export default function HistoryPage({ ctx }) {
   }
 
   return (
-    <div className="min-h-screen bg-white pb-20">
-      <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
+    <div className="bg-white pb-4">
+      <div className="space-y-5">
         {/* Header */}
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-600">Activity Log</p>
-          <h1 className="mt-2 text-3xl font-bold text-slate-950">Transaction History</h1>
+          <p className="text-xs font-semibold text-slate-500">Activity</p>
+          <h1 className="mt-1 text-2xl font-bold text-slate-950">Transaction History</h1>
         </div>
 
-        {/* Filter Tabs */}
-        <div className="flex gap-2 overflow-x-auto pb-2">
+        {/* Filter Tabs - Mobile Scroll */}
+        <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4">
           {historyFilters.map((filter) => (
             <button
               key={filter}
               onClick={() => setHistoryFilter(filter)}
-              className={`whitespace-nowrap px-4 py-2 rounded-full font-semibold transition-all text-sm ${
-                historyFilter === filter
-                  ? 'bg-[#84CC16] text-white shadow-lg shadow-[#84CC16]/30'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-              }`}
+              className={`whitespace-nowrap px-4 py-2 rounded-full font-semibold text-sm transition-all active:scale-95`}
+              style={{
+                backgroundColor: historyFilter === filter ? PRIMARY_BLUE : '#F3F4F6',
+                color: historyFilter === filter ? '#FFFFFF' : '#4B5563',
+                boxShadow: historyFilter === filter ? `0 2px 8px ${PRIMARY_BLUE}30` : 'none',
+              }}
             >
               {filter}
             </button>
@@ -53,30 +56,30 @@ export default function HistoryPage({ ctx }) {
             {filteredHistory.map((tx) => (
               <div
                 key={tx.id}
-                className="rounded-2xl border-2 border-slate-200 bg-white p-4 transition-all hover:border-[#84CC16]/50 hover:shadow-md"
+                className="rounded-2xl border border-slate-200 bg-slate-50 p-4 hover:shadow-md transition"
               >
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <p className="font-bold text-slate-950">{tx.title}</p>
-                    <p className="text-xs text-slate-500 mt-1">
-                      {new Date(tx.date).toLocaleDateString()} {new Date(tx.date).toLocaleTimeString()}
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <p className="font-bold text-slate-950 text-sm">{tx.title}</p>
+                    <p className="text-xs text-slate-500 mt-2">
+                      {new Date(tx.date).toLocaleDateString()} · {new Date(tx.date).toLocaleTimeString()}
                     </p>
                   </div>
-                  <div className="text-right">
-                    <p className="font-bold text-slate-950">
+                  <div className="text-right ml-2">
+                    <p className="font-bold text-slate-950 text-sm">
                       {formatCurrency(tx.amount, tx.currency)}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between mt-3 gap-2">
                   <div className="flex items-center gap-2">
                     {getStatusIcon(tx.status)}
-                    <span className={`text-xs font-semibold px-3 py-1 rounded-full ${getStatusColor(tx.status)}`}>
+                    <span className={`text-xs font-semibold px-2 py-1 rounded-full ${getStatusColor(tx.status)}`}>
                       {tx.status}
                     </span>
                   </div>
-                  <span className="text-xs font-semibold bg-slate-100 text-slate-700 px-3 py-1 rounded-full">
+                  <span className="text-xs font-semibold bg-white text-slate-600 px-3 py-1 rounded-full border border-slate-200">
                     {tx.type}
                   </span>
                 </div>
@@ -84,17 +87,17 @@ export default function HistoryPage({ ctx }) {
             ))}
           </div>
         ) : (
-          <div className="rounded-2xl border-2 border-slate-200 bg-slate-50 p-8 text-center">
-            <p className="text-lg font-semibold text-slate-600">No transactions yet</p>
-            <p className="text-sm text-slate-500 mt-2">Start by making a deposit or investment to see your transaction history here.</p>
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-8 text-center">
+            <p className="font-bold text-slate-600">No transactions</p>
+            <p className="text-xs text-slate-500 mt-2">Start depositing to see activity</p>
           </div>
         )}
 
         {/* Summary */}
         {filteredHistory.length > 0 && (
-          <div className="rounded-2xl border-2 border-slate-200 bg-white p-4 text-center">
-            <p className="text-sm font-semibold text-slate-600">
-              Showing {filteredHistory.length} transaction{filteredHistory.length !== 1 ? 's' : ''}
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-center">
+            <p className="text-xs font-semibold text-slate-600">
+              {filteredHistory.length} transaction{filteredHistory.length !== 1 ? 's' : ''}
             </p>
           </div>
         )}

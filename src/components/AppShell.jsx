@@ -13,7 +13,7 @@ import {
 import supabase from '../lib/supabase'
 import AdminLoginModal from './AdminLoginModal'
 
-const ACTIVE_GREEN = '#84CC16'
+const PRIMARY_BLUE = '#0066CC'
 
 // Premium tier naming
 const premiumTierNames = {
@@ -176,45 +176,53 @@ export default function AppShell({ children, activePage, setActivePage }) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 pb-28">
-      {/* Top Header */}
-      <div className="fixed top-0 inset-x-0 z-40 bg-white border-b border-slate-200 px-4 py-4 flex items-center justify-between shadow-sm">
+    <div className="min-h-screen bg-white text-slate-900 pb-32">
+      {/* Mobile-First Top Header - Clean & Minimal */}
+      <div className="fixed top-0 inset-x-0 z-40 bg-white border-b border-slate-100 px-4 py-4 flex items-center justify-between">
         <div>
-          <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Investment Platform</p>
-          <h1 className="text-2xl font-bold text-slate-950">Astra Wealth</h1>
+          <h1 className="text-lg font-bold text-slate-950">Investment Platform</h1>
+          <p className="text-xs text-slate-500 mt-0.5">Mobile Investment App</p>
         </div>
         <button
           onClick={() => setShowAdminLogin(true)}
-          className="w-10 h-10 rounded-full bg-[#84CC16] flex items-center justify-center text-white font-semibold text-sm shadow-lg shadow-[#84CC16]/30 transition hover:bg-lime-500"
+          className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm transition hover:scale-110 transform"
+          style={{
+            backgroundColor: PRIMARY_BLUE,
+            boxShadow: `0 4px 12px ${PRIMARY_BLUE}40`,
+          }}
         >
           {userFullName.charAt(0).toUpperCase()}
         </button>
       </div>
 
-      {/* Page Content */}
-      <div className="pt-24 px-4 pb-36">
+      {/* Page Content - Mobile optimized padding */}
+      <div className="pt-20 px-4 pb-24">
         {children(appContext)}
       </div>
 
-      {/* Bottom Navigation */}
-      <div className="fixed inset-x-0 bottom-0 z-50 bg-white border-t border-slate-200 px-3 py-3 shadow-xl">
-        <div className="mx-auto flex max-w-4xl items-center justify-between gap-2">
+      {/* Bottom Navigation - Mobile-First Design */}
+      <div className="fixed inset-x-0 bottom-0 z-50 bg-white border-t border-slate-100 px-2 py-2 shadow-2xl">
+        <div className="flex items-center justify-between gap-1 max-w-lg mx-auto">
           {navItems.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
               onClick={() => setActivePage(id)}
-              className={`relative flex-1 rounded-3xl border border-slate-200 px-3 py-3 text-center text-xs font-semibold transition-all ${
+              className={`relative flex-1 rounded-2xl px-2 py-3 text-center text-xs font-semibold transition-all ${
                 activePage === id
-                  ? 'bg-[#84CC16] text-white shadow-lg shadow-[#84CC16]/20'
-                  : 'bg-white text-slate-600 hover:bg-slate-100 hover:text-slate-950'
+                  ? 'text-white'
+                  : 'text-slate-600'
               }`}
+              style={{
+                backgroundColor: activePage === id ? PRIMARY_BLUE : '#F3F4F6',
+                boxShadow: activePage === id ? `0 4px 12px ${PRIMARY_BLUE}30` : 'none',
+              }}
             >
-              <Icon size={22} className="mx-auto mb-1" />
-              <span>{label}</span>
+              <Icon size={24} className="mx-auto mb-1" />
+              <span className="text-xs">{label}</span>
 
               {id === 'support' && (
                 <span
-                  className="absolute top-2 right-2 h-6 w-10 cursor-pointer opacity-0"
+                  className="absolute inset-0 cursor-pointer opacity-0"
                   onClick={(e) => {
                     e.stopPropagation()
                     setShowAdminLogin(true)

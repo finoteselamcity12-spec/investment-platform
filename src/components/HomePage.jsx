@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { TrendingUp, Wallet, Gift, ArrowUpRight } from 'lucide-react'
 
+const PRIMARY_BLUE = '#0066CC'
+
 export default function HomePage({ ctx }) {
   const {
     usdBalance, etbBalance, myActiveInvestmentsList, marketData,
@@ -31,86 +33,115 @@ export default function HomePage({ ctx }) {
   }
 
   return (
-    <div className="min-h-screen bg-white pb-20">
-      <div className="max-w-5xl mx-auto px-4 py-6 space-y-8">
-        {/* Header */}
+    <div className="bg-white pb-4">
+      <div className="space-y-5">
+        {/* Header - Mobile-First Typography */}
         <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-600">Welcome Back</p>
-          <h1 className="mt-1 text-3xl font-bold text-slate-950">Smart Wealth Dashboard</h1>
+          <p className="text-xs font-semibold text-slate-500">Welcome back</p>
+          <h1 className="mt-1 text-2xl font-bold text-slate-950">Your Dashboard</h1>
         </div>
 
-        {/* Total Balance Card */}
-        <div className="rounded-3xl bg-gradient-to-br from-[#84CC16] to-lime-500 p-8 text-white shadow-lg shadow-[#84CC16]/30">
+        {/* Total Balance Card - Mobile optimized */}
+        <div
+          className="rounded-3xl p-6 text-white shadow-lg"
+          style={{
+            background: `linear-gradient(135deg, ${PRIMARY_BLUE}, #005BB3)`,
+            boxShadow: `0 8px 24px ${PRIMARY_BLUE}30`,
+          }}
+        >
           <p className="text-sm font-semibold opacity-90">Total Balance</p>
-          <p className="mt-3 text-5xl font-bold">${(usdBalance + etbBalance).toFixed(2)}</p>
-          <div className="mt-6 grid grid-cols-2 gap-4">
-            <div className="rounded-xl bg-white/20 p-3 backdrop-blur-sm">
-              <p className="text-xs font-semibold opacity-80">USD Wallet</p>
-              <p className="mt-1 text-xl font-bold">${usdBalance.toFixed(2)}</p>
+          <p className="mt-3 text-4xl font-bold tracking-tight">
+            ${(usdBalance + etbBalance).toFixed(2)}
+          </p>
+          <div className="mt-6 grid grid-cols-2 gap-3">
+            <div className="rounded-2xl bg-white/15 p-3 backdrop-blur">
+              <p className="text-xs font-semibold opacity-80">USD</p>
+              <p className="mt-2 text-lg font-bold">${usdBalance.toFixed(2)}</p>
             </div>
-            <div className="rounded-xl bg-white/20 p-3 backdrop-blur-sm">
-              <p className="text-xs font-semibold opacity-80">ETB Wallet</p>
-              <p className="mt-1 text-xl font-bold">{etbBalance.toLocaleString()} Br</p>
+            <div className="rounded-2xl bg-white/15 p-3 backdrop-blur">
+              <p className="text-xs font-semibold opacity-80">ETB</p>
+              <p className="mt-2 text-lg font-bold">{etbBalance.toLocaleString()} Br</p>
             </div>
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+        {/* Action Buttons - Large & Thumb-Friendly */}
+        <div className="grid grid-cols-2 gap-3">
           <button
             onClick={() => setActivePage?.('deposit')}
-            className="rounded-2xl bg-[#84CC16] px-4 py-4 font-bold text-white shadow-lg shadow-[#84CC16]/30 transition-all hover:bg-lime-500 flex flex-col items-center gap-2"
+            className="rounded-2xl bg-slate-100 px-4 py-5 font-bold text-slate-950 active:scale-95 transition"
+            style={{
+              borderLeft: `4px solid ${PRIMARY_BLUE}`,
+            }}
           >
-            <Wallet size={24} />
-            <span>Deposit</span>
+            <Wallet size={28} className="mx-auto mb-2" style={{ color: PRIMARY_BLUE }} />
+            <span className="text-sm">Deposit</span>
           </button>
           <button
             onClick={() => setActivePage?.('invest')}
-            className="rounded-2xl bg-[#84CC16] px-4 py-4 font-bold text-white shadow-lg shadow-[#84CC16]/30 transition-all hover:bg-lime-500 flex flex-col items-center gap-2"
+            className="rounded-2xl bg-slate-100 px-4 py-5 font-bold text-slate-950 active:scale-95 transition"
+            style={{
+              borderLeft: `4px solid ${PRIMARY_BLUE}`,
+            }}
           >
-            <TrendingUp size={24} />
-            <span>Invest</span>
+            <TrendingUp size={28} className="mx-auto mb-2" style={{ color: PRIMARY_BLUE }} />
+            <span className="text-sm">Invest</span>
           </button>
           <button
             onClick={() => setActivePage?.('history')}
-            className="rounded-2xl border-2 border-[#84CC16] bg-white px-4 py-4 font-bold text-[#84CC16] transition-all hover:bg-[#84CC16] hover:text-white flex flex-col items-center gap-2 col-span-2 md:col-span-1"
+            className="rounded-2xl bg-slate-100 px-4 py-5 font-bold text-slate-950 active:scale-95 transition"
+            style={{
+              borderLeft: `4px solid ${PRIMARY_BLUE}`,
+            }}
           >
-            <ArrowUpRight size={24} />
-            <span>History</span>
+            <ArrowUpRight size={28} className="mx-auto mb-2" style={{ color: PRIMARY_BLUE }} />
+            <span className="text-sm">History</span>
+          </button>
+          <button
+            onClick={() => setActivePage?.('support')}
+            className="rounded-2xl bg-slate-100 px-4 py-5 font-bold text-slate-950 active:scale-95 transition"
+            style={{
+              borderLeft: `4px solid ${PRIMARY_BLUE}`,
+            }}
+          >
+            <Gift size={28} className="mx-auto mb-2" style={{ color: PRIMARY_BLUE }} />
+            <span className="text-sm">Support</span>
           </button>
         </div>
 
-        {/* Daily Profit Card */}
-        <div className="rounded-2xl border-2 border-slate-200 bg-white p-6">
+        {/* Daily Profit & Claim */}
+        <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-semibold text-slate-600">Daily Profit</p>
-              <p className="mt-2 text-3xl font-bold text-slate-950">${(usdDailyReward + etbDailyReward).toFixed(2)}</p>
-              <p className="mt-1 text-xs text-slate-500">From active investments</p>
+              <p className="text-xs font-semibold text-slate-600">Daily Profit</p>
+              <p className="mt-2 text-3xl font-bold text-slate-950">
+                ${(usdDailyReward + etbDailyReward).toFixed(2)}
+              </p>
+              <p className="mt-1 text-xs text-slate-500">From your investments</p>
             </div>
-            <button
-              onClick={handleClaimRewards}
-              disabled={!claimAvailable}
-              className={`rounded-full px-6 py-3 font-bold transition-all ${
-                claimAvailable
-                  ? 'bg-[#84CC16] text-white shadow-lg shadow-[#84CC16]/30 hover:bg-lime-500'
-                  : 'bg-slate-200 text-slate-500 cursor-not-allowed'
-              }`}
-            >
-              {claimAvailable ? '🎁 Claim' : `${claimRemainingHours}h`}
-            </button>
           </div>
+          <button
+            onClick={handleClaimRewards}
+            disabled={!claimAvailable}
+            className="w-full mt-4 rounded-2xl px-4 py-3 font-bold text-white active:scale-95 transition disabled:opacity-60"
+            style={{
+              backgroundColor: claimAvailable ? PRIMARY_BLUE : '#CBD5E1',
+              boxShadow: claimAvailable ? `0 4px 12px ${PRIMARY_BLUE}30` : 'none',
+            }}
+          >
+            {claimAvailable ? '🎁 Claim Daily Reward' : `Available in ${claimRemainingHours}h`}
+          </button>
         </div>
 
         {/* Quick Stats */}
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="rounded-2xl border-2 border-slate-200 bg-white p-6">
-            <p className="text-sm font-semibold text-slate-600">Active Investments</p>
-            <p className="mt-3 text-3xl font-bold text-slate-950">{myActiveInvestmentsList.length}</p>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <p className="text-xs font-semibold text-slate-600">Active Plans</p>
+            <p className="mt-2 text-3xl font-bold text-slate-950">{myActiveInvestmentsList.length}</p>
           </div>
-          <div className="rounded-2xl border-2 border-slate-200 bg-white p-6">
-            <p className="text-sm font-semibold text-slate-600">Total Invested</p>
-            <p className="mt-3 text-3xl font-bold text-slate-950">
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+            <p className="text-xs font-semibold text-slate-600">Total Invested</p>
+            <p className="mt-2 text-2xl font-bold text-slate-950">
               ${myActiveInvestmentsList
                 .filter((i) => i.currency === 'USD')
                 .reduce((sum, i) => sum + i.amount, 0)
@@ -122,18 +153,15 @@ export default function HomePage({ ctx }) {
         {/* Market Overview */}
         {marketData && marketData.length > 0 && (
           <div>
-            <h2 className="mb-4 text-xl font-bold text-slate-950">Market Overview</h2>
-            <div className="grid gap-3 md:grid-cols-3">
+            <h2 className="mb-3 text-lg font-bold text-slate-950">Market Watch</h2>
+            <div className="space-y-3">
               {marketData.map((asset, idx) => (
-                <div key={idx} className="rounded-2xl border-2 border-slate-200 bg-white p-4">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="font-bold text-slate-950">{asset.title}</p>
-                      <p className="text-xs text-slate-600">{asset.symbol}</p>
-                    </div>
-                    <TrendingUp className="h-5 w-5 text-[#84CC16]" />
+                <div key={idx} className="rounded-2xl border border-slate-200 bg-slate-50 p-4 flex items-center justify-between">
+                  <div>
+                    <p className="font-bold text-slate-950">{asset.symbol}</p>
+                    <p className="text-xs text-slate-500 mt-1">{asset.title}</p>
                   </div>
-                  <div className="mt-3">
+                  <div className="text-right">
                     <p className="font-bold text-slate-950">{asset.price}</p>
                     <p className={`text-sm font-semibold ${asset.trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
                       {asset.change}

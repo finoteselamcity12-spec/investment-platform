@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { TrendingUp, Clock, Gift, Star, ArrowRight } from 'lucide-react'
 
+const PRIMARY_BLUE = '#0066CC'
+
 export default function InvestPage({ ctx }) {
   const {
     usdBalance, etbBalance, myActiveInvestmentsList, setMyActiveInvestmentsList,
@@ -67,147 +69,131 @@ export default function InvestPage({ ctx }) {
     showToast(`Investment of ${formatCurrency(tier.amount, selectedCurrency)} started!`, 'success')
   }
 
-  const tierColors = {
-    bronze: { bg: 'from-amber-50 to-orange-50', border: 'border-amber-200', icon: 'text-amber-600', button: 'bg-amber-600 hover:bg-amber-700' },
-    silver: { bg: 'from-slate-50 to-gray-50', border: 'border-slate-300', icon: 'text-slate-600', button: 'bg-slate-700 hover:bg-slate-800' },
-    gold: { bg: 'from-yellow-50 to-amber-50', border: 'border-yellow-300', icon: 'text-yellow-600', button: 'bg-yellow-600 hover:bg-yellow-700' },
-    platinum: { bg: 'from-cyan-50 to-blue-50', border: 'border-cyan-300', icon: 'text-cyan-600', button: 'bg-cyan-600 hover:bg-cyan-700' },
-    green: { bg: 'from-green-50 to-emerald-50', border: 'border-green-300', icon: 'text-green-600', button: 'bg-[#84CC16] hover:bg-lime-500' },
-  }
-
-  const getTierColor = (amount) => {
-    if (amount <= 50 || amount <= 350) return tierColors.bronze
-    if (amount <= 110 || amount <= 5000) return tierColors.silver
-    if (amount <= 200 || amount <= 10000) return tierColors.gold
-    if (amount <= 500 || amount <= 20000) return tierColors.platinum
-    return tierColors.green
-  }
-
   return (
-    <div className="min-h-screen bg-white pb-20">
-      <div className="max-w-5xl mx-auto px-4 py-6">
+    <div className="bg-white pb-4">
+      <div className="space-y-5">
         {/* Header */}
-        <div className="mb-8">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-[#84CC16]">Investment Plans</p>
-          <h1 className="mt-2 text-4xl font-bold text-slate-950">Choose Your Plan</h1>
-          <p className="mt-2 text-slate-600">Select an investment plan and start earning consistent returns daily.</p>
+        <div>
+          <p className="text-xs font-semibold text-slate-500">Investment Plans</p>
+          <h1 className="mt-1 text-2xl font-bold text-slate-950">Choose Your Plan</h1>
         </div>
 
         {/* Currency Toggle */}
-        <div className="mb-8 flex gap-3">
+        <div className="flex gap-2 bg-slate-100 p-1 rounded-2xl">
           {['USD', 'ETB'].map((currency) => (
             <button
               key={currency}
               onClick={() => setSelectedCurrency(currency)}
-              className={`px-6 py-3 rounded-full font-semibold transition-all ${
+              className={`flex-1 px-4 py-2 rounded-xl font-semibold text-sm transition-all ${
                 selectedCurrency === currency
-                  ? 'bg-[#84CC16] text-white shadow-lg shadow-[#84CC16]/30'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                  ? 'text-white shadow-md'
+                  : 'text-slate-600'
               }`}
+              style={{
+                backgroundColor: selectedCurrency === currency ? PRIMARY_BLUE : 'transparent',
+                boxShadow: selectedCurrency === currency ? `0 2px 8px ${PRIMARY_BLUE}30` : 'none',
+              }}
             >
-              {currency === 'USD' ? 'US Dollar ($)' : 'Ethiopian Birr (Br)'}
+              {currency === 'USD' ? '$ USD' : 'Br ETB'}
             </button>
           ))}
         </div>
 
         {/* Current Balance */}
-        <div className="mb-8 rounded-3xl bg-gradient-to-r from-[#84CC16] to-lime-500 p-6 text-white shadow-lg shadow-[#84CC16]/30">
+        <div
+          className="rounded-3xl p-6 text-white shadow-lg"
+          style={{
+            background: `linear-gradient(135deg, ${PRIMARY_BLUE}, #005BB3)`,
+            boxShadow: `0 8px 24px ${PRIMARY_BLUE}30`,
+          }}
+        >
           <p className="text-sm font-semibold opacity-90">Available Balance</p>
-          <p className="mt-2 text-3xl font-bold">
+          <p className="mt-2 text-4xl font-bold tracking-tight">
             {selectedCurrency === 'USD' ? `$${balance.toFixed(2)}` : `${balance.toLocaleString()} Br`}
           </p>
         </div>
 
-        {/* Investment Tiers Grid */}
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {tiers.map((tier) => {
-            const colors = getTierColor(tier.amount)
-            return (
-              <div
-                key={tier.id}
-                className={`rounded-2xl border-2 ${colors.border} bg-gradient-to-br ${colors.bg} p-6 shadow-md transition-all hover:shadow-xl`}
-              >
-                {/* Tier Header */}
-                <div className="mb-4 flex items-start justify-between">
-                  <div>
-                    <p className={`text-3xl font-bold ${colors.icon}`}>
-                      {selectedCurrency === 'USD' ? `$${tier.amount}` : `${tier.amount.toLocaleString()}`}
-                    </p>
-                    <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-slate-600">
-                      {premiumTierNames[tier.amount] || 'Plan'}
-                    </p>
-                  </div>
-                  <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${colors.icon} bg-opacity-10`}>
-                    <TrendingUp size={24} />
-                  </div>
+        {/* Investment Tiers */}
+        <div className="space-y-4">
+          {tiers.map((tier, idx) => (
+            <div
+              key={tier.id}
+              className="rounded-3xl border border-slate-200 bg-slate-50 p-5 shadow-sm hover:shadow-md transition"
+            >
+              {/* Tier Header */}
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <p
+                    className="text-2xl font-bold"
+                    style={{ color: PRIMARY_BLUE }}
+                  >
+                    {selectedCurrency === 'USD' ? `$${tier.amount}` : `${tier.amount.toLocaleString()}`}
+                  </p>
+                  <p className="text-xs text-slate-500 mt-1 font-semibold">
+                    {premiumTierNames[tier.amount] || 'Investment Plan'}
+                  </p>
+                </div>
+                <div
+                  className="flex h-12 w-12 items-center justify-center rounded-2xl text-white"
+                  style={{
+                    backgroundColor: `${PRIMARY_BLUE}20`,
+                    color: PRIMARY_BLUE,
+                  }}
+                >
+                  <TrendingUp size={24} />
+                </div>
+              </div>
+
+              {/* Tier Details - Grid Layout */}
+              <div className="grid grid-cols-3 gap-2 mb-5 p-3 bg-white rounded-2xl border border-slate-200">
+                {/* Days */}
+                <div className="text-center">
+                  <Clock size={16} className="mx-auto mb-1" style={{ color: PRIMARY_BLUE }} />
+                  <p className="text-xs text-slate-500 font-semibold">Days</p>
+                  <p className="font-bold text-sm text-slate-950">{tier.days}</p>
                 </div>
 
-                {/* Tier Details */}
-                <div className="mb-6 space-y-3 border-t border-slate-200 pt-4">
-                  {/* Duration */}
-                  <div className="flex items-center gap-3">
-                    <Clock className={`h-5 w-5 ${colors.icon}`} />
-                    <div>
-                      <p className="text-xs text-slate-500">Duration</p>
-                      <p className="font-bold text-slate-900">{tier.days} Days</p>
-                    </div>
-                  </div>
-
-                  {/* Daily Earnings */}
-                  <div className="flex items-center gap-3">
-                    <Gift className={`h-5 w-5 ${colors.icon}`} />
-                    <div>
-                      <p className="text-xs text-slate-500">Daily Earnings</p>
-                      <p className="font-bold text-slate-900">
-                        {selectedCurrency === 'USD' ? `$${tier.dailyProfit.toFixed(2)}` : `${tier.dailyProfit.toLocaleString()} Br`}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Bonus */}
-                  <div className="flex items-center gap-3">
-                    <Star className={`h-5 w-5 ${colors.icon}`} />
-                    <div>
-                      <p className="text-xs text-slate-500">Bonus Reward</p>
-                      <p className="font-bold text-slate-900">
-                        {selectedCurrency === 'USD' ? `$${tier.bonus.toFixed(2)}` : `${tier.bonus.toLocaleString()} Br`}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Total Return */}
-                <div className="mb-6 rounded-xl bg-slate-100 p-3 text-center">
-                  <p className="text-xs text-slate-600">Total Return (All Days)</p>
-                  <p className="text-lg font-bold text-slate-950">
-                    {selectedCurrency === 'USD'
-                      ? `$${(tier.dailyProfit * tier.days).toFixed(2)}`
-                      : `${(tier.dailyProfit * tier.days).toLocaleString()} Br`}
+                {/* Daily Earnings */}
+                <div className="text-center">
+                  <Gift size={16} className="mx-auto mb-1" style={{ color: PRIMARY_BLUE }} />
+                  <p className="text-xs text-slate-500 font-semibold">Daily</p>
+                  <p className="font-bold text-sm text-slate-950">
+                    {selectedCurrency === 'USD' ? `$${tier.dailyProfit.toFixed(1)}` : `${Math.round(tier.dailyProfit)} Br`}
                   </p>
                 </div>
 
-                {/* Invest Button */}
-                <button
-                  onClick={() => handleInvest(tier)}
-                  disabled={balance < tier.amount}
-                  className={`w-full rounded-full py-3 font-bold text-white transition-all flex items-center justify-center gap-2 ${
-                    balance < tier.amount
-                      ? 'bg-slate-300 cursor-not-allowed'
-                      : `${colors.button} shadow-lg`
-                  }`}
-                >
-                  Invest Now
-                  <ArrowRight size={18} />
-                </button>
+                {/* Total Return */}
+                <div className="text-center">
+                  <Star size={16} className="mx-auto mb-1" style={{ color: PRIMARY_BLUE }} />
+                  <p className="text-xs text-slate-500 font-semibold">Total</p>
+                  <p className="font-bold text-sm text-slate-950">
+                    {selectedCurrency === 'USD'
+                      ? `$${(tier.dailyProfit * tier.days).toFixed(0)}`
+                      : `${Math.round(tier.dailyProfit * tier.days)} Br`}
+                  </p>
+                </div>
               </div>
-            )
-          })}
+
+              {/* Invest Button */}
+              <button
+                onClick={() => handleInvest(tier)}
+                disabled={balance < tier.amount}
+                className="w-full rounded-2xl px-4 py-4 font-bold text-white active:scale-95 transition disabled:opacity-60"
+                style={{
+                  backgroundColor: balance < tier.amount ? '#CBD5E1' : PRIMARY_BLUE,
+                  boxShadow: balance >= tier.amount ? `0 4px 12px ${PRIMARY_BLUE}30` : 'none',
+                }}
+              >
+                {balance >= tier.amount ? 'Invest Now' : 'Insufficient Balance'}
+              </button>
+            </div>
+          ))}
         </div>
 
         {/* Info Banner */}
-        <div className="mt-12 rounded-2xl bg-blue-50 border border-blue-200 p-5">
-          <p className="text-sm text-blue-900">
-            <strong>✓ Secure & Transparent:</strong> All investments are protected and your daily earnings are calculated transparently. Withdraw anytime after your plan completes.
+        <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4">
+          <p className="text-xs text-blue-900 font-medium">
+            ✓ <strong>Secure:</strong> Daily returns guaranteed. Withdraw after completion.
           </p>
         </div>
       </div>
