@@ -6,7 +6,7 @@ const PRIMARY_GREEN = '#84CC16'
 export default function HomePage({ ctx }) {
   const {
     usdBalance, etbBalance, myActiveInvestmentsList, marketData,
-    showToast, claimTimestamp, claimCooldownMs, setActivePage, userFullName,
+    showToast, claimTimestamp, claimCooldownMs, setActivePage, setUsdBalance, setEtbBalance, setClaimTimestamp, userFullName,
   } = ctx
   const [profileImage, setProfileImage] = useState('')
   const [claimedBonuses, setClaimedBonuses] = useState([])
@@ -39,8 +39,30 @@ export default function HomePage({ ctx }) {
       showToast(`Claim available in ${claimRemainingHours} hours`, 'error')
       return
     }
-    showToast('Daily rewards claimed successfully!', 'success')
-    localStorage.setItem('lastClaimTimestamp', Date.now())
+
+    if (usdDailyReward === 0 && etbDailyReward === 0) {
+      showToast('No daily profit available to claim yet.', 'info')
+      return
+    }
+
+    const updatedUsdBalance = Number((usdBalance + usdDailyReward).toFixed(2))
+    const updatedEtbBalance = Math.round(etbBalance + etbDailyReward)
+    setUsdBalance(updatedUsdBalance)
+    setEtbBalance(updatedEtbBalance)
+
+    const userData = JSON.parse(localStorage.getItem('admin_user_data') || '{}')
+    const currentEmail = Object.keys(userData)[0]
+    if (currentEmail && userData[currentEmail]) {
+      userData[currentEmail].usdBalance = updatedUsdBalance
+      userData[currentEmail].etbBalance = updatedEtbBalance
+      localStorage.setItem('admin_user_data', JSON.stringify(userData))
+    }
+
+    const now = Date.now()
+    setClaimTimestamp(now)
+    localStorage.setItem('lastClaimTimestamp', now)
+
+    showToast('Daily profit claimed and added to your account.', 'success')
   }
 
   const handleClaimBonus = (depositId, bonusAmount) => {
@@ -74,7 +96,6 @@ export default function HomePage({ ctx }) {
         <div className="flex items-center justify-between gap-4">
           <div>
             <p className="text-xs font-semibold text-slate-500">Welcome back</p>
-            <h1 className="mt-1 text-3xl font-bold text-slate-950">{userFullName || 'Investor'}</h1>
           </div>
           {profileImage ? (
             <img
@@ -87,6 +108,10 @@ export default function HomePage({ ctx }) {
               <UserCircle size={32} />
             </div>
           )}
+        </div>
+
+        <div>
+          <h1 className="mt-4 text-3xl font-bold text-slate-950">{userFullName || 'Investor'}</h1>
         </div>
 
         {/* Total Balance Card - Mobile optimized */}
@@ -159,15 +184,17 @@ export default function HomePage({ ctx }) {
 
         {/* Daily Profit & Claim - Bigger font */}
         <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6">
-          <div className="flex items-center justify-between">
+          <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <p className="text-sm font-semibold text-slate-600">Daily Profit</p>
-              <p className="mt-3 text-4xl font-bold text-slate-950">
-                ${(usdDailyReward + etbDailyReward).toFixed(2)}
-              </p>
-              <p className="mt-2 text-sm text-slate-500">From your investments</p>
+              <p className="text-sm font-semibold text-slate-600">USD Daily Profit</p>
+              <p className="mt-2 text-3xl font-bold text-slate-950">${usdDailyReward.toFixed(2)}</p>
+            </div>
+            <div className="text-right sm:text-right">
+              <p className="text-sm font-semibold text-slate-600">ETB Daily Profit</p>
+              <p className="mt-2 text-3xl font-bold text-slate-950">{etbDailyReward.toFixed(0)} Br</p>
             </div>
           </div>
+          <p className="mt-4 text-sm text-slate-500">Claim your earnings once every 24 hours.</p>
           <button
             onClick={handleClaimRewards}
             disabled={!claimAvailable}
@@ -177,7 +204,7 @@ export default function HomePage({ ctx }) {
               boxShadow: claimAvailable ? `0 4px 12px ${PRIMARY_GREEN}30` : 'none',
             }}
           >
-            {claimAvailable ? '🎁 Claim Daily Reward' : `Available in ${claimRemainingHours}h`}
+            {claimAvailable ? '🎁 Claim Daily Profit' : `Available in ${claimRemainingHours}h`}
           </button>
         </div>
 

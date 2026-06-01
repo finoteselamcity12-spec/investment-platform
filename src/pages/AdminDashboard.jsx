@@ -272,7 +272,6 @@ export default function AdminDashboard() {
             </button>
           </form>
 
-          <p className="mt-4 text-center text-sm text-slate-500">Credentials: investment / 1q2w3e4r5t6y7@investment / 15610010</p>
         </div>
       </div>
     )

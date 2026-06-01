@@ -118,55 +118,55 @@ export default function InvestPage({ ctx }) {
           {tiers.map((tier, idx) => (
             <div
               key={tier.id}
-              className="rounded-3xl border border-slate-200 bg-slate-50 p-5 shadow-sm hover:shadow-md transition"
+              className="rounded-3xl border border-slate-200 bg-slate-50 p-7 shadow-lg hover:shadow-xl transition"
             >
               {/* Tier Header */}
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-5">
                 <div>
                   <p
-                    className="text-2xl font-bold"
+                    className="text-3xl font-bold"
                     style={{ color: PRIMARY_GREEN }}
                   >
                     {selectedCurrency === 'USD' ? `$${tier.amount}` : `${tier.amount.toLocaleString()}`}
                   </p>
-                  <p className="text-xs text-slate-500 mt-1 font-semibold">
+                  <p className="text-sm text-slate-500 mt-2 font-semibold">
                     {premiumTierNames[tier.amount] || 'Investment Plan'}
                   </p>
                 </div>
                 <div
-                  className="flex h-12 w-12 items-center justify-center rounded-2xl text-white"
+                  className="flex h-14 w-14 items-center justify-center rounded-3xl text-white"
                   style={{
                     backgroundColor: `${PRIMARY_GREEN}20`,
                     color: PRIMARY_GREEN,
                   }}
                 >
-                  <TrendingUp size={24} />
+                  <TrendingUp size={26} />
                 </div>
               </div>
 
               {/* Tier Details - Grid Layout */}
-              <div className="grid grid-cols-3 gap-2 mb-5 p-3 bg-white rounded-2xl border border-slate-200">
+              <div className="grid grid-cols-3 gap-4 mb-6 p-4 bg-white rounded-2xl border border-slate-200">
                 {/* Days */}
                 <div className="text-center">
-                  <Clock size={16} className="mx-auto mb-1" style={{ color: PRIMARY_GREEN }} />
-                  <p className="text-xs text-slate-500 font-semibold">Days</p>
-                  <p className="font-bold text-sm text-slate-950">{tier.days}</p>
+                  <Clock size={18} className="mx-auto mb-2" style={{ color: PRIMARY_GREEN }} />
+                  <p className="text-sm text-slate-500 font-semibold">Days</p>
+                  <p className="font-bold text-base text-slate-950">{tier.days}</p>
                 </div>
 
                 {/* Daily Earnings */}
                 <div className="text-center">
-                  <Gift size={16} className="mx-auto mb-1" style={{ color: PRIMARY_GREEN }} />
-                  <p className="text-xs text-slate-500 font-semibold">Daily</p>
-                  <p className="font-bold text-sm text-slate-950">
+                  <Gift size={18} className="mx-auto mb-2" style={{ color: PRIMARY_GREEN }} />
+                  <p className="text-sm text-slate-500 font-semibold">Daily</p>
+                  <p className="font-bold text-base text-slate-950">
                     {selectedCurrency === 'USD' ? `$${tier.dailyProfit.toFixed(1)}` : `${Math.round(tier.dailyProfit)} Br`}
                   </p>
                 </div>
 
                 {/* Total Return */}
                 <div className="text-center">
-                  <Star size={16} className="mx-auto mb-1" style={{ color: PRIMARY_GREEN }} />
-                  <p className="text-xs text-slate-500 font-semibold">Total</p>
-                  <p className="font-bold text-sm text-slate-950">
+                  <Star size={18} className="mx-auto mb-2" style={{ color: PRIMARY_GREEN }} />
+                  <p className="text-sm text-slate-500 font-semibold">Total</p>
+                  <p className="font-bold text-base text-slate-950">
                     {selectedCurrency === 'USD'
                       ? `$${(tier.dailyProfit * tier.days).toFixed(0)}`
                       : `${Math.round(tier.dailyProfit * tier.days)} Br`}
