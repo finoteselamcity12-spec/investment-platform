@@ -551,6 +551,20 @@
 			@apply p-3;
 		}
 	}
+
+	/* Auth Page Styles */
+	.auth-container {
+		background: white;
+		position: relative;
+	}
+
+	.auth-input-field {
+		font-family: inherit;
+	}
+
+	.auth-input-field::placeholder {
+		color: #9ca3af;
+	}
 }
 
 @layer utilities {
