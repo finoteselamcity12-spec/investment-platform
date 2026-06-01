@@ -483,6 +483,74 @@
 	.admin-panel {
 		@apply rounded-[1.75rem] bg-white/95 p-6 shadow-md border border-slate-200;
 	}
+
+	/* App Card Styles */
+	.app-card {
+		@apply rounded-xl border border-slate-800 bg-slate-900/50 p-4 transition-all;
+	}
+
+	.app-card:hover {
+		@apply border-sky-500/30;
+	}
+
+	/* Action Button Styles */
+	.app-action-btn {
+		@apply inline-flex items-center justify-center gap-2 rounded-lg font-semibold transition-all;
+	}
+
+	.app-action-primary {
+		@apply bg-gradient-to-r from-sky-600 to-blue-700 text-white hover:shadow-lg hover:shadow-sky-600/50;
+	}
+
+	.app-action-secondary {
+		@apply bg-slate-800 text-slate-100 hover:bg-slate-700 border border-slate-700;
+	}
+
+	/* Tab/Filter Button Styles */
+	.app-tab-btn {
+		@apply px-4 py-2 rounded-lg font-semibold transition-all text-sm whitespace-nowrap;
+	}
+
+	.app-tab-btn.active {
+		@apply bg-gradient-to-r from-sky-600 to-blue-700 text-white shadow-lg shadow-sky-600/50;
+	}
+
+	.app-tab-btn:not(.active) {
+		@apply bg-slate-800 text-slate-300 hover:bg-slate-700;
+	}
+
+	/* Status Badge Styles */
+	.app-status-pending {
+		@apply bg-yellow-900/30 text-yellow-300;
+	}
+
+	.app-status-completed {
+		@apply bg-green-900/30 text-green-300;
+	}
+
+	.app-status-failed {
+		@apply bg-red-900/30 text-red-300;
+	}
+
+	/* Form Input Styles */
+	.app-input {
+		@apply w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all;
+	}
+
+	.app-textarea {
+		@apply w-full bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 resize-none transition-all;
+	}
+
+	/* Responsive Grid */
+	@media (max-width: 768px) {
+		.app-grid-col-2 {
+			grid-template-columns: 1fr;
+		}
+
+		.app-card {
+			@apply p-3;
+		}
+	}
 }
 
 @layer utilities {
