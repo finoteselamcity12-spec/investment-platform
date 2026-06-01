@@ -713,9 +713,9 @@ export default function Dashboard() {
   ]
 
   return (
-    <div className="min-h-screen bg-slate-50 text-zinc-950">
+    <div className="min-h-screen dashboard-shell">
       <div className="mx-auto flex min-h-screen max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6 lg:flex-row lg:gap-8">
-          <aside className="hidden md:flex fixed left-0 top-0 h-screen w-[280px] max-w-full bg-white border-r border-gray-200 flex flex-col p-4">
+          <aside className="hidden md:flex fixed left-0 top-0 dashboard-sidebar flex flex-col p-5">
           <div className="flex flex-col h-full">
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-4">
@@ -732,8 +732,8 @@ export default function Dashboard() {
                   </div>
                 )}
                 <div>
-                  <p className="text-sm font-bold uppercase tracking-tight text-zinc-950">Account</p>
-                  <p className="mt-2 text-lg font-bold text-zinc-900">{userFullName || 'Account'}</p>
+                  <p className="text-sm font-bold uppercase tracking-tight text-slate-100">Account</p>
+                  <p className="mt-2 text-lg font-bold text-slate-100">{userFullName || 'Account'}</p>
                 </div>
               </div>
               <div className="rounded-3xl bg-[#1d4ed8]/10 p-3 text-[#1d4ed8] shadow-sm">
@@ -749,11 +749,9 @@ export default function Dashboard() {
                     key={item.key}
                     type="button"
                     onClick={() => setActivePage(item.key)}
-                    className={`flex w-full items-center gap-3 rounded-3xl px-4 py-3 text-left text-sm font-bold transition ${
-                      activePage === item.key ? 'bg-[#1d4ed8] text-white shadow' : 'bg-slate-50 text-zinc-950 hover:bg-slate-100'
-                    }`}
+                    className={`dashboard-sidebar-button ${activePage === item.key ? 'active' : ''}`}
                   >
-                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-3xl bg-slate-100 text-[#1d4ed8]">
+                    <span className="dashboard-sidebar-icon">
                       <Icon className="h-5 w-5" />
                     </span>
                     {item.label}
@@ -762,12 +760,12 @@ export default function Dashboard() {
               })}
             </nav>
 
-            <div className="mt-auto space-y-2 pt-4 border-t border-gray-100">
+            <div className="mt-auto space-y-2 pt-4 border-t border-slate-800">
               <a
                 href="https://t.me/investment_platform_3"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-sky-500 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-600"
+                className="dashboard-sidebar-action"
               >
                 Support
               </a>
@@ -775,7 +773,7 @@ export default function Dashboard() {
               <button
                 type="button"
                 onClick={handleSignOut}
-                className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#1d4ed8] px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1e40af]"
+                className="dashboard-sidebar-action"
               >
                 Sign Out
               </button>
@@ -783,7 +781,7 @@ export default function Dashboard() {
               <button
                 type="button"
                 onClick={() => setShowAdminLogin(true)}
-                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-zinc-600 transition hover:bg-slate-50"
+                className="dashboard-sidebar-secondary"
               >
                 Admin Operator
               </button>
@@ -791,31 +789,31 @@ export default function Dashboard() {
           </div>
         </aside>
 
-        <main className="flex-1 md:ml-[280px]">
+        <main className="dashboard-main-panel">
           <div className="space-y-6">
             <div className="md:hidden">
-              <div className="mb-4 flex items-center justify-between gap-3 rounded-[2rem] border border-gray-200 bg-white p-4 shadow-sm">
+              <div className="dashboard-mobile-header">
                 <button
                   type="button"
                   onClick={() => setIsMobileMenuOpen((prev) => !prev)}
-                  className="inline-flex h-11 min-w-[3rem] items-center justify-center rounded-3xl bg-[#1d4ed8] px-4 text-sm font-bold text-white shadow-sm transition hover:bg-[#1d4ed8]"
+                  className="dashboard-mobile-toggle"
                 >
                   <Menu className="h-5 w-5" />
                 </button>
                 <div className="text-center">
-                  <p className="text-xs uppercase tracking-tight text-zinc-950">Dashboard</p>
-                  <p className="mt-1 text-base font-bold text-zinc-950">{userFullName || 'Account'}</p>
+                  <p className="text-xs uppercase tracking-tight text-slate-400">Dashboard</p>
+                  <p className="mt-1 text-base font-bold text-white">{userFullName || 'Account'}</p>
                 </div>
                 <button
                   type="button"
                   onClick={handleSignOut}
-                  className="inline-flex h-11 items-center justify-center rounded-3xl bg-slate-100 px-4 text-sm font-bold text-zinc-950 transition hover:bg-slate-200"
+                  className="dashboard-mobile-signout"
                 >
                   Sign Out
                 </button>
               </div>
               {isMobileMenuOpen && (
-                <div className="mb-4 rounded-[2rem] border border-gray-200 bg-white p-4 shadow-sm">
+                <div className="dashboard-mobile-menu">
                   <div className="grid gap-2">
                     {pageCards.map((item) => {
                       const Icon = item.icon
@@ -827,12 +825,10 @@ export default function Dashboard() {
                             setActivePage(item.key)
                             setIsMobileMenuOpen(false)
                           }}
-                          className={`w-full rounded-3xl px-4 py-3 text-left text-sm font-bold transition ${
-                            activePage === item.key ? 'bg-[#1d4ed8] text-white shadow' : 'bg-slate-50 text-zinc-950 hover:bg-slate-100'
-                          }`}
+                          className={`dashboard-mobile-menu-button ${activePage === item.key ? 'active' : ''}`}
                         >
                           <div className="flex items-center gap-3">
-                            <span className="inline-flex h-10 w-10 items-center justify-center rounded-3xl bg-slate-100 text-[#1d4ed8]">
+                            <span className="dashboard-sidebar-icon">
                               <Icon className="h-5 w-5" />
                             </span>
                             {item.label}
@@ -851,9 +847,9 @@ export default function Dashboard() {
                     <p className="text-sm uppercase tracking-tight text-slate-300">Main overview</p>
                     <h1 className="mt-2 text-2xl font-bold text-white">Dashboard & Daily Earnings</h1>
                   </div>
-                  <div className="rounded-3xl bg-[#1d4ed8]/10 p-4 text-white shadow-sm sm:text-right">
-                    <p className="text-xs uppercase tracking-tight text-zinc-950">24h Earnings Pool</p>
-                    <p className="mt-2 text-xl font-bold text-zinc-950">{`${formatCurrency(usdDailyReward, 'USD')} + ${formatCurrency(etbDailyReward, 'ETB')}`}</p>
+                  <div className="dashboard-page-header-card sm:text-right">
+                    <p className="text-xs uppercase tracking-tight text-slate-400">24h Earnings Pool</p>
+                    <p className="mt-2 text-xl font-bold text-white">{`${formatCurrency(usdDailyReward, 'USD')} + ${formatCurrency(etbDailyReward, 'ETB')}`}</p>
                   </div>
                 </div>
 
@@ -1308,15 +1304,13 @@ export default function Dashboard() {
                     <h1 className="mt-2 text-2xl font-bold text-white">All records & payouts</h1>
                     <p className="mt-3 max-w-2xl text-sm text-slate-300">Filter deposits, withdrawals, investments and claims with clear status badges.</p>
                   </div>
-                  <div className="inline-flex rounded-3xl bg-slate-50 p-2">
+                  <div className="dashboard-switch-group">
                     {historyFilters.map((filter) => (
                       <button
                         key={filter}
                         type="button"
                         onClick={() => setHistoryFilter(filter)}
-                        className={`rounded-3xl px-4 py-3 text-sm font-bold transition ${
-                          historyFilter === filter ? 'bg-[#1d4ed8] text-white shadow' : 'text-zinc-950 hover:bg-slate-100'
-                        }`}
+                        className={`dashboard-filter-button ${historyFilter === filter ? 'active' : ''}`}
                       >
                         {filter}
                       </button>
@@ -1324,36 +1318,36 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                <div className="card-panel-compact overflow-hidden">
-                  <table className="table-minimal responsive-table min-w-full text-left text-sm">
-                    <thead className="bg-slate-50">
+                <div className="card-panel-compact overflow-hidden bg-slate-950/95 border border-slate-800">
+                  <table className="dashboard-table responsive-table">
+                    <thead>
                       <tr>
-                        <th className="px-6 py-4 font-bold text-zinc-950">Type</th>
-                        <th className="px-6 py-4 font-bold text-zinc-950">Details</th>
-                        <th className="px-6 py-4 font-bold text-zinc-950">Amount</th>
-                        <th className="px-6 py-4 font-bold text-zinc-950">Status</th>
-                        <th className="px-6 py-4 font-bold text-zinc-950">Date</th>
+                        <th>Type</th>
+                        <th>Details</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Date</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-200 bg-white">
+                    <tbody>
                       {filteredHistory.length === 0 ? (
-                        <tr>
-                          <td colSpan="5" className="px-6 py-8 text-center text-sm text-zinc-950">No transactions match this filter.</td>
+                        <tr className="dashboard-table-row">
+                          <td colSpan="5" className="dashboard-table-cell dashboard-table-empty">No transactions match this filter.</td>
                         </tr>
                       ) : (
                         filteredHistory.map((item) => (
-                          <tr key={item.id} className="hover:bg-slate-50">
-                            <td className="px-6 py-4 font-bold text-zinc-950" data-label="Type">{item.type}</td>
-                            <td className="px-6 py-4 text-zinc-950" data-label="Details">{item.title}</td>
-                            <td className="px-6 py-4 text-zinc-950" data-label="Amount">{formatCurrency(item.amount, item.currency)}</td>
-                            <td className="px-6 py-4" data-label="Status">
-                              <span className={`inline-flex rounded-full px-3 py-1 text-xs font-bold uppercase tracking-tight ${
-                                item.status === 'Success' ? 'bg-emerald-100 text-emerald-700' : item.status === 'Active' ? 'bg-sky-100 text-sky-700' : 'bg-amber-100 text-amber-700'
+                          <tr key={item.id} className="dashboard-table-row">
+                            <td className="dashboard-table-cell font-bold" data-label="Type">{item.type}</td>
+                            <td className="dashboard-table-cell" data-label="Details">{item.title}</td>
+                            <td className="dashboard-table-cell" data-label="Amount">{formatCurrency(item.amount, item.currency)}</td>
+                            <td className="dashboard-table-cell" data-label="Status">
+                              <span className={`dashboard-status-pill ${
+                                item.status === 'Success' ? 'success' : item.status === 'Active' ? 'active' : 'pending'
                               }`}>
                                 {item.status}
                               </span>
                             </td>
-                            <td className="px-6 py-4 text-zinc-950" data-label="Date">{new Date(item.date).toLocaleString()}</td>
+                            <td className="dashboard-table-cell" data-label="Date">{new Date(item.date).toLocaleString()}</td>
                           </tr>
                         ))
                       )}
