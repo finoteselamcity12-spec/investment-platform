@@ -4,6 +4,11 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import supabase from '../lib/supabase'
 
 const initialForm = { fullName: '', email: '', password: '', confirmPassword: '' }
+const emailRegex = /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/
+
+function validateEmail(email) {
+  return emailRegex.test(String(email).trim())
+}
 
 export default function Auth() {
   const navigate = useNavigate()
@@ -20,12 +25,12 @@ export default function Auth() {
     if (isRegister) {
       return (
         form.fullName.trim().length > 1 &&
-        form.email.trim().length > 0 &&
+        validateEmail(form.email) &&
         form.password.length >= 8 &&
         form.password === form.confirmPassword
       )
     }
-    return form.email.trim().length > 0 && form.password.length >= 8
+    return validateEmail(form.email) && form.password.length >= 8
   }, [form, isRegister])
 
   useEffect(() => {
@@ -48,6 +53,11 @@ export default function Auth() {
 
   async function handleAuth(event) {
     event.preventDefault()
+    if (!validateEmail(form.email)) {
+      setMessage('Please enter a valid email address.')
+      return
+    }
+
     if (!canSubmit) {
       return setMessage('Please complete all fields correctly.')
     }
@@ -63,10 +73,10 @@ export default function Auth() {
         let signupError = null
         try {
           const { error } = await supabase.auth.signUp({
-            email: form.email,
+            email: form.email.trim(),
             password: form.password,
             options: {
-              data: { full_name: form.fullName },
+              data: { full_name: form.fullName.trim() },
             },
           })
           if (error) signupError = error
@@ -74,12 +84,22 @@ export default function Auth() {
           signupError = e
         }
 
+        if (signupError) {
+          const errorMessage = String(signupError.message || signupError || '')
+          if (errorMessage.toLowerCase().includes('already')) {
+            setMessage('Account already exists')
+          } else {
+            setMessage(errorMessage || 'Registration failed, please try again.')
+          }
+          return
+        }
+
         // Persist registration in localStorage so the app records new users (always save locally)
         const users = JSON.parse(localStorage.getItem('platform_registered_users_data') || '{}')
-        users[form.email] = {
+        users[form.email.trim()] = {
           userId,
-          fullName: form.fullName,
-          email: form.email,
+          fullName: form.fullName.trim(),
+          email: form.email.trim(),
           referredBy: referrerId || null,
           createdAt: new Date().toISOString(),
         }
@@ -87,18 +107,18 @@ export default function Auth() {
 
         // Also keep a simple list for counts used elsewhere (store emails)
         const registered = JSON.parse(localStorage.getItem('platform_registered_users') || '[]')
-        if (!registered.includes(form.email)) {
-          registered.push(form.email)
+        if (!registered.includes(form.email.trim())) {
+          registered.push(form.email.trim())
           localStorage.setItem('platform_registered_users', JSON.stringify(registered))
         }
 
         // Initialize user wallet record used by admin tools
         const userData = JSON.parse(localStorage.getItem('admin_user_data') || '{}')
-        if (!userData[form.email]) {
-          userData[form.email] = {
+        if (!userData[form.email.trim()]) {
+          userData[form.email.trim()] = {
             id: userId,
-            email: form.email,
-            fullName: form.fullName,
+            email: form.email.trim(),
+            fullName: form.fullName.trim(),
             usdBalance: 0,
             etbBalance: 0,
             bonusEligible: false,
@@ -106,34 +126,13 @@ export default function Auth() {
           }
           localStorage.setItem('admin_user_data', JSON.stringify(userData))
         } else {
-          // Ensure fullName and id are synced if missing
-          if (!userData[form.email].fullName) userData[form.email].fullName = form.fullName
-          if (!userData[form.email].id) userData[form.email].id = userId
+          if (!userData[form.email.trim()].fullName) userData[form.email.trim()].fullName = form.fullName.trim()
+          if (!userData[form.email.trim()].id) userData[form.email.trim()].id = userId
           localStorage.setItem('admin_user_data', JSON.stringify(userData))
         }
 
-        if (signupError) {
-          setMessage(`Account created locally, but sign-up returned an issue: ${signupError.message || signupError}. Please sign in manually.`)
-          setForm(initialForm)
-          setIsLogin(true)
-          navigate('/login')
-          return
-        }
-
-        // Attempt to sign the user in immediately after successful sign-up.
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email: form.email,
-          password: form.password,
-        })
-
-        if (!signInError) {
-          setMessage('Account created successfully. Logging you in now...')
-          setForm(initialForm)
-          navigate('/dashboard')
-          return
-        }
-
-        setMessage('Account created successfully. Please log in with your new credentials.')
+        alert('Registration Successful')
+        setMessage('Registration successful. Redirecting to login...')
         setForm(initialForm)
         setIsLogin(true)
         navigate('/login')
@@ -141,14 +140,18 @@ export default function Auth() {
       }
 
       const { error } = await supabase.auth.signInWithPassword({
-        email: form.email,
+        email: form.email.trim(),
         password: form.password,
       })
       if (error) throw error
       navigate('/dashboard')
     } catch (error) {
-      // Show a clear error alert if registration fails
-      setMessage(error?.message || 'Registration failed, please try again.')
+      const errorMessage = String(error?.message || error || '')
+      if (errorMessage.toLowerCase().includes('already')) {
+        setMessage('Account already exists')
+      } else {
+        setMessage(errorMessage || 'Registration failed, please try again.')
+      }
     } finally {
       setLoading(false)
     }
