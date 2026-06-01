@@ -7,6 +7,7 @@ import {
   ArrowUpCircle,
   Clock4,
   HelpCircle,
+  ShieldCheck,
   Copy,
   Check,
   Gift,
@@ -137,6 +138,7 @@ export default function AppShell({ children, activePage, setActivePage }) {
     { id: 'deposit', label: 'Deposit', icon: Wallet },
     { id: 'withdraw', label: 'Withdraw', icon: ArrowUpCircle },
     { id: 'support', label: 'Support', icon: HelpCircle },
+    { id: 'admin', label: 'Admin', icon: ShieldCheck },
   ]
 
   async function handleSignOut() {
@@ -180,21 +182,30 @@ export default function AppShell({ children, activePage, setActivePage }) {
   return (
     <div className="min-h-screen bg-white text-slate-900 pb-32">
       {/* Mobile-First Top Header - Clean & Minimal */}
-      <div className="fixed top-0 inset-x-0 z-40 bg-white border-b border-slate-100 px-4 py-4 flex items-center justify-between">
+      <div className="fixed top-0 inset-x-0 z-40 bg-white border-b border-slate-100 px-4 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-lg font-bold text-slate-950">Investment Platform</h1>
           <p className="text-xs text-slate-500 mt-0.5">Mobile Investment App</p>
         </div>
-        <button
-          onClick={() => setShowAdminLogin(true)}
-          className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm transition hover:scale-110 transform"
-          style={{
-            backgroundColor: PRIMARY_GREEN,
-            boxShadow: `0 4px 12px ${PRIMARY_GREEN}40`,
-          }}
-        >
-          {userFullName.charAt(0).toUpperCase()}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setActivePage('profile')}
+            className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-900 transition hover:border-slate-300"
+          >
+            Profile
+          </button>
+          <button
+            onClick={() => setShowAdminLogin(true)}
+            className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm transition hover:scale-110 transform"
+            style={{
+              backgroundColor: PRIMARY_GREEN,
+              boxShadow: `0 4px 12px ${PRIMARY_GREEN}40`,
+            }}
+            aria-label="Admin Access"
+          >
+            {userFullName.charAt(0).toUpperCase()}
+          </button>
+        </div>
       </div>
 
       {/* Page Content - Mobile optimized padding */}
@@ -208,7 +219,12 @@ export default function AppShell({ children, activePage, setActivePage }) {
           {navItems.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
-              onClick={() => setActivePage(id)}
+              onClick={() => {
+                setActivePage(id)
+                if (id === 'admin') {
+                  setShowAdminLogin(true)
+                }
+              }}
               className={`relative flex-1 rounded-2xl px-2 py-3 text-center text-xs font-semibold transition-all ${
                 activePage === id
                   ? 'text-white'
@@ -221,18 +237,6 @@ export default function AppShell({ children, activePage, setActivePage }) {
             >
               <Icon size={24} className="mx-auto mb-1" />
               <span className="text-xs">{label}</span>
-
-
-              {id === 'support' && (
-                <span
-                  className="absolute inset-0 cursor-pointer opacity-0"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setShowAdminLogin(true)
-                  }}
-                  aria-hidden="true"
-                />
-              )}
             </button>
           ))}
         </div>

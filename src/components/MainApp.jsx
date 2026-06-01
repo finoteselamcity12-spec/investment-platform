@@ -4,7 +4,9 @@ import HomePage from './HomePage'
 import InvestPage from './InvestPage'
 import DepositPage from './DepositPage'
 import HistoryPage from './HistoryPage'
-import SupportPage from './SupportPage'
+import Support from './Support'
+import Profile from './Profile'
+import AdminPanel from './AdminPanel'
 import Withdraw from '../pages/Withdraw'
 
 export default function MainApp() {
@@ -23,7 +25,11 @@ export default function MainApp() {
       case 'withdraw':
         return <Withdraw />
       case 'support':
-        return <SupportPage ctx={ctx} />
+        return <Support ctx={ctx} />
+      case 'profile':
+        return <Profile ctx={ctx} />
+      case 'admin':
+        return <AdminPanel />
       default:
         return <HomePage ctx={ctx} />
     }
