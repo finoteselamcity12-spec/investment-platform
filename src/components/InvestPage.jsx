@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react'
-import { TrendingUp } from 'lucide-react'
+import { TrendingUp, Sparkles, ShieldCheck } from 'lucide-react'
 
 export default function InvestPage({ ctx }) {
   const {
@@ -79,7 +79,7 @@ export default function InvestPage({ ctx }) {
             onClick={() => setSelectedCurrency(currency)}
             className={`flex-1 py-3 px-4 rounded-lg font-semibold transition-all ${
               selectedCurrency === currency
-                ? 'bg-gradient-to-r from-sky-600 to-blue-700 text-white shadow-lg shadow-sky-600/50'
+                ? 'bg-gradient-to-r from-emerald-500 to-lime-500 text-slate-950 shadow-lg shadow-emerald-500/30'
                 : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
             }`}
           >
@@ -102,18 +102,19 @@ export default function InvestPage({ ctx }) {
         {tiers.map((tier) => (
           <div
             key={tier.id}
-            className="app-card bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 hover:border-sky-500/50 p-5 rounded-xl transition-all hover:shadow-lg hover:shadow-slate-800"
-          >
-            <div className="flex items-start justify-between mb-3">
+            <div className="app-card bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 border border-slate-700 hover:border-emerald-500/40 p-5 rounded-3xl transition-all hover:shadow-2xl hover:shadow-emerald-500/20">
+            <div className="flex items-start justify-between mb-4 gap-4">
               <div>
-                <p className="font-bold text-lg text-white">
+                <p className="font-bold text-xl text-white">
                   {selectedCurrency === 'USD' ? `$${tier.amount}` : `${tier.amount.toLocaleString()} Br`}
                 </p>
-                <p className="text-sm text-slate-400">
+                <p className="text-sm uppercase tracking-[0.2em] text-slate-400 mt-1">
                   {premiumTierNames[tier.amount] || `Plan`}
                 </p>
               </div>
-              <TrendingUp className="text-green-500" size={24} />
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-300">
+                <ShieldCheck size={24} />
+              </div>
             </div>
 
             <div className="grid grid-cols-3 gap-2 mb-4">

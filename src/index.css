@@ -499,7 +499,7 @@
 	}
 
 	.app-action-primary {
-		@apply bg-gradient-to-r from-sky-600 to-blue-700 text-white hover:shadow-lg hover:shadow-sky-600/50;
+		@apply bg-gradient-to-r from-emerald-500 to-lime-500 text-slate-950 hover:shadow-lg hover:shadow-emerald-500/30;
 	}
 
 	.app-action-secondary {
@@ -512,7 +512,7 @@
 	}
 
 	.app-tab-btn.active {
-		@apply bg-gradient-to-r from-sky-600 to-blue-700 text-white shadow-lg shadow-sky-600/50;
+		@apply bg-gradient-to-r from-emerald-500 to-lime-500 text-slate-950 shadow-lg shadow-emerald-500/30;
 	}
 
 	.app-tab-btn:not(.active) {

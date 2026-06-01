@@ -46,10 +46,10 @@ export default function SupportPage({ ctx }) {
         
         <div className="space-y-4">
           {/* Email */}
-          <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-xl p-4 hover:border-sky-500/50 transition-all cursor-pointer">
+          <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-xl p-4 hover:border-emerald-500/50 transition-all cursor-pointer">
             <div className="flex items-start gap-4">
-              <div className="bg-sky-600/20 border border-sky-600/50 rounded-lg p-3">
-                <Mail className="text-sky-400" size={24} />
+              <div className="bg-emerald-600/20 border border-emerald-600/50 rounded-lg p-3">
+                <Mail className="text-emerald-400" size={24} />
               </div>
               <div>
                 <p className="font-semibold text-white">Email</p>
@@ -74,7 +74,7 @@ export default function SupportPage({ ctx }) {
           </div>
 
           {/* Live Chat */}
-          <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-xl p-4 hover:border-sky-500/50 transition-all cursor-pointer">
+          <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-xl p-4 hover:border-emerald-500/50 transition-all cursor-pointer">
             <div className="flex items-start gap-4">
               <div className="bg-purple-600/20 border border-purple-600/50 rounded-lg p-3">
                 <MessageCircle className="text-purple-400" size={24} />
@@ -85,6 +85,18 @@ export default function SupportPage({ ctx }) {
                 <p className="text-xs text-slate-500 mt-2">Response time: 15 minutes</p>
               </div>
             </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-xl p-4 hover:border-emerald-500/50 transition-all">
+            <p className="font-semibold text-white mb-2">Telegram</p>
+            <a
+              href="https://t.me/investment_platform_3"
+              target="_blank"
+              rel="noreferrer"
+              className="text-emerald-300 hover:text-emerald-100 font-semibold"
+            >
+              https://t.me/investment_platform_3
+            </a>
           </div>
         </div>
       </div>

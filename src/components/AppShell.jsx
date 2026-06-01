@@ -180,7 +180,7 @@ export default function AppShell({ children, activePage, setActivePage }) {
         <h1 className="text-2xl font-bold text-white">Astra Wealth</h1>
         <button
           onClick={() => setShowAdminLogin(true)}
-          className="w-10 h-10 rounded-full bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center text-white font-semibold text-sm hover:shadow-lg hover:shadow-sky-500/50 transition-all"
+          className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-lime-500 flex items-center justify-center text-white font-semibold text-sm hover:shadow-lg hover:shadow-emerald-500/50 transition-all"
         >
           {userFullName.charAt(0).toUpperCase()}
         </button>
@@ -199,7 +199,7 @@ export default function AppShell({ children, activePage, setActivePage }) {
             onClick={() => setActivePage(id)}
             className={`flex-1 flex flex-col items-center justify-center py-3 rounded-lg transition-all text-xs font-medium ${
               activePage === id
-                ? 'bg-gradient-to-br from-sky-500 to-blue-600 text-white shadow-lg shadow-sky-500/50'
+                ? 'bg-gradient-to-br from-emerald-500 to-lime-500 text-white shadow-lg shadow-emerald-500/50'
                 : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800'
             }`}
           >

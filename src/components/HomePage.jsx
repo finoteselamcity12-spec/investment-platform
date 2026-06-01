@@ -54,14 +54,14 @@ export default function HomePage({ ctx }) {
       <div className="grid grid-cols-2 gap-4">
         <button
           onClick={() => ctx.setActivePage?.('deposit')}
-          className="app-card bg-gradient-to-br from-sky-600 to-blue-700 hover:shadow-lg hover:shadow-sky-600/50 text-white p-4 rounded-xl font-semibold transition-all flex items-center justify-center gap-2"
+          className="app-card bg-gradient-to-br from-emerald-500 to-lime-500 hover:shadow-lg hover:shadow-emerald-500/50 text-white p-4 rounded-xl font-semibold transition-all flex items-center justify-center gap-2"
         >
           <ArrowUpCircle size={20} />
           Deposit
         </button>
         <button
           onClick={() => ctx.setActivePage?.('invest')}
-          className="app-card bg-slate-800 hover:bg-slate-700 border border-slate-700 hover:border-slate-600 text-white p-4 rounded-xl font-semibold transition-all flex items-center justify-center gap-2"
+          className="app-card bg-gradient-to-br from-emerald-500 to-lime-500 hover:shadow-lg hover:shadow-emerald-500/50 text-white p-4 rounded-xl font-semibold transition-all flex items-center justify-center gap-2"
         >
           <ArrowUpCircle size={20} />
           Invest
@@ -80,18 +80,7 @@ export default function HomePage({ ctx }) {
             disabled={!claimAvailable}
             className={`px-4 py-2 rounded-lg font-semibold flex items-center gap-2 transition-all ${
               claimAvailable
-                ? 'bg-gradient-to-br from-green-600 to-emerald-700 text-white hover:shadow-lg hover:shadow-green-600/50'
-                : 'bg-slate-800 text-slate-500 cursor-not-allowed'
-            }`}
-          >
-            <Gift size={16} />
-            {claimAvailable ? 'Claim' : `${claimRemainingHours}h`}
-          </button>
-        </div>
-      </div>
-
-      {/* Market Overview */}
-      <div className="app-card">
+                  ? 'bg-gradient-to-br from-emerald-500 to-lime-500 text-white hover:shadow-lg hover:shadow-emerald-500/50'
         <h3 className="text-lg font-bold text-white mb-4">Market Overview</h3>
         <div className="grid grid-cols-1 gap-3">
           {marketData.map((asset, idx) => (
