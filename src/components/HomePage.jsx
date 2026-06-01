@@ -60,7 +60,7 @@ export default function HomePage({ ctx }) {
             </div>
             <div className="rounded-2xl bg-white/15 p-3 backdrop-blur">
               <p className="text-xs font-semibold opacity-80">ETB</p>
-              <p className="mt-2 text-lg font-bold">{etbBalance.toLocaleString()} Br</p>
+              <p className="mt-2 text-lg font-bold">{etbBalance.toFixed(2)} Br</p>
             </div>
           </div>
         </div>

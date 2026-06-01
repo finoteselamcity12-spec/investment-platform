@@ -11,6 +11,7 @@ import {
   Copy,
   Check,
   Gift,
+  User,
 } from 'lucide-react'
 import supabase from '../lib/supabase'
 import AdminLoginModal from './AdminLoginModal'
@@ -98,6 +99,7 @@ export default function AppShell({ children, activePage, setActivePage }) {
   const [referralEarningsEtb, setReferralEarningsEtb] = useState(0.0)
   const [copied, setCopied] = useState(false)
   const [showAdminLogin, setShowAdminLogin] = useState(false)
+  const [showProfileDetails, setShowProfileDetails] = useState(false)
   const [toastMessage, setToastMessage] = useState('')
   const [toastType, setToastType] = useState('success')
   const [claimTimestamp, setClaimTimestamp] = useState(null)
@@ -184,16 +186,36 @@ export default function AppShell({ children, activePage, setActivePage }) {
       {/* Mobile-First Top Header - Clean & Minimal */}
       <div className="fixed top-0 inset-x-0 z-40 bg-white border-b border-slate-100 px-4 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-lg font-bold text-slate-950">Investment Platform</h1>
-          <p className="text-xs text-slate-500 mt-0.5">Mobile Investment App</p>
+          <h1 className="text-lg font-bold text-emerald-600">Investment Platform</h1>
+          <p className="text-sm font-semibold text-slate-500 mt-0.5">Welcome!</p>
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setActivePage('profile')}
-            className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-semibold text-slate-900 transition hover:border-slate-300"
-          >
-            Profile
-          </button>
+        <div className="relative flex items-center gap-3">
+          <div className="relative">
+            <button
+              onClick={() => setShowProfileDetails((prev) => !prev)}
+              className="h-12 w-12 rounded-full border border-slate-200 bg-slate-50 flex items-center justify-center text-slate-700 transition hover:border-slate-300"
+              aria-label="Profile details"
+            >
+              <User size={20} />
+            </button>
+            {showProfileDetails && (
+              <div className="absolute right-0 top-full mt-3 w-64 rounded-3xl border border-slate-200 bg-white p-4 shadow-xl">
+                <p className="text-xs uppercase tracking-[0.25em] text-slate-400">Profile</p>
+                <p className="mt-3 text-sm font-semibold text-slate-950">{userFullName}</p>
+                <p className="text-sm text-slate-500 break-all">{userEmail || 'No email available'}</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActivePage('profile')
+                    setShowProfileDetails(false)
+                  }}
+                  className="mt-4 w-full rounded-2xl bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-900 transition hover:bg-slate-200"
+                >
+                  View Profile
+                </button>
+              </div>
+            )}
+          </div>
           <button
             onClick={() => setShowAdminLogin(true)}
             className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm transition hover:scale-110 transform"
@@ -203,7 +225,7 @@ export default function AppShell({ children, activePage, setActivePage }) {
             }}
             aria-label="Admin Access"
           >
-            {userFullName.charAt(0).toUpperCase()}
+            <ShieldCheck size={20} />
           </button>
         </div>
       </div>
