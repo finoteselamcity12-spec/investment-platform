@@ -80,9 +80,17 @@ export default function HomePage({ ctx }) {
             disabled={!claimAvailable}
             className={`px-4 py-2 rounded-lg font-semibold flex items-center gap-2 transition-all ${
               claimAvailable
-                  ? 'bg-gradient-to-br from-emerald-500 to-lime-500 text-white hover:shadow-lg hover:shadow-emerald-500/50'
-        <h3 className="text-lg font-bold text-white mb-4">Market Overview</h3>
-        <div className="grid grid-cols-1 gap-3">
+                ? 'bg-gradient-to-br from-emerald-500 to-lime-500 text-white hover:shadow-lg hover:shadow-emerald-500/50'
+                : 'bg-slate-700 text-slate-400 cursor-not-allowed'
+            }`}
+          >
+            {claimAvailable ? 'Claim Rewards' : `Claim in ${claimRemainingHours}h`}
+          </button>
+        </div>
+      </div>
+
+      <h3 className="text-lg font-bold text-white mb-4">Market Overview</h3>
+      <div className="grid grid-cols-1 gap-3">
           {marketData.map((asset, idx) => (
             <div key={idx} className="bg-slate-900/50 border border-slate-800 rounded-lg p-4">
               <div className="flex items-center justify-between">
@@ -100,7 +108,6 @@ export default function HomePage({ ctx }) {
             </div>
           ))}
         </div>
-      </div>
 
       {/* Quick Stats */}
       <div className="app-card">

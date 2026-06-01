@@ -102,7 +102,8 @@ export default function InvestPage({ ctx }) {
         {tiers.map((tier) => (
           <div
             key={tier.id}
-            <div className="app-card bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 border border-slate-700 hover:border-emerald-500/40 p-5 rounded-3xl transition-all hover:shadow-2xl hover:shadow-emerald-500/20">
+            className="app-card bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 border border-slate-700 hover:border-emerald-500/40 p-5 rounded-3xl transition-all hover:shadow-2xl hover:shadow-emerald-500/20"
+          >
             <div className="flex items-start justify-between mb-4 gap-4">
               <div>
                 <p className="font-bold text-xl text-white">

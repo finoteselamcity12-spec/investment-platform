@@ -258,37 +258,3 @@ export default function DepositPage({ ctx }) {
     </div>
   )
 }
-              <Upload size={24} className="text-slate-400" />
-              <div>
-                <p className="text-white font-semibold">{screenshot?.name || 'Click to upload'}</p>
-                <p className="text-xs text-slate-400">JPG, PNG up to 5MB</p>
-              </div>
-            </label>
-          </div>
-        </div>
-
-        {/* Payment Methods Info */}
-        <div className="app-card bg-slate-900/50 border border-slate-800 p-4 rounded-xl">
-          <p className="text-sm font-semibold text-white mb-3">Accepted Methods:</p>
-          <div className="space-y-2">
-            {depositMethods[currency].map((method) => (
-              <div key={method} className="flex items-center gap-2">
-                <Wallet size={16} className="text-sky-400" />
-                <span className="text-sm text-slate-300">{method}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Submit Button */}
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full bg-gradient-to-r from-sky-600 to-blue-700 hover:shadow-lg hover:shadow-sky-600/50 disabled:opacity-50 disabled:cursor-not-allowed text-white py-4 rounded-lg font-bold transition-all"
-        >
-          {isSubmitting ? 'Submitting...' : 'Submit Deposit'}
-        </button>
-      </form>
-    </div>
-  )
-}
