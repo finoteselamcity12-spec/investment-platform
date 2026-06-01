@@ -15,7 +15,6 @@ import {
   Zap,
 } from 'lucide-react'
 import supabase from '../lib/supabase'
-import AdminLoginModal from './AdminLoginModal'
 
 const PRIMARY_GREEN = '#84CC16'
 
@@ -99,7 +98,6 @@ export default function AppShell({ children, activePage, setActivePage }) {
   const [referralEarningsUsd, setReferralEarningsUsd] = useState(0.0)
   const [referralEarningsEtb, setReferralEarningsEtb] = useState(0.0)
   const [copied, setCopied] = useState(false)
-  const [showAdminLogin, setShowAdminLogin] = useState(false)
   const [showProfileDetails, setShowProfileDetails] = useState(false)
   const [toastMessage, setToastMessage] = useState('')
   const [toastType, setToastType] = useState('success')
@@ -179,7 +177,6 @@ export default function AppShell({ children, activePage, setActivePage }) {
     usdTiers, etbTiers, withdrawMethods, historyFilters, formatCurrency, marketData,
     premiumTierNames, claimCooldownMs,
     setActivePage,
-    setShowAdminLogin,
   }
 
   return (
@@ -217,7 +214,7 @@ export default function AppShell({ children, activePage, setActivePage }) {
             )}
           </div>
           <button
-            onClick={() => setShowAdminLogin(true)}
+            onClick={() => navigate('/admin-dashboard')}
             className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm transition hover:scale-110 transform"
             style={{
               backgroundColor: PRIMARY_GREEN,
@@ -244,7 +241,7 @@ export default function AppShell({ children, activePage, setActivePage }) {
               onClick={() => {
                 setActivePage(id)
                 if (id === 'admin') {
-                  setShowAdminLogin(true)
+                  navigate('/admin-dashboard')
                 }
               }}
               className={`relative flex-1 rounded-2xl px-2 py-3 text-center text-xs font-semibold transition-all ${
@@ -263,15 +260,6 @@ export default function AppShell({ children, activePage, setActivePage }) {
           ))}
         </div>
       </div>
-
-      {/* Admin Login Modal */}
-      {showAdminLogin && (
-        <AdminLoginModal
-          isOpen={showAdminLogin}
-          onClose={() => setShowAdminLogin(false)}
-          userEmail={userEmail}
-        />
-      )}
 
       {/* Toast Notification */}
       {toastMessage && (

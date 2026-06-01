@@ -3,10 +3,16 @@ import { TrendingUp, Wallet, Gift, ArrowUpRight, UserCircle } from 'lucide-react
 
 const PRIMARY_GREEN = '#84CC16'
 
+function formatCurrency(amount, currency) {
+  if (currency === 'USD' || currency === 'USDT') return `$${Number(amount).toFixed(2)}`
+  return `${Number(amount).toLocaleString()} Birr`
+}
+
 export default function HomePage({ ctx }) {
   const {
     usdBalance, etbBalance, myActiveInvestmentsList, marketData,
     showToast, claimTimestamp, claimCooldownMs, setActivePage, setUsdBalance, setEtbBalance, setClaimTimestamp, userFullName,
+    userEmail,
   } = ctx
   const [profileImage, setProfileImage] = useState('')
   const [claimedBonuses, setClaimedBonuses] = useState([])
@@ -51,7 +57,7 @@ export default function HomePage({ ctx }) {
     setEtbBalance(updatedEtbBalance)
 
     const userData = JSON.parse(localStorage.getItem('admin_user_data') || '{}')
-    const currentEmail = Object.keys(userData)[0]
+    const currentEmail = userEmail || Object.keys(userData)[0]
     if (currentEmail && userData[currentEmail]) {
       userData[currentEmail].usdBalance = updatedUsdBalance
       userData[currentEmail].etbBalance = updatedEtbBalance
@@ -72,22 +78,33 @@ export default function HomePage({ ctx }) {
     }
 
     const userData = JSON.parse(localStorage.getItem('admin_user_data') || '{}')
-    const userEmail = Object.keys(userData)[0]
-    if (userEmail && userData[userEmail]) {
-      userData[userEmail].usdBalance = (userData[userEmail].usdBalance || 0) + bonusAmount
+    const currentEmail = userEmail || Object.keys(userData)[0]
+    if (currentEmail && userData[currentEmail]) {
+      const deposit = approvedDeposits.find((d) => d.id === depositId)
+      const isEtbBonus = deposit?.currency === 'ETB'
+      if (isEtbBonus) {
+        const updatedEtbBalance = Number((userData[currentEmail].etbBalance || 0) + bonusAmount)
+        userData[currentEmail].etbBalance = updatedEtbBalance
+        setEtbBalance(updatedEtbBalance)
+      } else {
+        const updatedUsdBalance = Number((userData[currentEmail].usdBalance || 0) + bonusAmount)
+        userData[currentEmail].usdBalance = updatedUsdBalance
+        setUsdBalance(updatedUsdBalance)
+      }
       localStorage.setItem('admin_user_data', JSON.stringify(userData))
     }
 
     const updated = [...claimedBonuses, depositId]
     setClaimedBonuses(updated)
     localStorage.setItem('claimed_bonuses', JSON.stringify(updated))
-    showToast(`Bonus of $${bonusAmount.toFixed(2)} claimed successfully!`, 'success')
+    const bonusLabel = deposit?.currency === 'ETB' ? `Br${bonusAmount.toFixed(0)}` : `$${bonusAmount.toFixed(2)}`
+    showToast(`Bonus of ${bonusLabel} claimed successfully!`, 'success')
   }
 
   // Get approved deposits that are eligible for bonus
   const approvedDeposits = JSON.parse(localStorage.getItem('admin_approved_deposits') || '[]')
-  const userEmail = Object.keys(JSON.parse(localStorage.getItem('admin_user_data') || '{}'))[0]
-  const userApprovedDeposits = approvedDeposits.filter((d) => d.userEmail === userEmail && !claimedBonuses.includes(d.id))
+  const currentEmail = userEmail || Object.keys(JSON.parse(localStorage.getItem('admin_user_data') || '{}'))[0]
+  const userApprovedDeposits = approvedDeposits.filter((d) => d.userEmail === currentEmail && !claimedBonuses.includes(d.id))
 
   return (
     <div className="bg-white pb-4">
@@ -225,13 +242,13 @@ export default function HomePage({ ctx }) {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="text-sm font-semibold text-slate-900">{deposit.paymentMethod}</p>
-                        <p className="text-sm text-slate-600 mt-1">Deposit: ${deposit.amount.toFixed(2)}</p>
+                        <p className="text-sm text-slate-600 mt-1">Deposit: {formatCurrency(deposit.amount, deposit.currency)}</p>
                       </div>
                       <button
                         onClick={() => handleClaimBonus(deposit.id, bonusAmount)}
                         className="rounded-2xl bg-emerald-600 px-4 py-2 text-sm font-bold text-white transition hover:bg-emerald-700 active:scale-95"
                       >
-                        Claim ${bonusAmount.toFixed(2)}
+                        {deposit.currency === 'ETB' ? `Claim Br${bonusAmount.toFixed(0)}` : `Claim $${bonusAmount.toFixed(2)}`}
                       </button>
                     </div>
                   </div>

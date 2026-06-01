@@ -559,7 +559,25 @@ export default function AdminDashboard() {
               </div>
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Receipt Details</p>
-                <p className="mt-2 text-sm text-slate-700">{selectedDepositReceipt.screenshot || 'No receipt image available'}</p>
+                {selectedDepositReceipt.screenshot ? (
+                  <div className="mt-3 space-y-3">
+                    <a
+                      href={selectedDepositReceipt.screenshot}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block rounded-3xl overflow-hidden border border-slate-200 bg-white shadow-sm"
+                    >
+                      <img
+                        src={selectedDepositReceipt.screenshot}
+                        alt={selectedDepositReceipt.screenshotName || 'Deposit receipt'}
+                        className="h-72 w-full object-cover"
+                      />
+                    </a>
+                    <p className="text-sm text-slate-600">Click image to view full resolution.</p>
+                  </div>
+                ) : (
+                  <p className="mt-2 text-sm text-slate-700">No receipt image available</p>
+                )}
               </div>
             </div>
             <div className="mt-5 flex justify-end gap-3">

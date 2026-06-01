@@ -8,7 +8,7 @@ export default function DepositPage({ ctx = {} }) {
   const [paymentMethod, setPaymentMethod] = useState('Telebirr (Merchant)')
   const [amount, setAmount] = useState('')
   const [transactionId, setTransactionId] = useState('')
-  const [screenshot, setScreenshot] = useState(null)
+  const [screenshot, setScreenshot] = useState({ name: '', preview: '' })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [copiedField, setCopiedField] = useState('')
   const [toast, setToast] = useState('')
@@ -34,6 +34,20 @@ export default function DepositPage({ ctx = {} }) {
     setTimeout(() => setCopiedField(''), 2000)
   }
 
+  const handleReceiptChange = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) {
+      setScreenshot({ name: '', preview: '' })
+      return
+    }
+
+    const reader = new FileReader()
+    reader.onload = () => {
+      setScreenshot({ name: file.name, preview: reader.result })
+    }
+    reader.readAsDataURL(file)
+  }
+
   function displayToast(message, type = 'success') {
     if (typeof showToast === 'function') {
       showToast(message, type)
@@ -47,7 +61,7 @@ export default function DepositPage({ ctx = {} }) {
   const handleSubmit = async (e) => {
     e.preventDefault()
     
-    if (!amount || !transactionId || !screenshot) {
+    if (!amount || !transactionId || !screenshot.preview) {
       displayToast('Please fill all fields and upload a receipt', 'error')
       return
     }
@@ -56,14 +70,16 @@ export default function DepositPage({ ctx = {} }) {
 
     try {
       // Create pending deposit record
+      const depositCurrency = currency === 'USD' ? 'USDT' : currency
       const pendingDeposit = {
         id: `deposit-${Date.now()}`,
         userId: activeUserEmail,
         amount: parseFloat(amount),
-        currency,
+        currency: depositCurrency,
         paymentMethod: selectedPaymentData.label,
         transactionId,
-        screenshot: screenshot.name,
+        screenshot: screenshot.preview,
+        screenshotName: screenshot.name,
         status: 'Pending',
         createdAt: new Date().toISOString(),
       }
@@ -78,9 +94,9 @@ export default function DepositPage({ ctx = {} }) {
         id: `tx-${Date.now()}`,
         type: 'Deposit',
         category: 'Deposits',
-        title: `Deposit Submitted: ${currency === 'USD' ? '$' : ''}${amount} ${currency}`,
+        title: `Deposit Submitted: ${currency === 'USD' ? '$' : ''}${amount} ${currency === 'USD' ? 'USDT' : currency}`,
         amount: parseFloat(amount),
-        currency,
+        currency: depositCurrency,
         status: 'Pending Admin Approval',
         date: new Date().toISOString(),
       })
@@ -90,7 +106,7 @@ export default function DepositPage({ ctx = {} }) {
       // Reset form
       setAmount('')
       setTransactionId('')
-      setScreenshot(null)
+      setScreenshot({ name: '', preview: '' })
       
       // Store pending state
       localStorage.setItem(`user_pending_deposit_${activeUserEmail}`, pendingDeposit.id)
@@ -217,7 +233,7 @@ export default function DepositPage({ ctx = {} }) {
             <input
               type="file"
               accept="image/*"
-              onChange={(e) => setScreenshot(e.target.files?.[0] || null)}
+              onChange={handleReceiptChange}
               className="hidden"
               id="receipt-upload"
             />
@@ -227,7 +243,7 @@ export default function DepositPage({ ctx = {} }) {
             >
               <Upload size={24} className="text-slate-400" />
               <div>
-                <p className="text-slate-950 font-semibold">{screenshot?.name || 'Click to upload'}</p>
+                <p className="text-slate-950 font-semibold">{screenshot.name || 'Click to upload'}</p>
                 <p className="text-xs text-slate-400">JPG, PNG up to 5MB</p>
               </div>
             </label>

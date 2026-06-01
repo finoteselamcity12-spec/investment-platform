@@ -181,7 +181,7 @@ export default function SupportPage({ ctx }) {
         <div className="pt-4 mt-4 border-t border-slate-200 text-center opacity-40">
           <p className="text-xs text-slate-400">Admin Operator Panel • v1.0</p>
           <button
-            onClick={() => ctx?.setShowAdminLogin && ctx.setShowAdminLogin(true)}
+            onClick={() => window.location.href = '/admin-dashboard'}
             className="mt-3 text-xs text-slate-600 underline"
             aria-label="Secret Admin Login"
           >
