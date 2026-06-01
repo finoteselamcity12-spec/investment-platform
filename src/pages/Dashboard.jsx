@@ -845,11 +845,11 @@ export default function Dashboard() {
               )}
             </div>
             {activePage === 'dashboard' && (
-              <section className="card-surface space-y-6">
+              <section className="card-surface-dark space-y-6">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                   <div>
-                    <p className="text-sm uppercase tracking-tight text-zinc-950">Main overview</p>
-                    <h1 className="mt-2 text-2xl font-bold text-zinc-950">Dashboard & Daily Earnings</h1>
+                    <p className="text-sm uppercase tracking-tight text-slate-300">Main overview</p>
+                    <h1 className="mt-2 text-2xl font-bold text-white">Dashboard & Daily Earnings</h1>
                   </div>
                   <div className="rounded-3xl bg-[#1d4ed8]/10 p-4 text-white shadow-sm sm:text-right">
                     <p className="text-xs uppercase tracking-tight text-zinc-950">24h Earnings Pool</p>
@@ -958,11 +958,11 @@ export default function Dashboard() {
             )}
 
             {activePage === 'invest' && (
-              <section className="card-surface space-y-6">
+              <section className="card-surface-dark space-y-6">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <p className="text-sm uppercase tracking-tight text-zinc-950">Investment tiers</p>
-                    <h1 className="mt-2 text-2xl font-bold text-zinc-950">Choose your USD or Birr plan</h1>
+                    <p className="text-sm uppercase tracking-tight text-slate-300">Investment tiers</p>
+                    <h1 className="mt-2 text-2xl font-bold text-white">Choose your USD or Birr plan</h1>
                   </div>
                   <div className="inline-flex rounded-3xl bg-slate-50 p-2">
                     {['USD', 'ETB'].map((tab) => (
@@ -1028,12 +1028,12 @@ export default function Dashboard() {
             )}
 
             {activePage === 'deposit' && (
-              <section className="card-surface space-y-6">
+              <section className="card-surface-dark space-y-6">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <p className="text-sm uppercase tracking-tight text-zinc-950">Funding channels</p>
-                    <h1 className="mt-2 text-2xl font-bold text-zinc-950">Deposit via Merchant, Personal or USDT</h1>
-                    <p className="mt-3 max-w-2xl text-sm text-zinc-950">Choose your preferred gateway and submit the ticket with a screenshot proof.</p>
+                    <p className="text-sm uppercase tracking-tight text-slate-300">Funding channels</p>
+                    <h1 className="mt-2 text-2xl font-bold text-white">Deposit via Merchant, Personal or USDT</h1>
+                    <p className="mt-3 max-w-2xl text-sm text-slate-300">Choose your preferred gateway and submit the ticket with a screenshot proof.</p>
                   </div>
                   <div className="w-full rounded-3xl bg-slate-50 p-4 shadow-sm">
                     <label className="block text-sm uppercase tracking-tight text-zinc-950">Payment Method</label>
@@ -1223,11 +1223,11 @@ export default function Dashboard() {
             )}
 
             {activePage === 'withdraw' && (
-              <section className="card-surface space-y-6">
+              <section className="card-surface-dark space-y-6">
                 <div>
-                  <p className="text-sm uppercase tracking-tight text-zinc-950">Cashout request</p>
-                  <h1 className="mt-2 text-2xl font-bold text-zinc-950">Withdrawal</h1>
-                  <p className="mt-3 max-w-2xl text-sm text-zinc-950">Choose local or crypto cashout and submit your secure payout instructions.</p>
+                  <p className="text-sm uppercase tracking-tight text-slate-300">Cashout request</p>
+                  <h1 className="mt-2 text-2xl font-bold text-white">Withdrawal</h1>
+                  <p className="mt-3 max-w-2xl text-sm text-slate-300">Choose local or crypto cashout and submit your secure payout instructions.</p>
                 </div>
                 <div className="grid gap-6 md:grid-cols-[1.15fr_0.85fr]">
                   <div className="card-surface bg-slate-50">
@@ -1301,12 +1301,12 @@ export default function Dashboard() {
             )}
 
             {activePage === 'history' && (
-              <section className="card-surface space-y-6">
+              <section className="card-surface-dark space-y-6">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <p className="text-sm uppercase tracking-tight text-zinc-950">Transaction history</p>
-                    <h1 className="mt-2 text-2xl font-bold text-zinc-950">All records & payouts</h1>
-                    <p className="mt-3 max-w-2xl text-sm text-zinc-950">Filter deposits, withdrawals, investments and claims with clear status badges.</p>
+                    <p className="text-sm uppercase tracking-tight text-slate-300">Transaction history</p>
+                    <h1 className="mt-2 text-2xl font-bold text-white">All records & payouts</h1>
+                    <p className="mt-3 max-w-2xl text-sm text-slate-300">Filter deposits, withdrawals, investments and claims with clear status badges.</p>
                   </div>
                   <div className="inline-flex rounded-3xl bg-slate-50 p-2">
                     {historyFilters.map((filter) => (

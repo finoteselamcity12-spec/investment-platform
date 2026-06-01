@@ -136,7 +136,7 @@ export default function Auth() {
         </h1>
       </div>
 
-      <div className="card-surface w-full max-w-md p-6 md:p-8 shadow-2xl transition-all">
+      <div className="card-surface-dark w-full max-w-md p-6 md:p-8 shadow-2xl transition-all">
         <div className="mb-8 flex overflow-hidden rounded-full bg-zinc-100 p-1 shadow-inner">
           <button
             type="button"
@@ -161,7 +161,7 @@ export default function Auth() {
         <form onSubmit={handleAuth} className="space-y-5">
           {isRegister && (
             <div>
-              <label className="block text-sm font-bold text-zinc-950 mb-2">Full Name</label>
+              <label className="block text-sm font-bold text-slate-200 mb-2">Full Name</label>
               <input
                 type="text"
                 value={form.fullName}
@@ -173,7 +173,7 @@ export default function Auth() {
           )}
 
           <div>
-            <label className="block text-sm font-bold text-zinc-950 mb-2">Email Address</label>
+            <label className="block text-sm font-bold text-slate-200 mb-2">Email Address</label>
             <input
               type="email"
               value={form.email}
@@ -184,7 +184,7 @@ export default function Auth() {
           </div>
 
           <div>
-            <label className="block text-sm font-bold text-zinc-950 mb-2">Password</label>
+            <label className="block text-sm font-bold text-slate-200 mb-2">Password</label>
             <input
               type="password"
               value={form.password}
@@ -196,7 +196,7 @@ export default function Auth() {
 
           {isRegister && (
             <div>
-              <label className="block text-sm font-bold text-zinc-950 mb-2">Confirm Password</label>
+              <label className="block text-sm font-bold text-slate-200 mb-2">Confirm Password</label>
               <input
                 type="password"
                 value={form.confirmPassword}

@@ -224,24 +224,24 @@ export default function AdminDashboard() {
       <div className="mx-auto max-w-7xl px-6 py-8">
         {/* Stats Cards */}
         <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-3">
-          <div className="card-surface">
-            <p className="text-sm text-zinc-600">Total Registrations</p>
-            <p className="mt-2 text-3xl font-bold text-zinc-950">{registrationCount}</p>
+          <div className="card-surface-dark">
+            <p className="text-sm text-slate-300">Total Registrations</p>
+            <p className="mt-2 text-3xl font-bold text-white">{registrationCount}</p>
           </div>
-          <div className="card-surface">
-            <p className="text-sm text-zinc-600">Pending Deposits</p>
-              <p className="mt-2 text-3xl font-bold text-amber-500">{deposits.length}</p>
+          <div className="card-surface-dark">
+            <p className="text-sm text-slate-300">Pending Deposits</p>
+              <p className="mt-2 text-3xl font-bold text-amber-400">{deposits.length}</p>
             </div>
-            <div className="card-surface">
-              <p className="text-sm text-zinc-600">Pending Withdrawals</p>
-              <p className="mt-2 text-3xl font-bold text-blue-500">{withdrawalRequests.length}</p>
+            <div className="card-surface-dark">
+              <p className="text-sm text-slate-300">Pending Withdrawals</p>
+              <p className="mt-2 text-3xl font-bold text-sky-400">{withdrawalRequests.length}</p>
             </div>
           </div>
-          <div className="card-surface mb-8">
+          <div className="card-surface-dark mb-8">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <h2 className="text-xl font-bold text-zinc-950">User Management</h2>
-                <p className="text-sm text-zinc-600">Delete users and clear their deposit history.</p>
+                <h2 className="text-xl font-bold text-white">User Management</h2>
+                <p className="text-sm text-slate-300">Delete users and clear their deposit history.</p>
               </div>
             </div>
             {users.length === 0 ? (
@@ -281,8 +281,8 @@ export default function AdminDashboard() {
             )}
           </div>
 
-          <div className="card-surface mb-8">
-            <h2 className="mb-4 text-xl font-bold text-zinc-950">Pending Deposits</h2>
+          <div className="card-surface-dark mb-8">
+            <h2 className="mb-4 text-xl font-bold text-white">Pending Deposits</h2>
             {deposits.length === 0 ? (
               <p className="text-zinc-600">No pending deposits.</p>
             ) : (
@@ -356,10 +356,10 @@ export default function AdminDashboard() {
         </div>
 
         {/* Pending Withdrawals Table */}
-        <div className="card-surface mb-8">
-          <h2 className="mb-4 text-xl font-bold text-zinc-950">Pending Withdrawals</h2>
+        <div className="card-surface-dark mb-8">
+          <h2 className="mb-4 text-xl font-bold text-white">Pending Withdrawals</h2>
           {withdrawalRequests.length === 0 ? (
-            <p className="text-zinc-600">No pending withdrawals.</p>
+            <p className="text-slate-300">No pending withdrawals.</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="table-minimal responsive-table w-full text-sm">

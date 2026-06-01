@@ -5,6 +5,9 @@
 	--primary-blue-dark: #1e40af;
 	--surface: #ffffff;
 	--surface-soft: #f8fafc;
+	--surface-card: #0f172a;
+	--surface-card-strong: #111827;
+	--surface-card-border: rgba(148,163,184,0.18);
 	--text-primary: #0f172a;
 	--text-secondary: #475569;
 	--border: #cbd5e1;
@@ -52,6 +55,17 @@
 	.card-surface {
 		@apply rounded-[2rem] bg-white border border-slate-200 shadow-sm;
 		padding: 1.75rem;
+	}
+
+	.card-surface-light {
+		@apply rounded-[2rem] bg-white border border-slate-200 shadow-sm;
+		padding: 1.75rem;
+	}
+
+	.card-surface-dark {
+		@apply rounded-[2rem] bg-slate-950/95 border border-slate-800 shadow-xl;
+		padding: 1.75rem;
+		color: #f8fafc;
 	}
 
 	.card-panel-compact {

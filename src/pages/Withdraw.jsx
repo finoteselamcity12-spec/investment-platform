@@ -93,9 +93,9 @@ export default function Withdraw() {
   return (
     <div className="min-h-screen bg-slate-50 text-zinc-950">
       <div className="mx-auto max-w-4xl px-6 py-8">
-        <div className="card-surface">
-          <h1 className="text-2xl font-bold text-zinc-950">Withdrawal</h1>
-          <p className="mt-2 text-sm text-zinc-600">Request a payout from your wallet. Requests appear in the Admin pending payouts queue.</p>
+        <div className="card-surface-dark">
+          <h1 className="text-2xl font-bold text-white">Withdrawal</h1>
+          <p className="mt-2 text-sm text-slate-300">Request a payout from your wallet. Requests appear in the Admin pending payouts queue.</p>
 
           <form onSubmit={handleSubmit} className="mt-6 space-y-4">
             <div>
