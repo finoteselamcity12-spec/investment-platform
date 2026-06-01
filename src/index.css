@@ -182,6 +182,11 @@
 		@apply inline-flex rounded-full bg-emerald-500/10 px-4 py-2 text-sm font-semibold text-emerald-300;
 	}
 
+	.auth-logo-inner {
+		background: radial-gradient(circle at top left, rgba(255,255,255,0.95), transparent 30%), linear-gradient(180deg, #22c55e, #15803d);
+		box-shadow: inset 0 4px 18px rgba(255,255,255,0.25), 0 18px 36px rgba(0,0,0,0.18);
+	}
+
 	.dashboard-market-section {
 		@apply mt-6;
 	}

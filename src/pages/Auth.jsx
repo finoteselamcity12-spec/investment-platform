@@ -136,8 +136,8 @@ export default function Auth() {
 
       <div className="text-center relative z-10 mb-8">
         <div className="mx-auto flex h-28 w-28 items-center justify-center rounded-[2.5rem] bg-white/90 shadow-[0_28px_60px_rgba(16,185,129,0.18)] ring-1 ring-white/60">
-          <div className="flex h-24 w-24 flex-col items-center justify-center rounded-[2rem] bg-gradient-to-br from-lime-400 to-emerald-600 text-white shadow-lg shadow-emerald-700/30">
-            <span className="text-3xl font-black tracking-[0.2em]">IP</span>
+          <div className="auth-logo-inner flex h-24 w-24 flex-col items-center justify-center rounded-[2rem] text-white">
+            <span className="text-3xl font-black tracking-[0.2em] drop-shadow-[0_2px_12px_rgba(0,0,0,0.18)]">IP</span>
             <span className="mt-1 text-[10px] uppercase tracking-[0.35em] font-semibold">Investment Platform</span>
           </div>
         </div>
@@ -186,19 +186,14 @@ export default function Auth() {
           )}
 
           <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">Mobile Number</label>
-            <div className="flex overflow-hidden rounded-2xl border border-gray-200 bg-gray-50 focus-within:ring-2 focus-within:ring-lime-400">
-              <span className="inline-flex items-center bg-lime-50 px-4 text-sm font-semibold text-slate-700">
-                (+251)
-              </span>
-              <input
-                type="tel"
-                value={form.email}
-                onChange={(event) => setForm({ ...form, email: event.target.value })}
-                placeholder="912 345 678"
-                className="min-w-0 flex-1 border-none bg-transparent px-4 py-3 text-gray-900 placeholder-gray-500 focus:outline-none"
-              />
-            </div>
+            <label className="block text-sm font-bold text-gray-700 mb-2">Email</label>
+            <input
+              type="email"
+              value={form.email}
+              onChange={(event) => setForm({ ...form, email: event.target.value })}
+              placeholder="name@example.com"
+              className="auth-input-field w-full rounded-xl border-2 border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 placeholder-gray-500 focus:outline-none focus:border-lime-400 focus:bg-white focus:ring-2 focus:ring-lime-400/30 transition-all"
+            />
           </div>
 
           <div className="relative">
