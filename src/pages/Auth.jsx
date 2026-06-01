@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect } from 'react'
+import { Eye, EyeOff } from 'lucide-react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import supabase from '../lib/supabase'
 
@@ -11,7 +12,7 @@ export default function Auth() {
   const [form, setForm] = useState(initialForm)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
-  const [showTerms, setShowTerms] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const [referrerId, setReferrerId] = useState('')
 
   const isRegister = !isLogin
@@ -133,18 +134,13 @@ export default function Auth() {
       {/* Subtle animated background gradient overlay */}
       <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_20%_50%,rgba(255,255,255,0.8),transparent_50%),radial-gradient(circle_at_80%_80%,rgba(255,255,255,0.4),transparent_50%)]" />
 
-      <div className="text-center relative z-10">
-        <div className="mb-2 inline-block">
-          <div className="inline-block px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm border border-white/30">
-            <span className="text-xs font-bold text-white tracking-widest uppercase">Premium Investment</span>
+      <div className="text-center relative z-10 mb-8">
+        <div className="mx-auto flex h-28 w-28 items-center justify-center rounded-[2.5rem] bg-white/90 shadow-[0_28px_60px_rgba(16,185,129,0.18)] ring-1 ring-white/60">
+          <div className="flex h-24 w-24 flex-col items-center justify-center rounded-[2rem] bg-gradient-to-br from-lime-400 to-emerald-600 text-white shadow-lg shadow-emerald-700/30">
+            <span className="text-3xl font-black tracking-[0.2em]">IP</span>
+            <span className="mt-1 text-[10px] uppercase tracking-[0.35em] font-semibold">Investment Platform</span>
           </div>
         </div>
-        <h1 className="text-white font-black text-4xl md:text-5xl tracking-tight mb-2 drop-shadow-2xl">
-          Investment Platform
-        </h1>
-        <p className="text-white/90 text-sm md:text-base font-semibold mb-8 drop-shadow-lg">
-          Advanced wealth management at your fingertips
-        </p>
       </div>
 
       <div className="auth-container w-full max-w-md bg-white rounded-3xl rounded-b-3xl p-8 md:p-10 shadow-2xl transition-all relative z-10" style={{
@@ -190,25 +186,38 @@ export default function Auth() {
           )}
 
           <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">Email Address</label>
-            <input
-              type="email"
-              value={form.email}
-              onChange={(event) => setForm({ ...form, email: event.target.value })}
-              placeholder="name@example.com"
-              className="auth-input-field w-full rounded-xl border-2 border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 placeholder-gray-500 focus:outline-none focus:border-lime-400 focus:bg-white focus:ring-2 focus:ring-lime-400/30 transition-all"
-            />
+            <label className="block text-sm font-bold text-gray-700 mb-2">Mobile Number</label>
+            <div className="flex overflow-hidden rounded-2xl border border-gray-200 bg-gray-50 focus-within:ring-2 focus-within:ring-lime-400">
+              <span className="inline-flex items-center bg-lime-50 px-4 text-sm font-semibold text-slate-700">
+                (+251)
+              </span>
+              <input
+                type="tel"
+                value={form.email}
+                onChange={(event) => setForm({ ...form, email: event.target.value })}
+                placeholder="912 345 678"
+                className="min-w-0 flex-1 border-none bg-transparent px-4 py-3 text-gray-900 placeholder-gray-500 focus:outline-none"
+              />
+            </div>
           </div>
 
-          <div>
+          <div className="relative">
             <label className="block text-sm font-bold text-gray-700 mb-2">Password</label>
             <input
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               value={form.password}
               onChange={(event) => setForm({ ...form, password: event.target.value })}
               placeholder="Enter your password"
-              className="auth-input-field w-full rounded-xl border-2 border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 placeholder-gray-500 focus:outline-none focus:border-lime-400 focus:bg-white focus:ring-2 focus:ring-lime-400/30 transition-all"
+              className="auth-input-field w-full rounded-xl border-2 border-gray-200 bg-gray-50 px-4 py-3 pr-12 text-gray-900 placeholder-gray-500 focus:outline-none focus:border-lime-400 focus:bg-white focus:ring-2 focus:ring-lime-400/30 transition-all"
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword((prev) => !prev)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 transition hover:text-slate-700"
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
           </div>
 
           {isRegister && (
@@ -240,46 +249,6 @@ export default function Auth() {
         </form>
       </div>
 
-      <div className="mt-6 w-full max-w-md relative z-10">
-        <button
-          type="button"
-          onClick={() => setShowTerms((prev) => !prev)}
-          className="text-sm font-bold text-white underline transition hover:text-white/80 drop-shadow-lg"
-          aria-expanded={showTerms}
-        >
-          Terms & Conditions
-        </button>
-
-        {showTerms && (
-          <div className="mt-4 rounded-2xl bg-white/95 p-5 shadow-xl border border-white/50 backdrop-blur-sm">
-            <h2 className="text-base font-bold text-gray-900">Platform Rules & Regulations</h2>
-            <ol className="mt-4 space-y-3 text-sm text-gray-800">
-              <li>
-                <span className="font-semibold">1. Eligibility:</span> Users must be 18 years or older. Only one account is permitted per person; multiple registration fraud triggers an automatic wallet lock.
-              </li>
-              <li>
-                <span className="font-semibold">2. How to Deposit:</span>
-                <ol className="mt-2 list-decimal space-y-2 pl-5 text-sm text-gray-800">
-                  <li>Select your preferred network plan asset currency (USD or ETB/Birr).</li>
-                  <li>Transfer the exact amount to the displayed verified channel (Telebirr Merchant ID <span className="font-semibold">900675</span> for Amsal Aneley, Telebirr Personal <span className="font-semibold">0993855459</span> for Yohanis, or the verified USDT TRC20 address).</li>
-                  <li>Enter your unique transaction reference ID string and upload a legitimate transaction receipt screenshot. Fake or reused IDs will result in a permanent ban.</li>
-                </ol>
-              </li>
-              <li>
-                <span className="font-semibold">3. How to Withdraw:</span>
-                <ol className="mt-2 list-decimal space-y-2 pl-5 text-sm text-gray-800">
-                  <li>Access the Withdrawal panel and ensure your account balance meets the minimum payout threshold.</li>
-                  <li>Provide your precise destination mobile number or wallet address.</li>
-                  <li>Backend administrative processing executes shortly after verification.</li>
-                </ol>
-              </li>
-              <li>
-                <span className="font-semibold">4. Referral Commission Rule:</span> Commissions are only unlocked after the referred peer completes a successful verified deposit. Payouts are $3.00 USD for USD tiers and 93 Birr for ETB tiers.
-              </li>
-            </ol>
-          </div>
-        )}
-      </div>
     </div>
   )
 }
