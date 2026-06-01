@@ -47,6 +47,19 @@ export default function AdminDashboard() {
     }
     loadAdminData()
     setIsLoadingSession(false)
+
+    const handleStorageUpdate = (event) => {
+      if (
+        event.key === 'platform_registered_users' ||
+        event.key === 'platform_registered_users_data' ||
+        event.key === 'admin_user_data'
+      ) {
+        loadAdminData()
+      }
+    }
+
+    window.addEventListener('storage', handleStorageUpdate)
+    return () => window.removeEventListener('storage', handleStorageUpdate)
   }, [])
 
   function showToast(message, type = 'success') {
@@ -72,7 +85,7 @@ export default function AdminDashboard() {
     setApprovedWithdrawals(approvedWithdraw)
     setRejectedWithdrawals(rejectedWithdraw)
     setUsers(Object.values(usersData))
-    setRegistrationCount(registeredUsers.length)
+    setRegistrationCount(Math.max(registeredUsers.length, Object.keys(usersData).length))
   }
 
   function handleAdminLogin(event) {
@@ -280,6 +293,14 @@ export default function AdminDashboard() {
             <p className="text-sm font-semibold text-[#84CC16]">Rejected Requests</p>
             <p className="mt-4 text-4xl font-bold text-slate-950">{rejectedDeposits.length + rejectedWithdrawals.length}</p>
             <p className="mt-2 text-sm text-slate-600">Failed or cancelled requests.</p>
+          </div>
+          <div className="rounded-[2rem] bg-white border border-emerald-200 p-6 shadow-lg"
+               style={{
+                 borderColor: '#84CC16'
+               }}>
+            <p className="text-sm font-semibold text-[#84CC16]">Total Registered Users</p>
+            <p className="mt-4 text-4xl font-bold text-slate-950">{registrationCount}</p>
+            <p className="mt-2 text-sm text-slate-600">Users registered on the platform.</p>
           </div>
         </div>
 

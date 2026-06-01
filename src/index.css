@@ -647,3 +647,25 @@
 	}
 }
 
+/* Additional responsiveness improvements for mobile and desktop layouts */
+@media (max-width: 768px) {
+	.auth-container,
+	.dashboard-shell,
+	.dashboard-main-panel,
+	.dashboard-sidebar,
+	.rounded-[2rem],
+	.rounded-[2.5rem] {
+		padding-left: 1rem !important;
+		padding-right: 1rem !important;
+	}
+
+	.auth-container {
+		width: 100%;
+		max-width: 100%;
+	}
+
+	body {
+		overflow-x: hidden;
+	}
+}
+
