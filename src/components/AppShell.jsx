@@ -12,6 +12,7 @@ import {
   Check,
   Gift,
   User,
+  Zap,
 } from 'lucide-react'
 import supabase from '../lib/supabase'
 import AdminLoginModal from './AdminLoginModal'
@@ -186,8 +187,7 @@ export default function AppShell({ children, activePage, setActivePage }) {
       {/* Mobile-First Top Header - Clean & Minimal */}
       <div className="fixed top-0 inset-x-0 z-40 bg-white border-b border-slate-100 px-4 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-lg font-bold text-emerald-600">Investment Platform</h1>
-          <p className="text-sm font-semibold text-slate-500 mt-0.5">Welcome!</p>
+          <h1 className="text-lg font-bold text-emerald-600">Welcome!</h1>
         </div>
         <div className="relative flex items-center gap-3">
           <div className="relative">
