@@ -2,6 +2,12 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Lock, User, X } from 'lucide-react'
 
+const ADMIN_CREDENTIALS = {
+  name: 'investment',
+  password: '1q2w3e4r5t6y7@investment',
+  id: '15610010',
+}
+
 export default function AdminLoginModal({ isOpen, onClose }) {
   const navigate = useNavigate()
   const [adminName, setAdminName] = useState('')
@@ -10,25 +16,17 @@ export default function AdminLoginModal({ isOpen, onClose }) {
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
-  const ADMIN_CREDENTIALS = {
-    name: 'investment',
-    password: '1q2w3e4r5t6y7@investment',
-    id: '15610010',
-  }
-
   function handleSubmit(e) {
     e.preventDefault()
     setError('')
     setIsLoading(true)
 
-    // Simulate validation delay
     setTimeout(() => {
       if (
         adminName === ADMIN_CREDENTIALS.name &&
         adminPassword === ADMIN_CREDENTIALS.password &&
         adminId === ADMIN_CREDENTIALS.id
       ) {
-        // Store admin session
         sessionStorage.setItem(
           'admin_session',
           JSON.stringify({
@@ -38,87 +36,89 @@ export default function AdminLoginModal({ isOpen, onClose }) {
           })
         )
 
-        // Navigate to admin dashboard
         navigate('/admin-dashboard')
         onClose()
       } else {
         setError('Invalid admin credentials. Please try again.')
         setIsLoading(false)
       }
-    }, 500)
+    }, 400)
   }
 
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="w-full max-w-md rounded-2xl bg-white p-8 shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 px-4 py-8">
+      <div className="w-full max-w-md rounded-[2rem] bg-white p-8 shadow-2xl shadow-slate-900/10">
         <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-2xl font-bold text-zinc-950">Admin Login</h2>
+          <div>
+            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-600">Admin Access</p>
+            <h2 className="mt-2 text-2xl font-bold text-slate-950">Secure Operator Login</h2>
+          </div>
           <button
             onClick={onClose}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-zinc-950 transition hover:bg-slate-200"
+            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-950 transition hover:bg-slate-200"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-bold text-zinc-950">Admin Name</label>
+            <label className="block text-sm font-semibold text-slate-900">Admin Name</label>
             <div className="relative mt-2">
-              <User className="absolute left-3 top-3 h-5 w-5 text-blue-600" />
+              <User className="absolute left-3 top-3 h-5 w-5 text-emerald-600" />
               <input
                 type="text"
                 value={adminName}
                 onChange={(e) => setAdminName(e.target.value)}
-                placeholder="Enter admin name"
-                className="w-full rounded-lg border border-gray-300 bg-slate-50 pl-10 pr-4 py-3 text-zinc-950 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                placeholder="investment"
+                className="w-full rounded-3xl border border-slate-300 bg-slate-50 px-12 py-3 text-slate-950 outline-none focus:border-[#84CC16] focus:ring-2 focus:ring-[#84CC16]/20"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-bold text-zinc-950">Admin ID</label>
+            <label className="block text-sm font-semibold text-slate-900">Admin ID</label>
             <div className="relative mt-2">
-              <Lock className="absolute left-3 top-3 h-5 w-5 text-blue-600" />
+              <Lock className="absolute left-3 top-3 h-5 w-5 text-emerald-600" />
               <input
                 type="text"
                 value={adminId}
                 onChange={(e) => setAdminId(e.target.value)}
-                placeholder="Enter admin ID"
-                className="w-full rounded-lg border border-gray-300 bg-slate-50 pl-10 pr-4 py-3 text-zinc-950 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                placeholder="15610010"
+                className="w-full rounded-3xl border border-slate-300 bg-slate-50 px-12 py-3 text-slate-950 outline-none focus:border-[#84CC16] focus:ring-2 focus:ring-[#84CC16]/20"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-bold text-zinc-950">Password</label>
+            <label className="block text-sm font-semibold text-slate-900">Password</label>
             <div className="relative mt-2">
-              <Lock className="absolute left-3 top-3 h-5 w-5 text-blue-600" />
+              <Lock className="absolute left-3 top-3 h-5 w-5 text-emerald-600" />
               <input
                 type="password"
                 value={adminPassword}
                 onChange={(e) => setAdminPassword(e.target.value)}
-                placeholder="Enter password"
-                className="w-full rounded-lg border border-gray-300 bg-slate-50 pl-10 pr-4 py-3 text-zinc-950 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                placeholder="1q2w3e4r5t6y7@investment"
+                className="w-full rounded-3xl border border-slate-300 bg-slate-50 px-12 py-3 text-slate-950 outline-none focus:border-[#84CC16] focus:ring-2 focus:ring-[#84CC16]/20"
               />
             </div>
           </div>
 
-          {error && <div className="rounded-lg bg-red-50 px-4 py-3 text-sm font-bold text-red-600">{error}</div>}
+          {error && <div className="rounded-3xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{error}</div>}
 
           <button
             type="submit"
             disabled={isLoading}
-            className="mt-6 w-full rounded-lg bg-blue-600 px-4 py-3 font-bold text-white transition hover:bg-blue-700 disabled:opacity-50"
+            className="w-full rounded-3xl bg-[#84CC16] px-4 py-3 text-sm font-bold text-white shadow-lg shadow-[#84CC16]/20 transition hover:bg-lime-500 disabled:opacity-50"
           >
             {isLoading ? 'Verifying...' : 'Login as Admin'}
           </button>
         </form>
 
         <p className="mt-4 text-center text-xs text-slate-500">
-          For authorized personnel only. Unauthorized access attempts are logged.
+          Authorized admin only. All login attempts are recorded.
         </p>
       </div>
     </div>

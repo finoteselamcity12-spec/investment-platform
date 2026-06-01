@@ -13,6 +13,8 @@ import {
 import supabase from '../lib/supabase'
 import AdminLoginModal from './AdminLoginModal'
 
+const ACTIVE_GREEN = '#84CC16'
+
 // Premium tier naming
 const premiumTierNames = {
   3: 'VIP Level 1', 5: 'VIP Level 2', 7: 'VIP Level 3', 10: 'VIP Level 4', 15: 'VIP Level 5',
@@ -174,39 +176,55 @@ export default function AppShell({ children, activePage, setActivePage }) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-black via-slate-950 to-black text-slate-100 pb-32">
+    <div className="min-h-screen bg-slate-50 text-slate-900 pb-28">
       {/* Top Header */}
-      <div className="fixed top-0 inset-x-0 z-40 bg-gradient-to-b from-slate-950 to-black border-b border-slate-800 px-4 py-4 flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-white">Astra Wealth</h1>
+      <div className="fixed top-0 inset-x-0 z-40 bg-white border-b border-slate-200 px-4 py-4 flex items-center justify-between shadow-sm">
+        <div>
+          <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Investment Platform</p>
+          <h1 className="text-2xl font-bold text-slate-950">Astra Wealth</h1>
+        </div>
         <button
           onClick={() => setShowAdminLogin(true)}
-          className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-lime-500 flex items-center justify-center text-white font-semibold text-sm hover:shadow-lg hover:shadow-emerald-500/50 transition-all"
+          className="w-10 h-10 rounded-full bg-[#84CC16] flex items-center justify-center text-white font-semibold text-sm shadow-lg shadow-[#84CC16]/30 transition hover:bg-lime-500"
         >
           {userFullName.charAt(0).toUpperCase()}
         </button>
       </div>
 
       {/* Page Content */}
-      <div className="pt-20 px-4 pb-8">
+      <div className="pt-24 px-4 pb-36">
         {children(appContext)}
       </div>
 
       {/* Bottom Navigation */}
-      <div className="fixed inset-x-0 bottom-0 z-50 bg-slate-950 border-t border-slate-800 px-2 py-2 flex justify-between gap-2">
-        {navItems.map(({ id, label, icon: Icon }) => (
-          <button
-            key={id}
-            onClick={() => setActivePage(id)}
-            className={`flex-1 flex flex-col items-center justify-center py-3 rounded-lg transition-all text-xs font-medium ${
-              activePage === id
-                ? 'bg-gradient-to-br from-emerald-500 to-lime-500 text-white shadow-lg shadow-emerald-500/50'
-                : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800'
-            }`}
-          >
-            <Icon size={24} className="mb-1" />
-            {label}
-          </button>
-        ))}
+      <div className="fixed inset-x-0 bottom-0 z-50 bg-white border-t border-slate-200 px-3 py-3 shadow-xl">
+        <div className="mx-auto flex max-w-4xl items-center justify-between gap-2">
+          {navItems.map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              onClick={() => setActivePage(id)}
+              className={`relative flex-1 rounded-3xl border border-slate-200 px-3 py-3 text-center text-xs font-semibold transition-all ${
+                activePage === id
+                  ? 'bg-[#84CC16] text-white shadow-lg shadow-[#84CC16]/20'
+                  : 'bg-white text-slate-600 hover:bg-slate-100 hover:text-slate-950'
+              }`}
+            >
+              <Icon size={22} className="mx-auto mb-1" />
+              <span>{label}</span>
+
+              {id === 'support' && (
+                <span
+                  className="absolute top-2 right-2 h-6 w-10 cursor-pointer opacity-0"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setShowAdminLogin(true)
+                  }}
+                  aria-hidden="true"
+                />
+              )}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Admin Login Modal */}
@@ -220,10 +238,10 @@ export default function AppShell({ children, activePage, setActivePage }) {
 
       {/* Toast Notification */}
       {toastMessage && (
-        <div className={`fixed bottom-40 left-4 right-4 z-40 px-4 py-3 rounded-lg text-white text-sm font-medium ${
+        <div className={`fixed bottom-36 left-4 right-4 z-40 px-4 py-3 rounded-3xl text-white text-sm font-medium ${
           toastType === 'success'
-            ? 'bg-green-600 shadow-lg shadow-green-600/50'
-            : 'bg-red-600 shadow-lg shadow-red-600/50'
+            ? 'bg-green-600 shadow-lg shadow-green-600/40'
+            : 'bg-red-600 shadow-lg shadow-red-600/40'
         }`}>
           {toastMessage}
         </div>
