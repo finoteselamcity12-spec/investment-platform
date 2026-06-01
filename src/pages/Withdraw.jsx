@@ -93,7 +93,7 @@ export default function Withdraw() {
   return (
     <div className="min-h-screen bg-slate-50 text-zinc-950">
       <div className="mx-auto max-w-4xl px-6 py-8">
-        <div className="rounded-[1.75rem] border border-gray-200 bg-white p-6 shadow-sm">
+        <div className="card-surface">
           <h1 className="text-2xl font-bold text-zinc-950">Withdrawal</h1>
           <p className="mt-2 text-sm text-zinc-600">Request a payout from your wallet. Requests appear in the Admin pending payouts queue.</p>
 
@@ -106,7 +106,7 @@ export default function Withdraw() {
                 step="0.01"
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                className="mt-2 w-full rounded-3xl border border-gray-200 bg-slate-50 px-4 py-3 text-zinc-950 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="touch-input"
                 placeholder="Enter amount"
               />
             </div>
@@ -122,7 +122,7 @@ export default function Withdraw() {
                   if (m === 'USDT') setAccountValid(TRC20_REGEX.test(account.trim()))
                   else setAccountValid(TELEBIRR_ACCOUNT_REGEX.test(account.trim()))
                 }}
-                className="mt-2 w-full rounded-3xl border border-gray-200 bg-slate-50 px-4 py-3 text-zinc-950 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="touch-input"
               >
                 <option>Telebirr</option>
                 <option>USDT</option>
@@ -143,7 +143,7 @@ export default function Withdraw() {
                     setAccountValid(TELEBIRR_ACCOUNT_REGEX.test(v))
                   }
                 }}
-                className="mt-2 w-full rounded-3xl border border-gray-200 bg-slate-50 px-4 py-3 text-zinc-950 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="touch-input"
                 placeholder="Recipient number or wallet address"
               />
               {!accountValid && (
@@ -154,7 +154,7 @@ export default function Withdraw() {
             <button
               type="submit"
               disabled={!accountValid || !amount || Number(amount) <= 0}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-3xl bg-blue-600 px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="touch-button disabled:opacity-60 disabled:cursor-not-allowed"
             >
               <Wallet className="h-4 w-4" />
               Submit Request

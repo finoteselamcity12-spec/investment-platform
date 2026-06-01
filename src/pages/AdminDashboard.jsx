@@ -224,20 +224,20 @@ export default function AdminDashboard() {
       <div className="mx-auto max-w-7xl px-6 py-8">
         {/* Stats Cards */}
         <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-3">
-          <div className="rounded-[1.75rem] border border-gray-200 bg-white p-6">
+          <div className="card-surface">
             <p className="text-sm text-zinc-600">Total Registrations</p>
             <p className="mt-2 text-3xl font-bold text-zinc-950">{registrationCount}</p>
           </div>
-          <div className="rounded-[1.75rem] border border-gray-200 bg-white p-6">
+          <div className="card-surface">
             <p className="text-sm text-zinc-600">Pending Deposits</p>
               <p className="mt-2 text-3xl font-bold text-amber-500">{deposits.length}</p>
             </div>
-            <div className="rounded-[1.75rem] border border-gray-200 bg-white p-6">
+            <div className="card-surface">
               <p className="text-sm text-zinc-600">Pending Withdrawals</p>
               <p className="mt-2 text-3xl font-bold text-blue-500">{withdrawalRequests.length}</p>
             </div>
           </div>
-          <div className="mb-8 rounded-[1.75rem] border border-gray-200 bg-white p-6">
+          <div className="card-surface mb-8">
             <div className="flex items-center justify-between gap-4">
               <div>
                 <h2 className="text-xl font-bold text-zinc-950">User Management</h2>
@@ -248,7 +248,7 @@ export default function AdminDashboard() {
               <p className="mt-4 text-zinc-600">No registered users found.</p>
             ) : (
               <div className="mt-4 overflow-x-auto">
-                <table className="responsive-table w-full text-sm">
+                <table className="table-minimal responsive-table w-full text-sm">
                   <thead>
                     <tr className="border-b border-gray-200">
                       <th className="px-4 py-3 text-left text-zinc-600">Name</th>
@@ -281,13 +281,13 @@ export default function AdminDashboard() {
             )}
           </div>
 
-          <div className="mb-8 rounded-[1.75rem] border border-gray-200 bg-white p-6">
+          <div className="card-surface mb-8">
             <h2 className="mb-4 text-xl font-bold text-zinc-950">Pending Deposits</h2>
             {deposits.length === 0 ? (
               <p className="text-zinc-600">No pending deposits.</p>
             ) : (
               <div className="overflow-x-auto">
-                <table className="responsive-table w-full text-sm">
+                <table className="table-minimal responsive-table w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-200">
                     <th className="px-4 py-3 text-left text-zinc-600">User</th>
@@ -356,13 +356,13 @@ export default function AdminDashboard() {
         </div>
 
         {/* Pending Withdrawals Table */}
-        <div className="mb-8 rounded-[1.75rem] border border-gray-200 bg-white p-6">
+        <div className="card-surface mb-8">
           <h2 className="mb-4 text-xl font-bold text-zinc-950">Pending Withdrawals</h2>
           {withdrawalRequests.length === 0 ? (
             <p className="text-zinc-600">No pending withdrawals.</p>
           ) : (
             <div className="overflow-x-auto">
-              <table className="responsive-table w-full text-sm">
+              <table className="table-minimal responsive-table w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-200">
                     <th className="px-4 py-3 text-left text-zinc-600">User</th>

@@ -136,7 +136,7 @@ export default function Auth() {
         </h1>
       </div>
 
-      <div className="bg-white w-full max-w-md rounded-3xl p-6 md:p-8 shadow-2xl transition-all">
+      <div className="card-surface w-full max-w-md p-6 md:p-8 shadow-2xl transition-all">
         <div className="mb-8 flex overflow-hidden rounded-full bg-zinc-100 p-1 shadow-inner">
           <button
             type="button"
@@ -167,7 +167,7 @@ export default function Auth() {
                 value={form.fullName}
                 onChange={(event) => setForm({ ...form, fullName: event.target.value })}
                 placeholder="Your full name"
-                className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 p-3 text-zinc-950 font-bold placeholder:text-zinc-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="touch-input"
               />
             </div>
           )}
@@ -179,7 +179,7 @@ export default function Auth() {
               value={form.email}
               onChange={(event) => setForm({ ...form, email: event.target.value })}
               placeholder="name@investmentplatform.com"
-              className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 p-3 text-zinc-950 font-bold placeholder:text-zinc-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="touch-input"
             />
           </div>
 
@@ -190,7 +190,7 @@ export default function Auth() {
               value={form.password}
               onChange={(event) => setForm({ ...form, password: event.target.value })}
               placeholder="Enter your password"
-              className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 p-3 text-zinc-950 font-bold placeholder:text-zinc-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="touch-input"
             />
           </div>
 
@@ -202,7 +202,7 @@ export default function Auth() {
                 value={form.confirmPassword}
                 onChange={(event) => setForm({ ...form, confirmPassword: event.target.value })}
                 placeholder="Confirm password"
-                className="w-full rounded-2xl border border-zinc-200 bg-zinc-50 p-3 text-zinc-950 font-bold placeholder:text-zinc-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="touch-input"
               />
             </div>
           )}
@@ -210,7 +210,7 @@ export default function Auth() {
           <button
             type="submit"
             disabled={!canSubmit || loading}
-            className="w-full rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg py-3 shadow-md transition-all disabled:cursor-not-allowed disabled:opacity-60"
+            className="touch-button disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? 'Working...' : isLogin ? 'LOGIN' : 'Create Account'}
           </button>
@@ -266,3 +266,4 @@ export default function Auth() {
     </div>
   )
 }
+

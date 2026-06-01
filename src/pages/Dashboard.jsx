@@ -845,7 +845,7 @@ export default function Dashboard() {
               )}
             </div>
             {activePage === 'dashboard' && (
-              <section className="space-y-6 rounded-[2rem] border border-gray-200 bg-white p-6 shadow-sm">
+              <section className="card-surface space-y-6">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                   <div>
                     <p className="text-sm uppercase tracking-tight text-zinc-950">Main overview</p>
@@ -858,22 +858,22 @@ export default function Dashboard() {
                 </div>
 
                 <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-                  <div className="rounded-[1.75rem] border border-gray-200 bg-white p-6 shadow-sm">
+                  <div className="card-surface">
                     <p className="text-xs uppercase tracking-tight text-zinc-950">USD Wallet (🇺🇸)</p>
                     <p className="mt-4 text-2xl font-extrabold text-zinc-900">${usdBalance.toFixed(2)}</p>
                   </div>
-                  <div className="rounded-[1.75rem] border border-gray-200 bg-white p-6 shadow-sm">
+                  <div className="card-surface">
                     <p className="text-xs uppercase tracking-tight text-zinc-950">ETB Wallet (🇪🇹)</p>
                     <p className="mt-4 text-2xl font-extrabold text-zinc-900">{etbBalance.toLocaleString()} Birr</p>
                   </div>
-                  <div className="rounded-[1.75rem] border border-gray-200 bg-white p-6 shadow-sm">
+                  <div className="card-surface">
                     <p className="text-xs uppercase tracking-tight text-zinc-950">Active Investments</p>
                     <p className="mt-4 text-2xl font-extrabold text-zinc-900">{activeInvestmentsCount}</p>
                   </div>
                 </div>
 
                 <div className="grid gap-6 md:grid-cols-[1.1fr_0.9fr]">
-                  <div className="rounded-[1.75rem] border border-gray-200 bg-white p-6 shadow-sm">
+                  <div className="card-surface">
                     <div className="flex items-center justify-between gap-4">
                       <div>
                         <p className="text-sm uppercase tracking-tight text-zinc-950">Mining Nodes / Daily Claim Pool</p>
@@ -913,7 +913,7 @@ export default function Dashboard() {
                     )}
                   </div>
 
-                  <div className="rounded-[1.75rem] border border-gray-200 bg-white p-6 shadow-sm">
+                  <div className="card-surface">
                     <p className="text-sm uppercase tracking-tight text-zinc-950">Referral Portal</p>
                     <h2 className="mt-3 text-2xl font-bold text-zinc-950">Invite investors & earn rewards</h2>
                     <div className="mt-6 space-y-4">
@@ -958,7 +958,7 @@ export default function Dashboard() {
             )}
 
             {activePage === 'invest' && (
-              <section className="space-y-6 rounded-[2rem] border border-gray-200 bg-white p-6 shadow-sm">
+              <section className="card-surface space-y-6">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="text-sm uppercase tracking-tight text-zinc-950">Investment tiers</p>
@@ -985,7 +985,7 @@ export default function Dashboard() {
                     const PremiumIcon = getPremiumIcon(tier.amount)
                     const premiumName = premiumTierNames[tier.amount] || tier.title
                     return (
-                      <div key={tier.id} className="rounded-[1.75rem] border border-gray-200 bg-white p-6 shadow-sm">
+                      <div key={tier.id} className="card-surface">
                         <div className="flex items-center justify-between gap-4">
                           <div className="inline-flex h-14 w-14 items-center justify-center rounded-3xl bg-[#1d4ed8]/10 text-[#1d4ed8]">
                             <PremiumIcon className="h-7 w-7" />
@@ -1028,7 +1028,7 @@ export default function Dashboard() {
             )}
 
             {activePage === 'deposit' && (
-              <section className="space-y-6 rounded-[2rem] border border-gray-200 bg-white p-6 shadow-sm">
+              <section className="card-surface space-y-6">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="text-sm uppercase tracking-tight text-zinc-950">Funding channels</p>
@@ -1040,7 +1040,7 @@ export default function Dashboard() {
                     <select
                       value={depositChannel}
                       onChange={(event) => setDepositChannel(event.target.value)}
-                      className="mt-3 w-full rounded-3xl border border-gray-200 bg-white px-4 py-3 text-zinc-950 font-bold focus:border-[#1d4ed8] focus:outline-none focus:ring-2 focus:ring-[#1d4ed8]/20"
+                      className="touch-input"
                     >
                       <option value="merchant">Merchant</option>
                       <option value="personal">Personal</option>
@@ -1050,7 +1050,7 @@ export default function Dashboard() {
                 </div>
 
                 <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-2">
-                  <div className="rounded-[1.75rem] border border-gray-200 bg-slate-50 p-6 shadow-sm">
+                  <div className="card-surface bg-slate-50">
                     <p className="text-sm uppercase tracking-tight text-zinc-950">Channel details</p>
                     <div className="mt-6 space-y-4">
                       {depositChannel === 'merchant' ? (
@@ -1123,7 +1123,7 @@ export default function Dashboard() {
                     </div>
                   </div>
 
-                    <div className="rounded-[1.75rem] border border-gray-200 bg-white p-6 shadow-sm">
+                    <div className="card-surface">
                     <p className="text-sm uppercase tracking-tight text-zinc-950">Submit deposit ticket</p>
                     {depositWaiting ? (
                       <div className="mt-6 flex items-center justify-center">
@@ -1146,7 +1146,7 @@ export default function Dashboard() {
                             if (depositError) setDepositError('')
                           }}
                           placeholder="e.g., DEU9H517C7"
-                          className="mt-2 w-full rounded-3xl border border-gray-200 bg-slate-50 px-4 py-3 text-zinc-950 focus:border-[#1d4ed8] focus:outline-none focus:ring-2 focus:ring-[#1d4ed8]/20"
+                          className="touch-input"
                         />
                         {depositForm.transactionId && (
                           <p className={`mt-2 text-xs ${depositIdValid ? 'text-emerald-700' : 'text-red-600'}`}>
@@ -1168,7 +1168,7 @@ export default function Dashboard() {
                             setDepositIdValid(validateDepositTransactionId(depositForm.transactionId, newCurrency))
                           }}
                           onBlur={(event) => setDepositIdValid(validateDepositTransactionId(depositForm.transactionId, event.target.value))}
-                          className="mt-2 w-full rounded-3xl border border-gray-200 bg-slate-50 px-4 py-3 text-zinc-950 focus:border-[#1d4ed8] focus:outline-none focus:ring-2 focus:ring-[#1d4ed8]/20"
+                          className="touch-input"
                         >
                           <option value="ETB">ETB (Birr)</option>
                           <option value="USDT">USDT (TRC20)</option>
@@ -1184,7 +1184,7 @@ export default function Dashboard() {
                           value={depositForm.amount}
                           onChange={(event) => setDepositForm((prev) => ({ ...prev, amount: event.target.value }))}
                           placeholder="Enter amount"
-                          className="mt-2 w-full rounded-3xl border border-gray-200 bg-slate-50 px-4 py-3 text-zinc-950 focus:border-[#1d4ed8] focus:outline-none focus:ring-2 focus:ring-[#1d4ed8]/20"
+                          className="touch-input"
                         />
                       </div>
                       <div>
@@ -1210,7 +1210,7 @@ export default function Dashboard() {
                       <button
                         type="submit"
                         disabled={isVerifyingDeposit || depositWaiting}
-                        className="inline-flex w-full items-center justify-center gap-2 rounded-3xl bg-[#1d4ed8] px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-60"
+                        className="touch-button disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         <CreditCard className="h-4 w-4" />
                         {isVerifyingDeposit ? 'Verifying Receipt...' : 'Submit Deposit Ticket'}
@@ -1223,14 +1223,14 @@ export default function Dashboard() {
             )}
 
             {activePage === 'withdraw' && (
-              <section className="space-y-6 rounded-[2rem] border border-gray-200 bg-white p-6 shadow-sm">
+              <section className="card-surface space-y-6">
                 <div>
                   <p className="text-sm uppercase tracking-tight text-zinc-950">Cashout request</p>
                   <h1 className="mt-2 text-2xl font-bold text-zinc-950">Withdrawal</h1>
                   <p className="mt-3 max-w-2xl text-sm text-zinc-950">Choose local or crypto cashout and submit your secure payout instructions.</p>
                 </div>
                 <div className="grid gap-6 md:grid-cols-[1.15fr_0.85fr]">
-                  <div className="rounded-[1.75rem] border border-gray-200 bg-slate-50 p-6 shadow-sm">
+                  <div className="card-surface bg-slate-50">
                     <p className="text-sm uppercase tracking-tight text-zinc-950">Available methods</p>
                     <div className="mt-5 space-y-3">
                       {withdrawMethods.map((method) => (
@@ -1241,7 +1241,7 @@ export default function Dashboard() {
                       ))}
                     </div>
                   </div>
-                  <div className="rounded-[1.75rem] border border-gray-200 bg-white p-6 shadow-sm">
+                  <div className="card-surface">
                     <form onSubmit={handleWithdrawSubmit} className="space-y-4">
                       <div>
                         <label className="block text-sm font-bold text-zinc-950">Full Name</label>
@@ -1250,7 +1250,7 @@ export default function Dashboard() {
                           value={withdrawName}
                           onChange={(event) => setWithdrawName(event.target.value)}
                           placeholder="Your full name"
-                          className="mt-2 w-full rounded-3xl border border-gray-200 bg-slate-50 px-4 py-3 text-zinc-950 focus:border-[#1d4ed8] focus:outline-none focus:ring-2 focus:ring-[#1d4ed8]/20"
+                          className="touch-input"
                         />
                       </div>
                       <div>
@@ -1258,7 +1258,7 @@ export default function Dashboard() {
                         <select
                           value={withdrawMethod}
                           onChange={(event) => setWithdrawMethod(event.target.value)}
-                          className="mt-2 w-full rounded-3xl border border-gray-200 bg-slate-50 px-4 py-3 text-zinc-950 focus:border-[#1d4ed8] focus:outline-none focus:ring-2 focus:ring-[#1d4ed8]/20"
+                          className="touch-input"
                         >
                           {withdrawMethods.map((method) => (
                             <option key={method} value={method}>{method}</option>
@@ -1272,7 +1272,7 @@ export default function Dashboard() {
                           value={withdrawAccount}
                           onChange={(event) => setWithdrawAccount(event.target.value)}
                           placeholder="Enter account or wallet address"
-                          className="mt-2 w-full rounded-3xl border border-gray-200 bg-slate-50 px-4 py-3 text-zinc-950 focus:border-[#1d4ed8] focus:outline-none focus:ring-2 focus:ring-[#1d4ed8]/20"
+                          className="touch-input"
                         />
                       </div>
                       <div>
@@ -1284,12 +1284,12 @@ export default function Dashboard() {
                           value={withdrawAmount}
                           onChange={(event) => setWithdrawAmount(event.target.value)}
                           placeholder="Enter payout amount"
-                          className="mt-2 w-full rounded-3xl border border-gray-200 bg-slate-50 px-4 py-3 text-zinc-950 focus:border-[#1d4ed8] focus:outline-none focus:ring-2 focus:ring-[#1d4ed8]/20"
+                          className="touch-input"
                         />
                       </div>
                       <button
                         type="submit"
-                        className="inline-flex w-full items-center justify-center gap-2 rounded-3xl bg-[#1d4ed8] px-5 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-[#1d4ed8]"
+                        className="touch-button"
                       >
                         <Wallet className="h-4 w-4" />
                         Request Cashout
@@ -1301,7 +1301,7 @@ export default function Dashboard() {
             )}
 
             {activePage === 'history' && (
-              <section className="space-y-6 rounded-[2rem] border border-gray-200 bg-white p-6 shadow-sm">
+              <section className="card-surface space-y-6">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <p className="text-sm uppercase tracking-tight text-zinc-950">Transaction history</p>
@@ -1325,7 +1325,7 @@ export default function Dashboard() {
                 </div>
 
                 <div className="overflow-hidden rounded-[1.75rem] border border-gray-200 shadow-sm">
-                  <table className="responsive-table min-w-full divide-y divide-gray-200 text-left text-sm">
+                  <table className="table-minimal responsive-table min-w-full text-left text-sm">
                     <thead className="bg-slate-50">
                       <tr>
                         <th className="px-6 py-4 font-bold text-zinc-950">Type</th>
@@ -1376,3 +1376,4 @@ export default function Dashboard() {
     </div>
   )
 }
+
