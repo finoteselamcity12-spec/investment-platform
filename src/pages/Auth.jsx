@@ -37,7 +37,14 @@ export default function Auth() {
     } catch (e) {
       // ignore
     }
-  }, [location.search])
+
+    // Keep the tab state in sync with the current route
+    if (location.pathname === '/register') {
+      setIsLogin(false)
+    } else if (location.pathname === '/login' || location.pathname === '/') {
+      setIsLogin(true)
+    }
+  }, [location.pathname, location.search])
 
   async function handleAuth(event) {
     event.preventDefault()
@@ -105,12 +112,30 @@ export default function Auth() {
           localStorage.setItem('admin_user_data', JSON.stringify(userData))
         }
 
-        // Redirect to login page after successful registration
         if (signupError) {
-          setMessage(`Account saved locally, but sign-up returned an issue: ${signupError.message || signupError}. You can still login.`)
-        } else {
-          setMessage('Account created successfully. Redirecting to login...')
+          setMessage(`Account created locally, but sign-up returned an issue: ${signupError.message || signupError}. Please sign in manually.`)
+          setForm(initialForm)
+          setIsLogin(true)
+          navigate('/login')
+          return
         }
+
+        // Attempt to sign the user in immediately after successful sign-up.
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: form.email,
+          password: form.password,
+        })
+
+        if (!signInError) {
+          setMessage('Account created successfully. Logging you in now...')
+          setForm(initialForm)
+          navigate('/dashboard')
+          return
+        }
+
+        setMessage('Account created successfully. Please log in with your new credentials.')
+        setForm(initialForm)
+        setIsLogin(true)
         navigate('/login')
         return
       }
@@ -149,7 +174,11 @@ export default function Auth() {
         <div className="mb-8 flex overflow-hidden rounded-full bg-gray-100 p-1 shadow-md border border-gray-200">
           <button
             type="button"
-            onClick={() => setIsLogin(true)}
+            onClick={() => {
+              setIsLogin(true)
+              setMessage('')
+              navigate('/login')
+            }}
             className={`flex-1 rounded-full px-5 py-3 text-sm font-bold transition-all duration-300 ${
               isLogin 
                 ? 'bg-gradient-to-r from-lime-400 to-lime-500 text-white shadow-lg' 
@@ -160,7 +189,11 @@ export default function Auth() {
           </button>
           <button
             type="button"
-            onClick={() => setIsLogin(false)}
+            onClick={() => {
+              setIsLogin(false)
+              setMessage('')
+              navigate('/register')
+            }}
             className={`flex-1 rounded-full px-5 py-3 text-sm font-bold transition-all duration-300 ${
               !isLogin 
                 ? 'bg-gradient-to-r from-lime-400 to-lime-500 text-white shadow-lg' 
