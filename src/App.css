@@ -3,16 +3,19 @@
   display: inline-block;
   position: relative;
   z-index: 1;
-  font-size: 3rem;
+  /* Responsive font size: scales from 2rem (mobile) to 3rem (desktop) */
+  font-size: clamp(2rem, 5vw, 3rem);
   font-weight: 900;
   text-transform: uppercase;
-  letter-spacing: 2.5px;
+  /* Responsive letter spacing */
+  letter-spacing: clamp(1px, 0.5vw, 2.5px);
   line-height: 1;
   font-family: inherit;
-  margin-bottom: 50px;
+  /* Ample responsive margin: 30px (mobile) to 50px (desktop) */
+  margin-bottom: clamp(30px, 8vw, 50px);
   text-align: center;
 
-  /* Premium metallic gold-to-dark-grey gradient */
+  /* Vibrant yet professional: Premium metallic gold-to-dark-grey gradient */
   background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.9), transparent 25%),
               linear-gradient(135deg, #D4AF37 0%, #E8D5B7 25%, #A89968 50%, #3D3D3D 100%);
   -webkit-background-clip: text;
@@ -80,29 +83,4 @@
   
   mix-blend-mode: screen;
   opacity: 0.85;
-}
-
-/* Responsive scaling for all screen sizes */
-@media (max-width: 1024px) {
-  .blackrock-3d-text {
-    font-size: 2.5rem;
-    letter-spacing: 2px;
-    margin-bottom: 45px;
-  }
-}
-
-@media (max-width: 768px) {
-  .blackrock-3d-text {
-    font-size: 2rem;
-    letter-spacing: 1.5px;
-    margin-bottom: 35px;
-  }
-}
-
-@media (max-width: 480px) {
-  .blackrock-3d-text {
-    font-size: 1.75rem;
-    letter-spacing: 1px;
-    margin-bottom: 30px;
-  }
 }
