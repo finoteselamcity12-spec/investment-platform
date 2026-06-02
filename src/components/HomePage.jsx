@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { TrendingUp, Wallet, ArrowUpCircle, HelpCircle, UserCircle, Gift, Shield } from 'lucide-react'
 import { getSession, getUserProfile } from '../lib/authService'
 
-const PRIMARY_GREEN = '#84CC16'
+const PRIMARY_GOLD = '#F5B700'
 
 export default function HomePage({ ctx }) {
   const { usdBalance, etbBalance, setActivePage, showToast } = ctx
@@ -52,15 +52,15 @@ export default function HomePage({ ctx }) {
         </div>
 
         <div>
-          <h1 className="text-3xl font-black text-slate-950 tracking-tight">Investment Platform</h1>
+          <h1 className="text-3xl font-black text-slate-950 tracking-tight">BlackRock</h1>
         </div>
 
         {/* Total Balance Card - Glassmorphism */}
         <div
           className="rounded-3xl border border-white/60 p-8 text-white shadow-2xl overflow-hidden relative"
           style={{
-            background: `linear-gradient(135deg, ${PRIMARY_GREEN}, #65a007)`,
-            boxShadow: `0 20px 40px ${PRIMARY_GREEN}40, 0 0 1px rgba(255,255,255,0.6)`,
+            background: `linear-gradient(135deg, ${PRIMARY_GOLD}, #e2b300)`,
+            boxShadow: `0 20px 40px ${PRIMARY_GOLD}40, 0 0 1px rgba(255,255,255,0.6)`,
           }}
         >
           <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full blur-3xl -mr-20 -mt-20" />
@@ -93,28 +93,28 @@ export default function HomePage({ ctx }) {
             onClick={() => setActivePage?.('deposit')}
             className="rounded-2xl border border-white/40 bg-white/40 backdrop-blur-md hover:bg-white/60 active:scale-95 px-4 py-6 font-bold text-slate-950 transition-all duration-200 shadow-md hover:shadow-lg"
           >
-            <Wallet size={32} className="mx-auto mb-3" style={{ color: PRIMARY_GREEN }} />
+            <Wallet size={32} className="mx-auto mb-3" style={{ color: PRIMARY_GOLD }} />
             <span className="text-sm">Deposit</span>
           </button>
           <button
             onClick={() => setActivePage?.('invest')}
             className="rounded-2xl border border-white/40 bg-white/40 backdrop-blur-md hover:bg-white/60 active:scale-95 px-4 py-6 font-bold text-slate-950 transition-all duration-200 shadow-md hover:shadow-lg"
           >
-            <TrendingUp size={32} className="mx-auto mb-3" style={{ color: PRIMARY_GREEN }} />
+            <TrendingUp size={32} className="mx-auto mb-3" style={{ color: PRIMARY_GOLD }} />
             <span className="text-sm">Invest</span>
           </button>
           <button
             onClick={() => setActivePage?.('history')}
             className="rounded-2xl border border-white/40 bg-white/40 backdrop-blur-md hover:bg-white/60 active:scale-95 px-4 py-6 font-bold text-slate-950 transition-all duration-200 shadow-md hover:shadow-lg"
           >
-            <ArrowUpCircle size={32} className="mx-auto mb-3" style={{ color: PRIMARY_GREEN }} />
+            <ArrowUpCircle size={32} className="mx-auto mb-3" style={{ color: PRIMARY_GOLD }} />
             <span className="text-sm">History</span>
           </button>
           <button
             onClick={() => setActivePage?.('support')}
             className="rounded-2xl border border-white/40 bg-white/40 backdrop-blur-md hover:bg-white/60 active:scale-95 px-4 py-6 font-bold text-slate-950 transition-all duration-200 shadow-md hover:shadow-lg"
           >
-            <HelpCircle size={32} className="mx-auto mb-3" style={{ color: PRIMARY_GREEN }} />
+            <HelpCircle size={32} className="mx-auto mb-3" style={{ color: PRIMARY_GOLD }} />
             <span className="text-sm">Support</span>
           </button>
         </div>

@@ -52,9 +52,14 @@ export default function Withdraw() {
     const newErrors = {}
     const value = Number(amount)
 
+    const currency = bank === 'USDT' ? 'USD' : 'ETB'
+    const minWithdrawal = currency === 'USD' ? 5 : 300
+
     // Validate amount
     if (!amount || value <= 0) {
       newErrors.amount = 'Amount must be greater than 0'
+    } else if (value < minWithdrawal) {
+      newErrors.amount = `Minimum withdrawal is ${formatCurrency(minWithdrawal, currency)}`
     } else {
       const amountValidation = validators.amount(amount)
       if (!amountValidation.valid) {
@@ -261,10 +266,10 @@ export default function Withdraw() {
           </form>
 
           {/* Info Card */}
-          <div className="rounded-2xl border border-white/40 bg-gradient-to-r from-amber-50/60 to-orange-50/40 p-4 mt-6">
-            <p className="text-xs text-amber-900 font-semibold flex items-start gap-2">
-              <span className="mt-1">ℹ</span>
-              <span><strong>Status: Pending</strong> — Your withdrawal will be reviewed by admin within 24 hours. Balance deducted immediately.</span>
+          <div className="rounded-2xl border border-white/40 bg-gradient-to-r from-slate-50/60 to-slate-100/40 p-4 mt-6">
+            <p className="text-xs text-slate-600 font-semibold flex flex-col gap-2">
+              <span>ℹ <strong>Status: Pending</strong> — Your withdrawal will be reviewed by admin within 24 hours.</span>
+              <span>Minimum withdrawal is <strong>300 Birr</strong> or <strong>$5 USD</strong>. USDT withdrawals settle in USD equivalence.</span>
             </p>
           </div>
         </div>

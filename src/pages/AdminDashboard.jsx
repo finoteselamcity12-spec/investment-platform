@@ -1,8 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Navigate } from 'react-router-dom'
 import { LogOut, X, ClipboardList, ShieldCheck, UserCircle, Layers } from 'lucide-react'
+import { getSession } from '../lib/authService'
 
 const ADMIN_SESSION_KEY = 'admin_session'
+
+const AUTHORIZED_ADMIN_EMAIL = 'workinehabche@gmail.com'
 
 function formatCurrency(amount, currency) {
   const value = Number(amount || 0)
@@ -175,6 +178,9 @@ export default function AdminDashboard() {
     showToast('Withdrawal rejected.', 'info')
   }
 
+  const currentUserSession = getSession()
+  const authorizedByEmail = currentUserSession?.user?.email?.toLowerCase() === AUTHORIZED_ADMIN_EMAIL
+
   const stats = useMemo(() => {
     const totalDeposits = approvedDeposits.reduce((sum, deposit) => sum + Number(deposit.amount || 0), 0)
     const totalWithdrawals = approvedWithdrawals.reduce((sum, withdrawal) => sum + Number(withdrawal.amount || 0), 0)
@@ -216,7 +222,7 @@ export default function AdminDashboard() {
     return null
   }
 
-  if (!adminSession) {
+  if (!adminSession && !authorizedByEmail) {
     return <Navigate to="/admin-login" replace />
   }
 

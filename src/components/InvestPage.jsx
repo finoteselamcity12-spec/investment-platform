@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { TrendingUp, Clock, Gift, Star, ArrowRight } from 'lucide-react'
 
-const PRIMARY_GREEN = '#84CC16'
+const PRIMARY_GOLD = '#F5B700'
 
 export default function InvestPage({ ctx }) {
   const {
@@ -90,8 +90,8 @@ export default function InvestPage({ ctx }) {
                   : 'text-slate-600'
               }`}
                 style={{
-                backgroundColor: selectedCurrency === currency ? PRIMARY_GREEN : 'transparent',
-                boxShadow: selectedCurrency === currency ? `0 2px 8px ${PRIMARY_GREEN}30` : 'none',
+                backgroundColor: selectedCurrency === currency ? PRIMARY_GOLD : 'transparent',
+                boxShadow: selectedCurrency === currency ? `0 2px 8px ${PRIMARY_GOLD}30` : 'none',
               }}
             >
               {currency === 'USD' ? '$ USD' : 'Br ETB'}
@@ -101,10 +101,10 @@ export default function InvestPage({ ctx }) {
 
         {/* Current Balance */}
         <div
-          className="rounded-3xl p-6 text-white shadow-lg"
+          className="rounded-3xl p-6 text-slate-950 shadow-lg"
           style={{
-            background: `linear-gradient(135deg, ${PRIMARY_GREEN}, #6bb01a)`,
-            boxShadow: `0 8px 24px ${PRIMARY_GREEN}30`,
+            background: `linear-gradient(135deg, #fff8cc, ${PRIMARY_GOLD}10)`,
+            boxShadow: `0 8px 24px ${PRIMARY_GOLD}20`,
           }}
         >
           <p className="text-sm font-semibold opacity-90">Available Balance</p>
@@ -125,7 +125,7 @@ export default function InvestPage({ ctx }) {
                 <div>
                   <p
                     className="text-3xl font-bold"
-                    style={{ color: PRIMARY_GREEN }}
+                    style={{ color: PRIMARY_GOLD }}
                   >
                     {selectedCurrency === 'USD' ? `$${tier.amount}` : `${tier.amount.toLocaleString()}`}
                   </p>
@@ -134,10 +134,10 @@ export default function InvestPage({ ctx }) {
                   </p>
                 </div>
                 <div
-                  className="flex h-14 w-14 items-center justify-center rounded-3xl text-white"
+                  className="flex h-14 w-14 items-center justify-center rounded-3xl text-slate-950"
                   style={{
-                    backgroundColor: `${PRIMARY_GREEN}20`,
-                    color: PRIMARY_GREEN,
+                    backgroundColor: `${PRIMARY_GOLD}20`,
+                    color: PRIMARY_GOLD,
                   }}
                 >
                   <TrendingUp size={26} />
@@ -148,14 +148,14 @@ export default function InvestPage({ ctx }) {
               <div className="grid grid-cols-3 gap-4 mb-6 p-4 bg-white rounded-2xl border border-slate-200">
                 {/* Days */}
                 <div className="text-center">
-                  <Clock size={18} className="mx-auto mb-2" style={{ color: PRIMARY_GREEN }} />
+                  <Clock size={18} className="mx-auto mb-2" style={{ color: PRIMARY_GOLD }} />
                   <p className="text-sm text-slate-500 font-semibold">Days</p>
                   <p className="font-bold text-base text-slate-950">{tier.days}</p>
                 </div>
 
                 {/* Daily Earnings */}
                 <div className="text-center">
-                  <Gift size={18} className="mx-auto mb-2" style={{ color: PRIMARY_GREEN }} />
+                  <Gift size={18} className="mx-auto mb-2" style={{ color: PRIMARY_GOLD }} />
                   <p className="text-sm text-slate-500 font-semibold">Daily</p>
                   <p className="font-bold text-base text-slate-950">
                     {selectedCurrency === 'USD' ? `$${tier.dailyProfit.toFixed(1)}` : `${Math.round(tier.dailyProfit)} Br`}
@@ -164,7 +164,7 @@ export default function InvestPage({ ctx }) {
 
                 {/* Total Return */}
                 <div className="text-center">
-                  <Star size={18} className="mx-auto mb-2" style={{ color: PRIMARY_GREEN }} />
+                  <Star size={18} className="mx-auto mb-2" style={{ color: PRIMARY_GOLD }} />
                   <p className="text-sm text-slate-500 font-semibold">Total</p>
                   <p className="font-bold text-base text-slate-950">
                     {selectedCurrency === 'USD'
@@ -180,8 +180,8 @@ export default function InvestPage({ ctx }) {
                 disabled={balance < tier.amount}
                 className="w-full rounded-2xl px-4 py-4 font-bold text-white active:scale-95 transition disabled:opacity-60"
                 style={{
-                  backgroundColor: balance < tier.amount ? '#CBD5E1' : PRIMARY_GREEN,
-                  boxShadow: balance >= tier.amount ? `0 4px 12px ${PRIMARY_GREEN}30` : 'none',
+                  backgroundColor: balance < tier.amount ? '#CBD5E1' : PRIMARY_GOLD,
+                  boxShadow: balance >= tier.amount ? `0 4px 12px ${PRIMARY_GOLD}30` : 'none',
                 }}
               >
                 {balance >= tier.amount ? 'Invest Now' : 'Insufficient Balance'}
@@ -191,9 +191,15 @@ export default function InvestPage({ ctx }) {
         </div>
 
         {/* Info Banner */}
-        <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4">
-          <p className="text-xs text-blue-900 font-medium">
-            ✓ <strong>Secure:</strong> Daily returns guaranteed. Withdraw after completion.
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <p className="text-xs text-slate-600 font-medium">
+            ✓ Welcome bonus of <strong>150 Birr</strong> + referral bonus of <strong>50 Birr</strong> for every invite.
+          </p>
+          <p className="text-xs text-slate-600 font-medium mt-2">
+            ✓ Minimum withdrawal is <strong>300 Birr</strong> or <strong>$5 USD</strong>. Exchange rate: <strong>1 USD = 174 ETB</strong>.
+          </p>
+          <p className="text-xs text-slate-600 font-medium mt-2">
+            ✓ All plans target break-even in 3-4 days with clear daily return projections.
           </p>
         </div>
       </div>
