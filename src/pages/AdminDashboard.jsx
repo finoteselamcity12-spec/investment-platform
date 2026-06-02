@@ -150,17 +150,22 @@ export default function AdminDashboard() {
       totalDeposits: 0,
     }
 
-    const updatedUser = {
-      ...existing,
-      usdBalance: deposit.currency === 'USDT' ? (existing.usdBalance || 0) + deposit.amount : existing.usdBalance || 0,
-      etbBalance: deposit.currency === 'ETB' ? (existing.etbBalance || 0) + deposit.amount : existing.etbBalance || 0,
-      totalDeposits: (existing.totalDeposits || 0) + deposit.amount,
-    }
+try {
+      const updatedUser = {
+        ...existing,
+        usdBalance: deposit.currency === 'USDT' ? (existing.usdBalance || 0) + deposit.amount : existing.usdBalance || 0,
+        etbBalance: deposit.currency === 'ETB' ? (existing.etbBalance || 0) + deposit.amount : existing.etbBalance || 0,
+        totalDeposits: (existing.totalDeposits || 0) + deposit.amount,
+      }
 
-    usersData[userEmail] = updatedUser
-    saveStorage('admin_user_data', usersData)
-    setUsers(Object.values(usersData))
-    showToast('Deposit approved and user wallet updated.', 'success')
+      usersData[userEmail] = updatedUser
+      saveStorage('admin_user_data', usersData)
+      setUsers(Object.values(usersData))
+      showToast('Deposit approved and user wallet updated.', 'success')
+    } catch (err) {
+      console.error('Error approving deposit:', err)
+      showToast('Failed to approve deposit. Check console for details.', 'error')
+    }
   }
 
   function handleRejectDeposit(depositId) {

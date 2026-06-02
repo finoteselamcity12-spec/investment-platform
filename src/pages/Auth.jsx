@@ -219,8 +219,7 @@ export default function Auth() {
       <div className="text-center relative z-10 mb-8">
         <div className="mx-auto flex h-28 w-28 items-center justify-center rounded-[2.5rem] bg-white/90 shadow-[0_28px_60px_rgba(16,185,129,0.18)] ring-1 ring-white/60">
           <div className="auth-logo-inner flex h-24 w-24 flex-col items-center justify-center rounded-[2rem] text-white">
-            <span className="text-3xl font-black tracking-[0.2em] drop-shadow-[0_2px_12px_rgba(0,0,0,0.18)]">IP</span>
-            <span className="mt-1 text-[10px] uppercase tracking-[0.35em] font-semibold">Investment Platform</span>
+            <span className="text-3xl font-black tracking-[0.02em] drop-shadow-[0_2px_12px_rgba(0,0,0,0.18)]">Investment Platform</span>
           </div>
         </div>
       </div>
