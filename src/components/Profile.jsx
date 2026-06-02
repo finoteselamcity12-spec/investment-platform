@@ -124,41 +124,6 @@ export default function Profile({ ctx }) {
             />
           </div>
         </div>
-
-        {/* Security Info Card */}
-        <div className="rounded-3xl border border-white/40 bg-gradient-to-br from-blue-50/60 to-blue-100/40 backdrop-blur-xl p-6 shadow-[0_8px_32px_0_rgba(59,130,246,0.1)]">
-          <div className="flex items-start gap-3">
-            <Shield size={24} className="text-blue-600 mt-1 flex-shrink-0" />
-            <div>
-              <p className="font-semibold text-blue-900">Security Overview</p>
-              <ul className="mt-3 space-y-2 text-sm text-blue-800">
-                <li className="flex items-center gap-2">
-                  <span className="text-blue-500">✓</span> JWT authentication enabled
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="text-blue-500">✓</span> Session timeout: 30 minutes
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="text-blue-500">✓</span> All inputs validated server-side
-                </li>
-                <li className="flex items-center gap-2">
-                  <span className="text-blue-500">✓</span> XSS and injection protected
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        {/* Tips Card */}
-        <div className="rounded-3xl border border-white/40 bg-gradient-to-br from-amber-50/60 to-amber-100/40 backdrop-blur-xl p-6 shadow-[0_8px_32px_0_rgba(217,119,6,0.1)]">
-          <p className="font-semibold text-amber-900">Profile Tips</p>
-          <ul className="mt-3 space-y-2 list-disc pl-5 text-sm text-amber-800">
-            <li>Upload a clear profile photo for a professional account view.</li>
-            <li>Your verified email is used for all account notifications.</li>
-            <li>Profile details are securely stored and encrypted.</li>
-            <li>Never share your password or session token.</li>
-          </ul>
-        </div>
       </div>
     </div>
   )
