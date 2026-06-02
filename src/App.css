@@ -1,4 +1,4 @@
-/* BlackRock 3D Gradient Logo (Lucky Slot style) */
+/* BlackRock 3D Gradient Logo (Lucky Slot exact style) */
 .blackrock-3d-text {
   display: inline-block;
   position: relative;
@@ -10,64 +10,58 @@
   line-height: 1;
   font-family: inherit;
 
-  /* Vibrant glossy gradient fill (gold/orange/red premium look) */
-  background: linear-gradient(
-    135deg,
-    #ffeb3b 0%,
-    #ffc107 15%,
-    #ff9800 35%,
-    #ff6f00 55%,
-    #d84315 75%,
-    #8b4513 100%
-  );
+  /* EXACT Lucky Slot gradient: radial highlight + green-to-dark-green */
+  background: radial-gradient(circle at top left, rgba(255,255,255,0.95), transparent 30%), 
+              linear-gradient(180deg, #22c55e, #15803d);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
 
-  /* Dark stroke for definition */
-  -webkit-text-stroke: 1px rgba(0, 0, 0, 0.4);
+  /* Heavy dark stroke for metallic definition */
+  -webkit-text-stroke: 1.2px rgba(0, 0, 0, 0.5);
 
-  /* Layered 3D shadow stack for depth and extrusion */
+  /* Aggressive layered 3D shadow stack - glossy metallic extrusion */
   text-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.8),      /* top highlight */
-    0 2px 1px rgba(255, 255, 255, 0.6),
-    0 3px 2px rgba(0, 0, 0, 0.15),
-    0 4px 3px rgba(0, 0, 0, 0.2),
+    0 1px 0 rgba(255, 255, 255, 0.95),     /* bright top edge */
+    0 2px 1px rgba(255, 255, 255, 0.75),   /* glossy layer 1 */
+    0 3px 2px rgba(255, 255, 255, 0.5),    /* glossy layer 2 */
+    0 4px 3px rgba(0, 0, 0, 0.15),         /* mid-shadow */
     0 6px 4px rgba(0, 0, 0, 0.25),
-    0 8px 6px rgba(0, 0, 0, 0.3),
-    0 12px 12px rgba(0, 0, 0, 0.4),
-    0 20px 30px rgba(0, 0, 0, 0.55);
+    0 8px 8px rgba(0, 0, 0, 0.35),
+    0 12px 16px rgba(0, 0, 0, 0.45),
+    0 18px 40px rgba(0, 0, 0, 0.6);        /* deep shadow */
 
-  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.35));
+  /* Heavy drop shadow for detachment */
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.4));
 }
 
-/* Bevel/inner shadow using ::before for depth */
+/* Deep shadow / extrusion using ::before - creates dimensional depth */
 .blackrock-3d-text::before {
   content: attr(data-text);
   position: absolute;
   left: 0;
   top: 0;
   z-index: -1;
-  width: 100%;
   
-  /* Inner bevel effect */
+  /* Subtle bevel shadow mimicking Lucky Slot */
   background: linear-gradient(
-    135deg,
-    rgba(0, 0, 0, 0.15) 0%,
-    rgba(0, 0, 0, 0.08) 20%,
-    rgba(0, 0, 0, 0.02) 50%,
-    rgba(0, 0, 0, 0.1) 80%,
-    rgba(0, 0, 0, 0.2) 100%
+    180deg,
+    rgba(0, 0, 0, 0.2) 0%,
+    rgba(0, 0, 0, 0.1) 20%,
+    rgba(0, 0, 0, 0.05) 50%,
+    rgba(0, 0, 0, 0.15) 80%,
+    rgba(0, 0, 0, 0.25) 100%
   );
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   
-  transform: translate(3px, 3px) scaleY(0.98);
-  opacity: 0.95;
+  /* Translate to create extrusion effect */
+  transform: translate(4px, 4px) scaleY(0.97);
+  opacity: 0.98;
 }
 
-/* Glossy highlight overlay using ::after for wet/shiny look */
+/* Glossy wet/shiny highlight overlay using ::after - creates gloss finish */
 .blackrock-3d-text::after {
   content: attr(data-text);
   position: absolute;
@@ -76,13 +70,13 @@
   z-index: 10;
   pointer-events: none;
   
-  /* Bright highlight gradient (top-left to bottom-right) */
-  background: linear-gradient(
-    135deg,
+  /* Bright top-left highlight matching Lucky Slot glossy effect */
+  background: radial-gradient(
+    circle at 20% 25%,
     rgba(255, 255, 255, 1) 0%,
-    rgba(255, 255, 255, 0.7) 10%,
-    rgba(255, 255, 255, 0.3) 20%,
-    rgba(255, 255, 255, 0.05) 40%,
+    rgba(255, 255, 255, 0.8) 8%,
+    rgba(255, 255, 255, 0.4) 18%,
+    rgba(255, 255, 255, 0.1) 35%,
     transparent 60%
   );
   -webkit-background-clip: text;
@@ -90,7 +84,7 @@
   -webkit-text-fill-color: transparent;
   
   mix-blend-mode: screen;
-  opacity: 0.9;
+  opacity: 0.92;
 }
 
 /* Responsive scaling */
