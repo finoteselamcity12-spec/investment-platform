@@ -6,17 +6,59 @@ const PRIMARY_GREEN = '#84CC16'
 export default function InvestPage({ ctx }) {
   const {
     usdBalance, etbBalance, myActiveInvestmentsList, setMyActiveInvestmentsList,
-    usdTiers, etbTiers, premiumTierNames, formatCurrency, showToast,
-    addTransaction, userEmail,
+    formatCurrency, showToast, addTransaction, userEmail,
+    
   } = ctx
 
   const [selectedCurrency, setSelectedCurrency] = useState('USD')
 
-  const tiers = selectedCurrency === 'USD' ? usdTiers : etbTiers
+  // Use the exact arrays provided and compute Total = profit + bonus
+  const usdPlans = [
+    { inv: 3, day: 10, profit: 1.2, bonus: 2 },
+    { inv: 5, day: 15, profit: 2.2, bonus: 3 },
+    { inv: 7, day: 20, profit: 3, bonus: 3 },
+    { inv: 10, day: 22, profit: 4, bonus: 5 },
+    { inv: 15, day: 25, profit: 6, bonus: 7 },
+    { inv: 20, day: 27, profit: 8, bonus: 9 },
+    { inv: 25, day: 30, profit: 12, bonus: 11 },
+    { inv: 30, day: 32, profit: 13, bonus: 14 },
+    { inv: 35, day: 35, profit: 15, bonus: 16 },
+    { inv: 40, day: 37, profit: 17, bonus: 19 },
+    { inv: 45, day: 39, profit: 19, bonus: 21 },
+    { inv: 50, day: 41, profit: 21, bonus: 23 },
+    { inv: 75, day: 43, profit: 25, bonus: 27 },
+    { inv: 90, day: 45, profit: 30, bonus: 37 },
+    { inv: 110, day: 47, profit: 45, bonus: 53 },
+    { inv: 150, day: 49, profit: 54, bonus: 62 },
+    { inv: 200, day: 54, profit: 60, bonus: 68 },
+    { inv: 500, day: 57, profit: 74, bonus: 79 },
+    { inv: 1000, day: 69, profit: 155, bonus: 210 },
+    { inv: 5000, day: 72, profit: 360, bonus: 407 },
+  ].map(p => ({ ...p, total: Number((p.profit + p.bonus).toFixed(3)) }))
+
+  const birrPlans = [
+    { inv: 350, day: 15, profit: 101, bonus: 63 },
+    { inv: 500, day: 20, profit: 142, bonus: 78 },
+    { inv: 700, day: 25, profit: 185, bonus: 104 },
+    { inv: 1000, day: 30, profit: 201, bonus: 268 },
+    { inv: 1500, day: 35, profit: 258, bonus: 309 },
+    { inv: 5000, day: 40, profit: 377, bonus: 492 },
+    { inv: 10000, day: 45, profit: 452, bonus: 608 },
+    { inv: 15000, day: 50, profit: 500, bonus: 702 },
+    { inv: 20000, day: 55, profit: 715, bonus: 900 },
+    { inv: 25000, day: 60, profit: 999, bonus: 1082 },
+    { inv: 30000, day: 65, profit: 1130, bonus: 1800 },
+    { inv: 35000, day: 70, profit: 1900, bonus: 3750 },
+    { inv: 40000, day: 75, profit: 3999, bonus: 3600 },
+    { inv: 45000, day: 80, profit: 4750, bonus: 4000 },
+    { inv: 50000, day: 90, profit: 5000, bonus: 5500 },
+  ].map(p => ({ ...p, total: p.profit + p.bonus }))
+
+  const tiers = selectedCurrency === 'USD' ? usdPlans : birrPlans
   const balance = selectedCurrency === 'USD' ? usdBalance : etbBalance
 
   const handleInvest = (tier) => {
-    if (balance < tier.amount) {
+    if (balance < tier.inv) {
       showToast('Insufficient balance. Please deposit funds first.', 'error')
       return
     }
@@ -24,21 +66,22 @@ export default function InvestPage({ ctx }) {
     // Create investment record
     const investment = {
       id: `inv-${Date.now()}`,
-      amount: tier.amount,
+      amount: tier.inv,
       currency: selectedCurrency,
-      days: tier.days,
-      dailyProfit: tier.dailyProfit,
-      totalReturn: tier.dailyProfit * tier.days,
+      days: tier.day,
+      profit: tier.profit,
+      depBonus: tier.bonus,
+      total: Number((tier.profit + tier.bonus).toFixed(3)),
       startDate: new Date().toISOString(),
-      endDate: new Date(Date.now() + tier.days * 24 * 60 * 60 * 1000).toISOString(),
-      tierName: premiumTierNames[tier.amount] || `${tier.amount} ${selectedCurrency}`,
+      endDate: new Date(Date.now() + tier.day * 24 * 60 * 60 * 1000).toISOString(),
+      tierName: `${tier.inv} ${selectedCurrency}`,
     }
 
     // Update balance
     if (selectedCurrency === 'USD') {
-      ctx.setUsdBalance((prev) => Number((prev - tier.amount).toFixed(2)))
+      ctx.setUsdBalance((prev) => Number((prev - tier.inv).toFixed(2)))
     } else {
-      ctx.setEtbBalance((prev) => Number((prev - tier.amount).toFixed(0)))
+      ctx.setEtbBalance((prev) => Number((prev - tier.inv).toFixed(0)))
     }
 
     // Add to investments
@@ -50,7 +93,7 @@ export default function InvestPage({ ctx }) {
     const userData = JSON.parse(localStorage.getItem('admin_user_data') || '{}')
     if (userData[userEmail]) {
       userData[userEmail][selectedCurrency === 'USD' ? 'usdBalance' : 'etbBalance'] = 
-        selectedCurrency === 'USD' ? balance - tier.amount : balance - tier.amount
+        selectedCurrency === 'USD' ? balance - tier.inv : balance - tier.inv
       localStorage.setItem('admin_user_data', JSON.stringify(userData))
     }
 
@@ -60,13 +103,13 @@ export default function InvestPage({ ctx }) {
       type: 'Investment',
       category: 'Investments',
       title: `Investment: ${investment.tierName}`,
-      amount: tier.amount,
+      amount: tier.inv,
       currency: selectedCurrency,
       status: 'Active',
       date: new Date().toISOString(),
     })
 
-    showToast(`Investment of ${formatCurrency(tier.amount, selectedCurrency)} started!`, 'success')
+    showToast(`Investment of ${formatCurrency(tier.inv, selectedCurrency)} started!`, 'success')
   }
 
   return (
@@ -117,21 +160,16 @@ export default function InvestPage({ ctx }) {
         <div className="space-y-4">
           {tiers.map((tier, idx) => (
             <div
-              key={tier.id}
+              key={tier.inv || idx}
               className="rounded-3xl border border-slate-200 bg-slate-50 p-5 shadow-sm hover:shadow-md transition"
             >
               {/* Tier Header */}
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <p
-                    className="text-2xl font-bold"
-                    style={{ color: PRIMARY_GREEN }}
-                  >
-                    {selectedCurrency === 'USD' ? `$${tier.amount}` : `${tier.amount.toLocaleString()}`}
+                  <p className="text-2xl font-bold" style={{ color: PRIMARY_GREEN }}>
+                    {selectedCurrency === 'USD' ? `$${tier.inv}` : `${tier.inv.toLocaleString()}`}
                   </p>
-                  <p className="text-xs text-slate-500 mt-1 font-semibold">
-                    {premiumTierNames[tier.amount] || 'Investment Plan'}
-                  </p>
+                  <p className="text-xs text-slate-500 mt-1 font-semibold">{tier.tierName || `${tier.inv} ${selectedCurrency}`}</p>
                 </div>
                 <div
                   className="flex h-12 w-12 items-center justify-center rounded-2xl text-white"
@@ -145,46 +183,50 @@ export default function InvestPage({ ctx }) {
               </div>
 
               {/* Tier Details - Grid Layout */}
-              <div className="grid grid-cols-3 gap-2 mb-5 p-3 bg-white rounded-2xl border border-slate-200">
-                {/* Days */}
-                <div className="text-center">
-                  <Clock size={16} className="mx-auto mb-1" style={{ color: PRIMARY_GREEN }} />
-                  <p className="text-xs text-slate-500 font-semibold">Days</p>
-                  <p className="font-bold text-sm text-slate-950">{tier.days}</p>
-                </div>
+                <div className="grid grid-cols-5 gap-2 mb-5 p-3 bg-white rounded-2xl border border-slate-200">
+                  <div className="text-center">
+                    <Clock size={16} className="mx-auto mb-1" style={{ color: PRIMARY_GREEN }} />
+                    <p className="text-xs text-slate-500 font-semibold">Day</p>
+                    <p className="font-bold text-sm text-slate-950">{tier.day}</p>
+                  </div>
 
-                {/* Daily Earnings */}
-                <div className="text-center">
-                  <Gift size={16} className="mx-auto mb-1" style={{ color: PRIMARY_GREEN }} />
-                  <p className="text-xs text-slate-500 font-semibold">Daily</p>
-                  <p className="font-bold text-sm text-slate-950">
-                    {selectedCurrency === 'USD' ? `$${tier.dailyProfit.toFixed(1)}` : `${Math.round(tier.dailyProfit)} Br`}
-                  </p>
-                </div>
+                  <div className="text-center">
+                    <Gift size={16} className="mx-auto mb-1" style={{ color: PRIMARY_GREEN }} />
+                    <p className="text-xs text-slate-500 font-semibold">Profit</p>
+                    <p className="font-bold text-sm text-slate-950">
+                      {selectedCurrency === 'USD' ? `$${Number(tier.profit).toFixed(2)}` : `${Math.round(tier.profit)} Br`}
+                    </p>
+                  </div>
 
-                {/* Total Return */}
-                <div className="text-center">
-                  <Star size={16} className="mx-auto mb-1" style={{ color: PRIMARY_GREEN }} />
-                  <p className="text-xs text-slate-500 font-semibold">Total</p>
-                  <p className="font-bold text-sm text-slate-950">
-                    {selectedCurrency === 'USD'
-                      ? `$${(tier.dailyProfit * tier.days).toFixed(0)}`
-                      : `${Math.round(tier.dailyProfit * tier.days)} Br`}
-                  </p>
+                  <div className="text-center">
+                    <Star size={16} className="mx-auto mb-1" style={{ color: PRIMARY_GREEN }} />
+                    <p className="text-xs text-slate-500 font-semibold">Dep Bonus</p>
+                    <p className="font-bold text-sm text-slate-950">
+                      {selectedCurrency === 'USD' ? `$${Number(tier.bonus).toFixed(2)}` : `${Math.round(tier.bonus)} Br`}
+                    </p>
+                  </div>
+
+                  <div className="text-center col-span-2">
+                    <p className="text-xs text-slate-500 font-semibold">Total</p>
+                    <p className="font-bold text-sm text-slate-950">
+                      {selectedCurrency === 'USD'
+                        ? `$${Number((tier.profit + tier.bonus)).toFixed(2)}`
+                        : `${Math.round(tier.profit + tier.bonus)} Br`}
+                    </p>
+                  </div>
                 </div>
-              </div>
 
               {/* Invest Button */}
               <button
                 onClick={() => handleInvest(tier)}
-                disabled={balance < tier.amount}
+                disabled={balance < tier.inv}
                 className="w-full rounded-2xl px-4 py-4 font-bold text-white active:scale-95 transition disabled:opacity-60"
                 style={{
-                  backgroundColor: balance < tier.amount ? '#CBD5E1' : PRIMARY_GREEN,
-                  boxShadow: balance >= tier.amount ? `0 4px 12px ${PRIMARY_GREEN}30` : 'none',
+                  backgroundColor: balance < tier.inv ? '#CBD5E1' : PRIMARY_GREEN,
+                  boxShadow: balance >= tier.inv ? `0 4px 12px ${PRIMARY_GREEN}30` : 'none',
                 }}
               >
-                {balance >= tier.amount ? 'Invest Now' : 'Insufficient Balance'}
+                {balance >= tier.inv ? 'Invest Now' : 'Insufficient Balance'}
               </button>
             </div>
           ))}
