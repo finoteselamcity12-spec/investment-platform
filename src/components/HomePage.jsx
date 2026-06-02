@@ -52,8 +52,7 @@ export default function HomePage({ ctx }) {
         </div>
 
         <div>
-          <h1 className="text-3xl font-black text-slate-950 tracking-tight">Smart Investment Platform</h1>
-          <p className="text-sm text-slate-500 mt-2">Enterprise-grade security • Real-time tracking • 24/7 support</p>
+          <h1 className="text-3xl font-black text-slate-950 tracking-tight">Investment Platform</h1>
         </div>
 
         {/* Total Balance Card - Glassmorphism */}
@@ -121,15 +120,6 @@ export default function HomePage({ ctx }) {
         </div>
 
         {/* Security Info Card - Glassmorphism */}
-        <div className="rounded-2xl border border-white/60 bg-gradient-to-r from-blue-50/60 to-cyan-50/40 backdrop-blur-xl p-4 shadow-md">
-          <div className="flex items-start gap-3">
-            <Shield size={20} className="text-blue-600 mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="text-xs text-blue-900 font-bold uppercase tracking-wider">Enterprise Security</p>
-              <p className="text-xs text-blue-800 mt-1">✓ JWT authenticated • ✓ SSL encrypted • ✓ Session protected</p>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   )

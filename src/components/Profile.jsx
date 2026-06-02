@@ -130,7 +130,7 @@ export default function Profile({ ctx }) {
           <div className="flex items-start gap-3">
             <Shield size={24} className="text-blue-600 mt-1 flex-shrink-0" />
             <div>
-              <p className="font-semibold text-blue-900">Account Security</p>
+              <p className="font-semibold text-blue-900">Security Overview</p>
               <ul className="mt-3 space-y-2 text-sm text-blue-800">
                 <li className="flex items-center gap-2">
                   <span className="text-blue-500">✓</span> JWT authentication enabled

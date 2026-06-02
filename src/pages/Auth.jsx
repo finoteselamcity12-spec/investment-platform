@@ -217,15 +217,8 @@ export default function Auth() {
       <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_20%_50%,rgba(255,255,255,0.8),transparent_50%),radial-gradient(circle_at_80%_80%,rgba(255,255,255,0.4),transparent_50%)]" />
 
       <div className="text-center relative z-10 mb-8">
-        <div className="mx-auto flex h-32 w-full max-w-xl items-center justify-center rounded-[2rem] bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 p-6 shadow-[0_28px_60px_rgba(15,23,42,0.24)] ring-1 ring-white/10">
-          <div className="relative overflow-hidden rounded-[1.5rem] px-6 py-4 text-left text-white">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.25),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(34,197,94,0.18),transparent_35%)]" />
-            <div className="relative">
-              <p className="text-xs uppercase tracking-[0.35em] text-emerald-300">Investment Platform</p>
-              <h1 className="mt-3 text-4xl font-black tracking-tight text-white drop-shadow-[0_16px_24px_rgba(0,0,0,0.18)]">3D Finance Hub</h1>
-              <p className="mt-2 max-w-md text-sm text-slate-200">Secure login for a modern investment experience.</p>
-            </div>
-          </div>
+        <div className="mx-auto flex h-28 w-full max-w-xl items-center justify-center rounded-[2rem] bg-slate-950 p-6 shadow-[0_28px_60px_rgba(15,23,42,0.24)] ring-1 ring-white/10">
+          <h1 className="text-4xl font-black text-white tracking-tight">Investment Platform</h1>
         </div>
       </div>
 

@@ -36,6 +36,7 @@ export default function AdminLogin() {
           loginTime: new Date().toISOString(),
         })
       )
+      setIsLoading(false)
       navigate('/admin-dashboard')
       return
     }
@@ -48,9 +49,7 @@ export default function AdminLogin() {
     <div className="min-h-screen bg-slate-50 px-4 py-16 flex items-center justify-center">
       <div className="w-full max-w-md rounded-[2rem] bg-white border border-slate-200 p-8 shadow-xl">
         <div className="mb-6 text-center">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-600">Admin Login</p>
-          <h1 className="mt-3 text-3xl font-bold text-slate-950">Secure Operator Access</h1>
-          <p className="mt-2 text-sm text-slate-500">Enter your official admin credentials to continue.</p>
+          <h1 className="text-4xl font-black tracking-tight text-slate-950">Investment Platform</h1>
         </div>
 
         <form className="space-y-5" onSubmit={handleSubmit}>
