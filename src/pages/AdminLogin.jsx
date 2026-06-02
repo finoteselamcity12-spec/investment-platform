@@ -37,7 +37,7 @@ export default function AdminLogin() {
         })
       )
       setIsLoading(false)
-      navigate('/admin-dashboard')
+      navigate('/admin-dashboard', { replace: true })
       return
     }
 

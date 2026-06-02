@@ -60,6 +60,24 @@ export default function Dashboard() {
             </div>
           </div>
         </section>
+
+        <section className="mt-6 rounded-[2rem] border border-slate-200 bg-white p-8 shadow-xl">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold text-slate-950">Investment Overview</h2>
+            <span className="text-xs uppercase tracking-[0.3em] text-slate-500">Portfolio</span>
+          </div>
+          <p className="mt-4 text-sm text-slate-500">A concise view of your active holdings and investment status.</p>
+          <div className="mt-6 grid gap-3 sm:grid-cols-2">
+            <div className="rounded-3xl bg-slate-50 p-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Active Positions</p>
+              <p className="mt-3 text-2xl font-semibold text-slate-950">3</p>
+            </div>
+            <div className="rounded-3xl bg-slate-50 p-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">Next Review</p>
+              <p className="mt-3 text-2xl font-semibold text-slate-950">7 days</p>
+            </div>
+          </div>
+        </section>
       </div>
 
       <nav className="fixed inset-x-0 bottom-0 border-t border-slate-200 bg-white px-4 py-3">
