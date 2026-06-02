@@ -216,7 +216,7 @@ export default function Auth() {
       {/* Subtle animated background gradient overlay */}
       <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_20%_50%,rgba(255,255,255,0.8),transparent_50%),radial-gradient(circle_at_80%_80%,rgba(255,255,255,0.4),transparent_50%)]" />
 
-      <h1 className="blackrock-3d-text">BlackRock</h1>
+      <h1 className="blackrock-3d-text" data-text="BLACKROCK">BLACKROCK</h1>
 
       <div className="auth-container w-full max-w-md bg-white rounded-3xl rounded-b-3xl p-8 md:p-10 shadow-2xl transition-all relative z-10" style={{
         boxShadow: '0 20px 60px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.8)'
