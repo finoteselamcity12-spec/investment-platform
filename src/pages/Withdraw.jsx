@@ -41,6 +41,17 @@ export default function Withdraw() {
       return
     }
 
+    // Enforce minimum withdrawal amounts
+    const currency = bank === 'USDT' ? 'USD' : 'ETB'
+    if (currency === 'ETB' && value < 300) {
+      showToast('Minimum withdrawal is 300 Birr.', 'error')
+      return
+    }
+    if (currency === 'USD' && value < 3) {
+      showToast('Minimum withdrawal is $3.', 'error')
+      return
+    }
+
     setLoading(true)
 
     try {

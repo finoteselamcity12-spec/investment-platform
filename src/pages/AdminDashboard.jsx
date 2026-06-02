@@ -142,6 +142,39 @@ export default function AdminDashboard() {
     saveStorage('admin_user_data', usersData)
     setUsers(Object.values(usersData))
     showToast('Deposit approved and user wallet updated.', 'success')
+
+    // If the user was referred, grant inviter reward after deposit confirmation
+    try {
+      const registered = JSON.parse(localStorage.getItem('platform_registered_users_data') || '{}')
+      const referrer = registered[ userId ]?.referredBy || null
+      if (referrer) {
+        const refData = usersData[referrer] || null
+        if (refData) {
+          // Determine reward based on deposit currency
+          if (deposit.currency === 'USDT' || deposit.currency === 'USD') {
+            refData.usdBalance = Number((refData.usdBalance || 0) + 2)
+            // update global referral earnings
+            const referralData = JSON.parse(localStorage.getItem('referral_data') || '{}')
+            referralData.earningsUsd = (referralData.earningsUsd || 0) + 2
+            referralData.referralCount = (referralData.referralCount || 0) + 1
+            localStorage.setItem('referral_data', JSON.stringify(referralData))
+          } else {
+            refData.etbBalance = Number((refData.etbBalance || 0) + 135)
+            const referralData = JSON.parse(localStorage.getItem('referral_data') || '{}')
+            referralData.earningsEtb = (referralData.earningsEtb || 0) + 135
+            referralData.referralCount = (referralData.referralCount || 0) + 1
+            localStorage.setItem('referral_data', JSON.stringify(referralData))
+          }
+
+          usersData[referrer] = refData
+          saveStorage('admin_user_data', usersData)
+          setUsers(Object.values(usersData))
+          showToast('Referrer rewarded for successful deposit.', 'success')
+        }
+      }
+    } catch (err) {
+      console.error('Error rewarding referrer:', err)
+    }
   }
 
   function handleRejectDeposit(depositId) {

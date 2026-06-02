@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Camera, UserCircle, Mail, Shield } from 'lucide-react'
-import { getSession, updateUserProfile, getUserProfile } from '../lib/authService'
+import { getSession, updateUserProfile, getUserProfile, validators } from '../lib/authService'
 
 export default function Profile({ ctx }) {
   const { showToast } = ctx
   const [profileImage, setProfileImage] = useState('')
   const [userData, setUserData] = useState(null)
+  const [editingName, setEditingName] = useState('')
+  const [editingEmail, setEditingEmail] = useState('')
   const [loading, setLoading] = useState(true)
   const session = getSession()
 
@@ -18,7 +20,10 @@ export default function Profile({ ctx }) {
     try {
       if (session?.user?.email) {
         const profile = getUserProfile(session.user.email)
-        setUserData(profile || session.user)
+        const src = profile || session.user
+        setUserData(src)
+        setEditingName(src.fullName || '')
+        setEditingEmail(src.email || session.user.email)
         
         const storedImage = localStorage.getItem(`user_profile_image_${session.user.email}`)
         if (storedImage) {
@@ -49,10 +54,10 @@ export default function Profile({ ctx }) {
         localStorage.setItem(`user_profile_image_${session.user.email}`, result)
         
         // Update profile in database
-        updateUserProfile(session.user.email, {
-          profileImage: result,
-          updatedAt: new Date().toISOString(),
-        })
+            updateUserProfile(session.user.email, {
+              profileImage: result,
+              updatedAt: new Date().toISOString(),
+            })
         
         showToast('Profile picture updated successfully.', 'success')
       }
@@ -70,6 +75,36 @@ export default function Profile({ ctx }) {
 
   const userFullName = userData?.fullName || session?.user?.fullName || 'Account Holder'
   const userEmail = userData?.email || session?.user?.email || 'user@example.com'
+
+  const handleSave = async () => {
+    // Basic validation
+    if (!validators.fullName(editingName).valid) {
+      showToast('Please enter a valid full name.', 'error')
+      return
+    }
+    if (!validators.email(editingEmail).valid) {
+      showToast('Please enter a valid email address.', 'error')
+      return
+    }
+
+    try {
+      setLoading(true)
+      const updated = updateUserProfile(session.user.email, {
+        fullName: editingName,
+        email: editingEmail,
+        profileImage: profileImage || userData?.profileImage || null,
+        updatedAt: new Date().toISOString(),
+      })
+
+      setUserData((prev) => ({ ...prev, ...updated }))
+      showToast('Profile saved successfully.', 'success')
+    } catch (err) {
+      console.error(err)
+      showToast('Error saving profile.', 'error')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-white to-slate-50 pb-24 pt-4">
@@ -100,20 +135,46 @@ export default function Profile({ ctx }) {
               </label>
             </div>
 
-            <div className="space-y-3 w-full">
-              <div>
-                <p className="text-xs text-slate-500 uppercase tracking-widest font-semibold">Full Name</p>
-                <p className="text-xl font-bold text-slate-950 mt-1">{userFullName}</p>
-              </div>
-
-              <div>
-                <div className="flex items-center gap-2 text-xs text-slate-500 uppercase tracking-widest font-semibold">
-                  <Mail size={14} />
-                  Verified Email
+              <div className="space-y-3 w-full">
+                <div>
+                  <label className="text-xs text-slate-500 uppercase tracking-widest font-semibold">Full Name</label>
+                  <input
+                    value={editingName}
+                    onChange={(e) => setEditingName(e.target.value)}
+                    className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
+                  />
                 </div>
-                <p className="text-base font-medium text-slate-900 mt-1 break-all">{userEmail}</p>
+
+                <div>
+                  <label className="flex items-center gap-2 text-xs text-slate-500 uppercase tracking-widest font-semibold">
+                    <Mail size={14} />
+                    Email
+                  </label>
+                  <input
+                    value={editingEmail}
+                    onChange={(e) => setEditingEmail(e.target.value)}
+                    className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
+                  />
+                </div>
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleSave}
+                    className="rounded-2xl bg-emerald-600 px-4 py-2 text-white font-semibold"
+                  >
+                    {loading ? 'Saving...' : 'Save'}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setEditingName(userData?.fullName || '')
+                      setEditingEmail(userData?.email || session.user.email)
+                    }}
+                    className="rounded-2xl border border-slate-200 px-4 py-2 text-slate-700 font-semibold"
+                  >
+                    Reset
+                  </button>
+                </div>
               </div>
-            </div>
 
             <input
               id="profile-upload"

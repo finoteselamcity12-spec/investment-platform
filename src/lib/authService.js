@@ -213,7 +213,54 @@ export function getUserProfile(email) {
 
 export function updateUserProfile(email, profileData) {
   const usersData = JSON.parse(localStorage.getItem('admin_user_data') || '{}')
-  
+
+  // Support email migration: if profileData contains a new email, migrate the record
+  const newEmail = profileData.email && profileData.email !== email ? String(profileData.email).trim() : null
+
+  if (newEmail) {
+    // Move user object to new key
+    const existing = usersData[email] || {}
+    const migrated = {
+      ...existing,
+      ...profileData,
+      email: newEmail,
+    }
+    // delete old key and set new
+    delete usersData[email]
+    usersData[newEmail] = migrated
+
+    // Migrate profile storage
+    const oldProfile = localStorage.getItem(`profile_${email}`)
+    if (oldProfile) {
+      localStorage.setItem(`profile_${newEmail}`, oldProfile)
+      localStorage.removeItem(`profile_${email}`)
+    }
+
+    // Update platform_registered_users_data mapping if present
+    const reg = JSON.parse(localStorage.getItem('platform_registered_users_data') || '{}')
+    if (reg[email]) {
+      reg[newEmail] = { ...reg[email], email: newEmail }
+      delete reg[email]
+      localStorage.setItem('platform_registered_users_data', JSON.stringify(reg))
+    }
+
+    // Update session if current session exists
+    try {
+      const session = JSON.parse(sessionStorage.getItem('investment_platform_session') || 'null')
+      if (session && session.user && session.user.email === email) {
+        session.user.email = newEmail
+        session.user.fullName = profileData.fullName || session.user.fullName
+        sessionStorage.setItem('investment_platform_session', JSON.stringify(session))
+      }
+    } catch (e) {
+      // ignore
+    }
+
+    localStorage.setItem('admin_user_data', JSON.stringify(usersData))
+    localStorage.setItem(`profile_${newEmail}`, JSON.stringify(profileData))
+    return usersData[newEmail]
+  }
+
   if (usersData[email]) {
     usersData[email] = {
       ...usersData[email],
@@ -221,10 +268,10 @@ export function updateUserProfile(email, profileData) {
     }
     localStorage.setItem('admin_user_data', JSON.stringify(usersData))
   }
-  
+
   // Store additional profile data
   localStorage.setItem(`profile_${email}`, JSON.stringify(profileData))
-  
+
   return usersData[email]
 }
 

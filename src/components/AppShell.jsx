@@ -141,7 +141,6 @@ export default function AppShell({ children, activePage, setActivePage }) {
     { id: 'deposit', label: 'Deposit', icon: Wallet },
     { id: 'withdraw', label: 'Withdraw', icon: ArrowUpCircle },
     { id: 'support', label: 'Support', icon: HelpCircle },
-    { id: 'admin', label: 'Admin', icon: ShieldCheck },
   ]
 
   async function handleSignOut() {
@@ -191,42 +190,29 @@ export default function AppShell({ children, activePage, setActivePage }) {
         </div>
         <div className="relative flex items-center gap-3">
           <div className="relative">
+            {/* Standalone Profile button */}
             <button
-              onClick={() => setShowProfileDetails((prev) => !prev)}
+              onClick={() => setActivePage('profile')}
               className="h-12 w-12 rounded-full border border-slate-200 bg-slate-50 flex items-center justify-center text-slate-700 transition hover:border-slate-300"
-              aria-label="Profile details"
+              aria-label="Open Profile"
             >
               <User size={20} />
             </button>
-            {showProfileDetails && (
-              <div className="absolute right-0 top-full mt-3 w-64 rounded-3xl border border-slate-200 bg-white p-4 shadow-xl">
-                <p className="text-xs uppercase tracking-[0.25em] text-slate-400">Profile</p>
-                <p className="mt-3 text-sm font-semibold text-slate-950">{userFullName}</p>
-                <p className="text-sm text-slate-500 break-all">{userEmail || 'No email available'}</p>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setActivePage('profile')
-                    setShowProfileDetails(false)
-                  }}
-                  className="mt-4 w-full rounded-2xl bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-900 transition hover:bg-slate-200"
-                >
-                  View Profile
-                </button>
-              </div>
-            )}
           </div>
-          <button
-            onClick={() => setShowAdminLogin(true)}
-            className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm transition hover:scale-110 transform"
-            style={{
-              backgroundColor: PRIMARY_GREEN,
-              boxShadow: `0 4px 12px ${PRIMARY_GREEN}40`,
-            }}
-            aria-label="Admin Access"
-          >
-            <ShieldCheck size={20} />
-          </button>
+          {/* Only show admin access button when signed-in email matches admin address */}
+          {userEmail === 'workinehabche@gmail.com' && (
+            <button
+              onClick={() => setShowAdminLogin(true)}
+              className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm transition hover:scale-110 transform"
+              style={{
+                backgroundColor: PRIMARY_GREEN,
+                boxShadow: `0 4px 12px ${PRIMARY_GREEN}40`,
+              }}
+              aria-label="Admin Access"
+            >
+              <ShieldCheck size={20} />
+            </button>
+          )}
         </div>
       </div>
 

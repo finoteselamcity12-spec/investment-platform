@@ -199,6 +199,21 @@ export default function DepositPage({ ctx = {} }) {
         {/* Amount Input */}
         <div className="rounded-[1.75rem] bg-white border border-slate-200 p-5 shadow-sm">
           <label className="block text-sm font-semibold text-slate-200 mb-2">Amount</label>
+          {/* Quick suggestions starting from 350 Birr / $3 */}
+          <div className="flex gap-2 mb-3">
+            {(currency === 'ETB' ? [350, 500, 1000] : [3, 5, 10]).map((amt) => (
+              <button
+                key={amt}
+                type="button"
+                onClick={() => setAmount(String(amt))}
+                className="rounded-full border border-slate-200 px-3 py-1 text-sm text-slate-700 bg-slate-50"
+              >
+                {currency === 'ETB' ? `Br ${amt}` : `$${amt}`}
+              </button>
+            ))}
+            <div className="ml-2 text-xs text-slate-400 flex items-center">Custom</div>
+          </div>
+
           <div className="relative">
             <span className="absolute left-4 top-3.5 text-slate-400">
               {currency === 'USD' ? '$' : 'Br'}
