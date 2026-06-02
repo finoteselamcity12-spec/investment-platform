@@ -3,8 +3,8 @@
   display: inline-block;
   position: relative;
   z-index: 1;
-  /* Responsive font size: scales from 2rem (mobile) to 3rem (desktop) */
-  font-size: clamp(2rem, 5vw, 3rem);
+  /* Responsive font size: scales from 2rem (mobile) to 4rem (desktop) - optimized for mobile visibility */
+  font-size: clamp(2rem, 8vw, 4rem);
   font-weight: 900;
   text-transform: uppercase;
   /* Responsive letter spacing */
