@@ -7,6 +7,7 @@ import {
   ArrowUpCircle,
   Clock4,
   HelpCircle,
+  ShieldCheck,
   Copy,
   Check,
   Gift,
@@ -14,9 +15,9 @@ import {
   Zap,
 } from 'lucide-react'
 import supabase from '../lib/supabase'
-import { getSession } from '../lib/authService'
+import AdminLoginModal from './AdminLoginModal'
 
-const PRIMARY_GOLD = '#F5B700'
+const PRIMARY_GREEN = '#84CC16'
 
 // Premium tier naming
 const premiumTierNames = {
@@ -29,28 +30,45 @@ const premiumTierNames = {
   30000: 'Diamond Executive', 35000: 'Crown Emperor', 40000: 'Apex Elite', 45000: 'Apex Sovereign', 50000: 'Apex Legacy',
 }
 
-const exchangeRate = 174
-
 const usdTiers = [
-  { id: 'usd-5', amount: 5, days: 3, dailyProfit: 1.67, bonus: 0 },
-  { id: 'usd-10', amount: 10, days: 4, dailyProfit: 2.5, bonus: 0 },
-  { id: 'usd-20', amount: 20, days: 4, dailyProfit: 5.0, bonus: 0 },
-  { id: 'usd-50', amount: 50, days: 4, dailyProfit: 12.5, bonus: 0 },
-  { id: 'usd-100', amount: 100, days: 4, dailyProfit: 25.0, bonus: 0 },
-  { id: 'usd-250', amount: 250, days: 4, dailyProfit: 62.5, bonus: 0 },
-  { id: 'usd-500', amount: 500, days: 4, dailyProfit: 125.0, bonus: 0 },
-  { id: 'usd-1000', amount: 1000, days: 4, dailyProfit: 250.0, bonus: 0 },
+  { id: 'usd-3', amount: 3, days: 30, dailyProfit: 0.6, bonus: 0.6 },
+  { id: 'usd-5', amount: 5, days: 33, dailyProfit: 0.9, bonus: 0.9 },
+  { id: 'usd-7', amount: 7, days: 36, dailyProfit: 1.0, bonus: 1.0 },
+  { id: 'usd-10', amount: 10, days: 39, dailyProfit: 1.7, bonus: 1.7 },
+  { id: 'usd-15', amount: 15, days: 43, dailyProfit: 2.0, bonus: 2.0 },
+  { id: 'usd-20', amount: 20, days: 45, dailyProfit: 2.5, bonus: 2.5 },
+  { id: 'usd-25', amount: 25, days: 50, dailyProfit: 3.0, bonus: 3.0 },
+  { id: 'usd-30', amount: 30, days: 53, dailyProfit: 3.9, bonus: 3.5 },
+  { id: 'usd-35', amount: 35, days: 56, dailyProfit: 4.0, bonus: 4.0 },
+  { id: 'usd-40', amount: 40, days: 59, dailyProfit: 4.9, bonus: 4.5 },
+  { id: 'usd-45', amount: 45, days: 62, dailyProfit: 5.0, bonus: 5.0 },
+  { id: 'usd-50', amount: 50, days: 65, dailyProfit: 5.5, bonus: 5.5 },
+  { id: 'usd-75', amount: 75, days: 70, dailyProfit: 8.0, bonus: 6.0 },
+  { id: 'usd-90', amount: 90, days: 75, dailyProfit: 12.0, bonus: 6.5 },
+  { id: 'usd-110', amount: 110, days: 80, dailyProfit: 15.0, bonus: 7.0 },
+  { id: 'usd-150', amount: 150, days: 85, dailyProfit: 17.0, bonus: 7.5 },
+  { id: 'usd-200', amount: 200, days: 90, dailyProfit: 20.0, bonus: 8.0 },
+  { id: 'usd-500', amount: 500, days: 150, dailyProfit: 25.0, bonus: 8.5 },
+  { id: 'usd-1000', amount: 1000, days: 209, dailyProfit: 33.0, bonus: 9.0 },
+  { id: 'usd-5000', amount: 5000, days: 250, dailyProfit: 38.0, bonus: 10.0 },
 ]
 
 const etbTiers = [
-  { id: 'etb-870', amount: 870, days: 3, dailyProfit: 290, bonus: 0 },
-  { id: 'etb-1740', amount: 1740, days: 4, dailyProfit: 435, bonus: 0 },
-  { id: 'etb-3480', amount: 3480, days: 4, dailyProfit: 870, bonus: 0 },
-  { id: 'etb-8700', amount: 8700, days: 4, dailyProfit: 2175, bonus: 0 },
-  { id: 'etb-17400', amount: 17400, days: 4, dailyProfit: 4350, bonus: 0 },
-  { id: 'etb-43500', amount: 43500, days: 4, dailyProfit: 10875, bonus: 0 },
-  { id: 'etb-87000', amount: 87000, days: 4, dailyProfit: 21750, bonus: 0 },
-  { id: 'etb-174000', amount: 174000, days: 4, dailyProfit: 43500, bonus: 0 },
+  { id: 'etb-350', amount: 350, days: 30, dailyProfit: 25, bonus: 24.5 },
+  { id: 'etb-500', amount: 500, days: 33, dailyProfit: 35, bonus: 35.0 },
+  { id: 'etb-700', amount: 700, days: 35, dailyProfit: 40, bonus: 49.0 },
+  { id: 'etb-1000', amount: 1000, days: 42, dailyProfit: 53, bonus: 70 },
+  { id: 'etb-1500', amount: 1500, days: 45, dailyProfit: 70, bonus: 105 },
+  { id: 'etb-5000', amount: 5000, days: 75, dailyProfit: 110, bonus: 350 },
+  { id: 'etb-10000', amount: 10000, days: 90, dailyProfit: 152, bonus: 700 },
+  { id: 'etb-15000', amount: 15000, days: 120, dailyProfit: 194, bonus: 1050 },
+  { id: 'etb-20000', amount: 20000, days: 150, dailyProfit: 240, bonus: 1400 },
+  { id: 'etb-25000', amount: 25000, days: 180, dailyProfit: 280, bonus: 1750 },
+  { id: 'etb-30000', amount: 30000, days: 210, dailyProfit: 324, bonus: 2100 },
+  { id: 'etb-35000', amount: 35000, days: 270, dailyProfit: 354, bonus: 2450 },
+  { id: 'etb-40000', amount: 40000, days: 300, dailyProfit: 3999, bonus: 2800 },
+  { id: 'etb-45000', amount: 45000, days: 315, dailyProfit: 450, bonus: 3150 },
+  { id: 'etb-50000', amount: 50000, days: 330, dailyProfit: 490, bonus: 3500 },
 ]
 
 const withdrawMethods = ['CBE', 'Dashen Bank', 'M-Pesa', 'Telebirr', 'USDT (TRC20)']
@@ -76,38 +94,29 @@ export default function AppShell({ children, activePage, setActivePage }) {
   const [transactions, setTransactions] = useState([])
   const [userFullName, setUserFullName] = useState('Account')
   const [userEmail, setUserEmail] = useState('')
-  const [profileImage, setProfileImage] = useState('')
-  const [isAdminUser, setIsAdminUser] = useState(false)
   const [referralLink, setReferralLink] = useState('')
   const [referralCount, setReferralCount] = useState(0)
   const [referralEarningsUsd, setReferralEarningsUsd] = useState(0.0)
   const [referralEarningsEtb, setReferralEarningsEtb] = useState(0.0)
   const [copied, setCopied] = useState(false)
+  const [showAdminLogin, setShowAdminLogin] = useState(false)
+  const [showProfileDetails, setShowProfileDetails] = useState(false)
   const [toastMessage, setToastMessage] = useState('')
   const [toastType, setToastType] = useState('success')
   const [claimTimestamp, setClaimTimestamp] = useState(null)
   const [historyFilter, setHistoryFilter] = useState('All')
   const claimCooldownMs = 24 * 60 * 60 * 1000
 
-  // Load session and stored profile on mount
+  // Load data from localStorage on mount
   useEffect(() => {
-    const session = getSession()
-    const email = session?.user?.email || ''
-    const name = session?.user?.fullName || 'BlackRock Client'
-
-    if (email) {
-      setUserEmail(email)
-      setUserFullName(name)
-      setIsAdminUser(email.toLowerCase() === 'workinehabche@gmail.com')
-      const storedImage = localStorage.getItem(`user_profile_image_${email}`)
-      if (storedImage) setProfileImage(storedImage)
-    }
-
     const userData = JSON.parse(localStorage.getItem('admin_user_data') || '{}')
-    const userRecord = email ? userData[email] : null
-    if (userRecord) {
-      setUsdBalance(userRecord.usdBalance || 0.0)
-      setEtbBalance(userRecord.etbBalance || 0.0)
+    const userEmail = Object.keys(userData)[0]
+    
+    if (userEmail) {
+      setUserEmail(userEmail)
+      setUserFullName(userData[userEmail].fullName || 'User')
+      setUsdBalance(userData[userEmail].usdBalance || 0.0)
+      setEtbBalance(userData[userEmail].etbBalance || 0.0)
     }
 
     const investments = JSON.parse(localStorage.getItem('user_investments') || '[]')
@@ -132,6 +141,7 @@ export default function AppShell({ children, activePage, setActivePage }) {
     { id: 'deposit', label: 'Deposit', icon: Wallet },
     { id: 'withdraw', label: 'Withdraw', icon: ArrowUpCircle },
     { id: 'support', label: 'Support', icon: HelpCircle },
+    { id: 'admin', label: 'Admin', icon: ShieldCheck },
   ]
 
   async function handleSignOut() {
@@ -169,6 +179,7 @@ export default function AppShell({ children, activePage, setActivePage }) {
     usdTiers, etbTiers, withdrawMethods, historyFilters, formatCurrency, marketData,
     premiumTierNames, claimCooldownMs,
     setActivePage,
+    setShowAdminLogin,
   }
 
   return (
@@ -176,31 +187,45 @@ export default function AppShell({ children, activePage, setActivePage }) {
       {/* Mobile-First Top Header - Clean & Minimal */}
       <div className="fixed top-0 inset-x-0 z-40 bg-white border-b border-slate-100 px-4 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <div className="inline-flex items-center gap-3">
-            <div className="relative rounded-full bg-slate-900 px-4 py-2 shadow-lg shadow-slate-900/10">
-              <span className="text-2xl font-extrabold tracking-tight text-white" style={{ textShadow: '0 4px 24px rgba(0,0,0,0.18)' }}>
-                BlackRock
-              </span>
-            </div>
-          </div>
-          <p className="mt-1 text-xs uppercase tracking-[0.3em] text-slate-500">Global Investment Management</p>
+          <h1 className="text-lg font-bold text-emerald-600">Welcome!</h1>
         </div>
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => setActivePage('profile')}
-            className="relative h-12 w-12 rounded-full border border-slate-200 bg-slate-950 text-white shadow-lg transition hover:ring-2 hover:ring-slate-300"
-            aria-label="Open profile"
-          >
-            {profileImage ? (
-              <img
-                src={profileImage}
-                alt="Profile"
-                className="h-full w-full rounded-full object-cover"
-              />
-            ) : (
-              <User size={22} />
+        <div className="relative flex items-center gap-3">
+          <div className="relative">
+            <button
+              onClick={() => setShowProfileDetails((prev) => !prev)}
+              className="h-12 w-12 rounded-full border border-slate-200 bg-slate-50 flex items-center justify-center text-slate-700 transition hover:border-slate-300"
+              aria-label="Profile details"
+            >
+              <User size={20} />
+            </button>
+            {showProfileDetails && (
+              <div className="absolute right-0 top-full mt-3 w-64 rounded-3xl border border-slate-200 bg-white p-4 shadow-xl">
+                <p className="text-xs uppercase tracking-[0.25em] text-slate-400">Profile</p>
+                <p className="mt-3 text-sm font-semibold text-slate-950">{userFullName}</p>
+                <p className="text-sm text-slate-500 break-all">{userEmail || 'No email available'}</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setActivePage('profile')
+                    setShowProfileDetails(false)
+                  }}
+                  className="mt-4 w-full rounded-2xl bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-900 transition hover:bg-slate-200"
+                >
+                  View Profile
+                </button>
+              </div>
             )}
+          </div>
+          <button
+            onClick={() => setShowAdminLogin(true)}
+            className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm transition hover:scale-110 transform"
+            style={{
+              backgroundColor: PRIMARY_GREEN,
+              boxShadow: `0 4px 12px ${PRIMARY_GREEN}40`,
+            }}
+            aria-label="Admin Access"
+          >
+            <ShieldCheck size={20} />
           </button>
         </div>
       </div>
@@ -219,7 +244,7 @@ export default function AppShell({ children, activePage, setActivePage }) {
               onClick={() => {
                 setActivePage(id)
                 if (id === 'admin') {
-                  navigate('/admin-dashboard')
+                  setShowAdminLogin(true)
                 }
               }}
               className={`relative flex-1 rounded-2xl px-2 py-3 text-center text-xs font-semibold transition-all ${
@@ -228,8 +253,8 @@ export default function AppShell({ children, activePage, setActivePage }) {
                   : 'text-slate-600'
               }`}
               style={{
-                backgroundColor: activePage === id ? PRIMARY_GOLD : '#F3F4F6',
-                boxShadow: activePage === id ? `0 4px 12px ${PRIMARY_GOLD}30` : 'none',
+                backgroundColor: activePage === id ? PRIMARY_GREEN : '#F3F4F6',
+                boxShadow: activePage === id ? `0 4px 12px ${PRIMARY_GREEN}30` : 'none',
               }}
             >
               <Icon size={24} className="mx-auto mb-1" />
@@ -238,6 +263,15 @@ export default function AppShell({ children, activePage, setActivePage }) {
           ))}
         </div>
       </div>
+
+      {/* Admin Login Modal */}
+      {showAdminLogin && (
+        <AdminLoginModal
+          isOpen={showAdminLogin}
+          onClose={() => setShowAdminLogin(false)}
+          userEmail={userEmail}
+        />
+      )}
 
       {/* Toast Notification */}
       {toastMessage && (

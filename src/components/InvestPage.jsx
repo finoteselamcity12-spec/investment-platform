@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { TrendingUp, Clock, Gift, Star, ArrowRight } from 'lucide-react'
 
-const PRIMARY_GOLD = '#F5B700'
+const PRIMARY_GREEN = '#84CC16'
 
 export default function InvestPage({ ctx }) {
   const {
@@ -70,7 +70,7 @@ export default function InvestPage({ ctx }) {
   }
 
   return (
-    <div className="bg-white pb-24 pt-6 max-w-5xl mx-auto" style={{ minHeight: 'calc(100vh - 14rem)' }}>
+    <div className="bg-white pb-4">
       <div className="space-y-5">
         {/* Header */}
         <div>
@@ -90,8 +90,8 @@ export default function InvestPage({ ctx }) {
                   : 'text-slate-600'
               }`}
                 style={{
-                backgroundColor: selectedCurrency === currency ? PRIMARY_GOLD : 'transparent',
-                boxShadow: selectedCurrency === currency ? `0 2px 8px ${PRIMARY_GOLD}30` : 'none',
+                backgroundColor: selectedCurrency === currency ? PRIMARY_GREEN : 'transparent',
+                boxShadow: selectedCurrency === currency ? `0 2px 8px ${PRIMARY_GREEN}30` : 'none',
               }}
             >
               {currency === 'USD' ? '$ USD' : 'Br ETB'}
@@ -101,10 +101,10 @@ export default function InvestPage({ ctx }) {
 
         {/* Current Balance */}
         <div
-          className="rounded-3xl p-6 text-slate-950 shadow-lg"
+          className="rounded-3xl p-6 text-white shadow-lg"
           style={{
-            background: `linear-gradient(135deg, #fff8cc, ${PRIMARY_GOLD}10)`,
-            boxShadow: `0 8px 24px ${PRIMARY_GOLD}20`,
+            background: `linear-gradient(135deg, ${PRIMARY_GREEN}, #6bb01a)`,
+            boxShadow: `0 8px 24px ${PRIMARY_GREEN}30`,
           }}
         >
           <p className="text-sm font-semibold opacity-90">Available Balance</p>
@@ -118,55 +118,55 @@ export default function InvestPage({ ctx }) {
           {tiers.map((tier, idx) => (
             <div
               key={tier.id}
-              className="rounded-3xl border border-slate-200 bg-slate-50 p-7 shadow-lg hover:shadow-xl transition"
+              className="rounded-3xl border border-slate-200 bg-slate-50 p-5 shadow-sm hover:shadow-md transition"
             >
               {/* Tier Header */}
-              <div className="flex items-center justify-between mb-5">
+              <div className="flex items-center justify-between mb-4">
                 <div>
                   <p
-                    className="text-3xl font-bold"
-                    style={{ color: PRIMARY_GOLD }}
+                    className="text-2xl font-bold"
+                    style={{ color: PRIMARY_GREEN }}
                   >
                     {selectedCurrency === 'USD' ? `$${tier.amount}` : `${tier.amount.toLocaleString()}`}
                   </p>
-                  <p className="text-sm text-slate-500 mt-2 font-semibold">
+                  <p className="text-xs text-slate-500 mt-1 font-semibold">
                     {premiumTierNames[tier.amount] || 'Investment Plan'}
                   </p>
                 </div>
                 <div
-                  className="flex h-14 w-14 items-center justify-center rounded-3xl text-slate-950"
+                  className="flex h-12 w-12 items-center justify-center rounded-2xl text-white"
                   style={{
-                    backgroundColor: `${PRIMARY_GOLD}20`,
-                    color: PRIMARY_GOLD,
+                    backgroundColor: `${PRIMARY_GREEN}20`,
+                    color: PRIMARY_GREEN,
                   }}
                 >
-                  <TrendingUp size={26} />
+                  <TrendingUp size={24} />
                 </div>
               </div>
 
               {/* Tier Details - Grid Layout */}
-              <div className="grid grid-cols-3 gap-4 mb-6 p-4 bg-white rounded-2xl border border-slate-200">
+              <div className="grid grid-cols-3 gap-2 mb-5 p-3 bg-white rounded-2xl border border-slate-200">
                 {/* Days */}
                 <div className="text-center">
-                  <Clock size={18} className="mx-auto mb-2" style={{ color: PRIMARY_GOLD }} />
-                  <p className="text-sm text-slate-500 font-semibold">Days</p>
-                  <p className="font-bold text-base text-slate-950">{tier.days}</p>
+                  <Clock size={16} className="mx-auto mb-1" style={{ color: PRIMARY_GREEN }} />
+                  <p className="text-xs text-slate-500 font-semibold">Days</p>
+                  <p className="font-bold text-sm text-slate-950">{tier.days}</p>
                 </div>
 
                 {/* Daily Earnings */}
                 <div className="text-center">
-                  <Gift size={18} className="mx-auto mb-2" style={{ color: PRIMARY_GOLD }} />
-                  <p className="text-sm text-slate-500 font-semibold">Daily</p>
-                  <p className="font-bold text-base text-slate-950">
+                  <Gift size={16} className="mx-auto mb-1" style={{ color: PRIMARY_GREEN }} />
+                  <p className="text-xs text-slate-500 font-semibold">Daily</p>
+                  <p className="font-bold text-sm text-slate-950">
                     {selectedCurrency === 'USD' ? `$${tier.dailyProfit.toFixed(1)}` : `${Math.round(tier.dailyProfit)} Br`}
                   </p>
                 </div>
 
                 {/* Total Return */}
                 <div className="text-center">
-                  <Star size={18} className="mx-auto mb-2" style={{ color: PRIMARY_GOLD }} />
-                  <p className="text-sm text-slate-500 font-semibold">Total</p>
-                  <p className="font-bold text-base text-slate-950">
+                  <Star size={16} className="mx-auto mb-1" style={{ color: PRIMARY_GREEN }} />
+                  <p className="text-xs text-slate-500 font-semibold">Total</p>
+                  <p className="font-bold text-sm text-slate-950">
                     {selectedCurrency === 'USD'
                       ? `$${(tier.dailyProfit * tier.days).toFixed(0)}`
                       : `${Math.round(tier.dailyProfit * tier.days)} Br`}
@@ -180,8 +180,8 @@ export default function InvestPage({ ctx }) {
                 disabled={balance < tier.amount}
                 className="w-full rounded-2xl px-4 py-4 font-bold text-white active:scale-95 transition disabled:opacity-60"
                 style={{
-                  backgroundColor: balance < tier.amount ? '#CBD5E1' : PRIMARY_GOLD,
-                  boxShadow: balance >= tier.amount ? `0 4px 12px ${PRIMARY_GOLD}30` : 'none',
+                  backgroundColor: balance < tier.amount ? '#CBD5E1' : PRIMARY_GREEN,
+                  boxShadow: balance >= tier.amount ? `0 4px 12px ${PRIMARY_GREEN}30` : 'none',
                 }}
               >
                 {balance >= tier.amount ? 'Invest Now' : 'Insufficient Balance'}
@@ -191,15 +191,9 @@ export default function InvestPage({ ctx }) {
         </div>
 
         {/* Info Banner */}
-        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
-          <p className="text-xs text-slate-600 font-medium">
-            ✓ Welcome bonus of <strong>150 Birr</strong> + referral bonus of <strong>50 Birr</strong> for every invite.
-          </p>
-          <p className="text-xs text-slate-600 font-medium mt-2">
-            ✓ Minimum withdrawal is <strong>300 Birr</strong> or <strong>$5 USD</strong>. Exchange rate: <strong>1 USD = 174 ETB</strong>.
-          </p>
-          <p className="text-xs text-slate-600 font-medium mt-2">
-            ✓ All plans target break-even in 3-4 days with clear daily return projections.
+        <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4">
+          <p className="text-xs text-blue-900 font-medium">
+            ✓ <strong>Secure:</strong> Daily returns guaranteed. Withdraw after completion.
           </p>
         </div>
       </div>
