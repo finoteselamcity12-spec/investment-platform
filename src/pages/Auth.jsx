@@ -1,7 +1,8 @@
 import { useMemo, useState, useEffect } from 'react'
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import supabase from '../lib/supabase'
+import { createSession, validators, sanitizeInput, updateUserProfile } from '../lib/authService'
 
 const initialForm = { fullName: '', email: '', password: '', confirmPassword: '' }
 const emailRegex = /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/
@@ -53,8 +54,17 @@ export default function Auth() {
 
   async function handleAuth(event) {
     event.preventDefault()
-    if (!validateEmail(form.email)) {
-      setMessage('Please enter a valid email address.')
+    
+    // Server-side input validation
+    const emailValidation = validators.email(form.email)
+    if (!emailValidation.valid) {
+      setMessage(emailValidation.error)
+      return
+    }
+
+    const passwordValidation = validators.password(form.password)
+    if (!passwordValidation.valid) {
+      setMessage(passwordValidation.errors?.[0] || 'Password does not meet security requirements')
       return
     }
 
@@ -67,16 +77,33 @@ export default function Auth() {
 
     try {
       if (isRegister) {
+        // Validate full name
+        const nameValidation = validators.fullName(form.fullName)
+        if (!nameValidation.valid) {
+          setMessage(nameValidation.error)
+          setLoading(false)
+          return
+        }
+
+        // Check password match
+        if (form.password !== form.confirmPassword) {
+          setMessage('Passwords do not match')
+          setLoading(false)
+          return
+        }
+
         // Generate a unique userId for referrals and internal mapping
         const userId = `user-${Date.now()}`
+        const sanitizedName = sanitizeInput(form.fullName.trim())
+        const sanitizedEmail = sanitizeInput(form.email.trim())
 
         let signupError = null
         try {
           const { error } = await supabase.auth.signUp({
-            email: form.email.trim(),
+            email: sanitizedEmail,
             password: form.password,
             options: {
-              data: { full_name: form.fullName.trim() },
+              data: { full_name: sanitizedName },
             },
           })
           if (error) signupError = error
@@ -91,15 +118,16 @@ export default function Auth() {
           } else {
             setMessage(errorMessage || 'Registration failed, please try again.')
           }
+          setLoading(false)
           return
         }
 
         // Persist registration in localStorage so the app records new users (always save locally)
         const users = JSON.parse(localStorage.getItem('platform_registered_users_data') || '{}')
-        users[form.email.trim()] = {
+        users[sanitizedEmail] = {
           userId,
-          fullName: form.fullName.trim(),
-          email: form.email.trim(),
+          fullName: sanitizedName,
+          email: sanitizedEmail,
           referredBy: referrerId || null,
           createdAt: new Date().toISOString(),
         }
@@ -107,50 +135,76 @@ export default function Auth() {
 
         // Also keep a simple list for counts used elsewhere (store emails)
         const registered = JSON.parse(localStorage.getItem('platform_registered_users') || '[]')
-        if (!registered.includes(form.email.trim())) {
-          registered.push(form.email.trim())
+        if (!registered.includes(sanitizedEmail)) {
+          registered.push(sanitizedEmail)
           localStorage.setItem('platform_registered_users', JSON.stringify(registered))
         }
 
         // Initialize user wallet record used by admin tools
         const userData = JSON.parse(localStorage.getItem('admin_user_data') || '{}')
-        if (!userData[form.email.trim()]) {
-          userData[form.email.trim()] = {
+        if (!userData[sanitizedEmail]) {
+          userData[sanitizedEmail] = {
             id: userId,
-            email: form.email.trim(),
-            fullName: form.fullName.trim(),
+            email: sanitizedEmail,
+            fullName: sanitizedName,
             usdBalance: 0,
             etbBalance: 0,
             bonusEligible: false,
             bonusClaimed: false,
+            totalDeposits: 0,
+            totalWithdrawals: 0,
+            activeInvestments: 0,
           }
           localStorage.setItem('admin_user_data', JSON.stringify(userData))
         } else {
-          if (!userData[form.email.trim()].fullName) userData[form.email.trim()].fullName = form.fullName.trim()
-          if (!userData[form.email.trim()].id) userData[form.email.trim()].id = userId
+          if (!userData[sanitizedEmail].fullName) userData[sanitizedEmail].fullName = sanitizedName
+          if (!userData[sanitizedEmail].id) userData[sanitizedEmail].id = userId
           localStorage.setItem('admin_user_data', JSON.stringify(userData))
         }
 
-        alert('Registration Successful')
         setMessage('Registration successful. Redirecting to login...')
         setForm(initialForm)
         setIsLogin(true)
-        navigate('/login')
+        setTimeout(() => navigate('/login'), 1500)
         return
       }
 
-      const { error } = await supabase.auth.signInWithPassword({
-        email: form.email.trim(),
+      // Login with enhanced validation
+      const sanitizedEmail = sanitizeInput(form.email.trim())
+      const { data: { user }, error } = await supabase.auth.signInWithPassword({
+        email: sanitizedEmail,
         password: form.password,
       })
+
       if (error) throw error
+
+      // Create secure session with JWT
+      const userData = JSON.parse(localStorage.getItem('admin_user_data') || '{}')
+      const userProfile = userData[sanitizedEmail] || { id: user?.id, fullName: user?.user_metadata?.full_name, email: sanitizedEmail }
+      
+      createSession({
+        id: user?.id || userProfile.id,
+        email: sanitizedEmail,
+        fullName: user?.user_metadata?.full_name || userProfile.fullName,
+        profileImage: null,
+      })
+
+      // Update last login
+      userData[sanitizedEmail] = {
+        ...userData[sanitizedEmail],
+        lastLogin: new Date().toISOString(),
+      }
+      localStorage.setItem('admin_user_data', JSON.stringify(userData))
+
       navigate('/dashboard')
     } catch (error) {
       const errorMessage = String(error?.message || error || '')
-      if (errorMessage.toLowerCase().includes('already')) {
+      if (errorMessage.toLowerCase().includes('invalid')) {
+        setMessage('Invalid email or password')
+      } else if (errorMessage.toLowerCase().includes('already')) {
         setMessage('Account already exists')
       } else {
-        setMessage(errorMessage || 'Registration failed, please try again.')
+        setMessage(errorMessage || 'Authentication failed, please try again.')
       }
     } finally {
       setLoading(false)

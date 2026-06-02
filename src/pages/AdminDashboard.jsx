@@ -138,26 +138,34 @@ export default function AdminDashboard() {
     setApprovedDeposits(updatedApproved)
 
     const usersData = JSON.parse(localStorage.getItem('admin_user_data') || '{}')
-    const userId = deposit.userId
-    const existing = usersData[userId] || {
-      id: userId,
-      email: deposit.userEmail,
-      fullName: deposit.userEmail,
+    const userEmail = deposit.userEmail
+    const existing = usersData[userEmail] || {
+      id: deposit.userId,
+      email: userEmail,
+      fullName: userEmail,
       usdBalance: 0,
       etbBalance: 0,
       bonusEligible: false,
+      bonusClaimed: false,
+      totalDeposits: 0,
     }
+
+    // Calculate bonus (5% of deposit amount)
+    const bonusAmount = deposit.amount * 0.05
 
     const updatedUser = {
       ...existing,
       usdBalance: deposit.currency === 'USDT' ? (existing.usdBalance || 0) + deposit.amount : existing.usdBalance || 0,
       etbBalance: deposit.currency === 'ETB' ? (existing.etbBalance || 0) + deposit.amount : existing.etbBalance || 0,
+      totalDeposits: (existing.totalDeposits || 0) + deposit.amount,
+      bonusEligible: true, // Mark as bonus eligible after deposit approved
+      bonusAmount: bonusAmount,
     }
 
-    usersData[userId] = updatedUser
+    usersData[userEmail] = updatedUser
     saveStorage('admin_user_data', usersData)
     setUsers(Object.values(usersData))
-    showToast('Deposit approved and user wallet updated.', 'success')
+    showToast(`Deposit approved. User eligible for $${bonusAmount.toFixed(2)} bonus (5%).`, 'success')
   }
 
   function handleRejectDeposit(depositId) {
@@ -236,6 +244,23 @@ export default function AdminDashboard() {
     [pendingWithdrawals, approvedWithdrawals, rejectedWithdrawals]
   )
 
+  // Real-time statistics calculations
+  const statistics = useMemo(() => {
+    const totalDeposits = approvedDeposits.reduce((sum, d) => sum + (d.amount || 0), 0)
+    const totalWithdrawals = approvedWithdrawals.reduce((sum, w) => sum + (w.amount || 0), 0)
+    const totalActiveInvestments = users.reduce((sum, u) => sum + (u.activeInvestments || 0), 0)
+    const totalUserBalance = users.reduce((sum, u) => sum + (u.usdBalance || 0) + (u.etbBalance || 0), 0)
+
+    return {
+      totalUsers: registrationCount,
+      totalDeposits,
+      totalWithdrawals,
+      totalActiveInvestments,
+      totalUserBalance,
+      platformHealth: (approvedDeposits.length > 0 && pendingDeposits.length < approvedDeposits.length) ? 'Excellent' : 'Good',
+    }
+  }, [approvedDeposits, approvedWithdrawals, users, registrationCount, pendingDeposits])
+
   if (isLoadingSession) {
     return null
   }
@@ -269,38 +294,70 @@ export default function AdminDashboard() {
           </button>
         </div>
 
-        <div className="grid gap-6 xl:grid-cols-3">
+        <div className="grid gap-6 xl:grid-cols-4">
           <div className="rounded-[2rem] bg-white border border-emerald-200 p-6 shadow-lg"
                style={{
                  borderColor: '#84CC16'
                }}>
-            <p className="text-sm font-semibold text-[#84CC16]">Pending Deposits</p>
+            <p className="text-sm font-semibold text-[#84CC16] uppercase tracking-wider">Total Users</p>
+            <p className="mt-4 text-4xl font-bold text-slate-950">{statistics.totalUsers}</p>
+            <p className="mt-2 text-sm text-slate-600">Registered investors.</p>
+          </div>
+          <div className="rounded-[2rem] bg-white border border-emerald-200 p-6 shadow-lg"
+               style={{
+                 borderColor: '#84CC16'
+               }}>
+            <p className="text-sm font-semibold text-[#84CC16] uppercase tracking-wider">Total Deposits</p>
+            <p className="mt-4 text-4xl font-bold text-slate-950">${statistics.totalDeposits.toFixed(0)}</p>
+            <p className="mt-2 text-sm text-slate-600">Approved deposits total.</p>
+          </div>
+          <div className="rounded-[2rem] bg-white border border-emerald-200 p-6 shadow-lg"
+               style={{
+                 borderColor: '#84CC16'
+               }}>
+            <p className="text-sm font-semibold text-[#84CC16] uppercase tracking-wider">Total Withdrawals</p>
+            <p className="mt-4 text-4xl font-bold text-slate-950">${statistics.totalWithdrawals.toFixed(0)}</p>
+            <p className="mt-2 text-sm text-slate-600">Approved payouts total.</p>
+          </div>
+          <div className="rounded-[2rem] bg-white border border-emerald-200 p-6 shadow-lg"
+               style={{
+                 borderColor: '#84CC16'
+               }}>
+            <p className="text-sm font-semibold text-[#84CC16] uppercase tracking-wider">Active Investments</p>
+            <p className="mt-4 text-4xl font-bold text-slate-950">{statistics.totalActiveInvestments}</p>
+            <p className="mt-2 text-sm text-slate-600">Currently active.</p>
+          </div>
+          <div className="rounded-[2rem] bg-white border border-emerald-200 p-6 shadow-lg"
+               style={{
+                 borderColor: '#84CC16'
+               }}>
+            <p className="text-sm font-semibold text-[#84CC16] uppercase tracking-wider">Pending Deposits</p>
             <p className="mt-4 text-4xl font-bold text-slate-950">{pendingDeposits.length}</p>
-            <p className="mt-2 text-sm text-slate-600">Awaiting admin approval.</p>
+            <p className="mt-2 text-sm text-slate-600">Awaiting approval.</p>
           </div>
           <div className="rounded-[2rem] bg-white border border-emerald-200 p-6 shadow-lg"
                style={{
                  borderColor: '#84CC16'
                }}>
-            <p className="text-sm font-semibold text-[#84CC16]">Approved Withdrawals</p>
-            <p className="mt-4 text-4xl font-bold text-slate-950">{approvedWithdrawals.length}</p>
-            <p className="mt-2 text-sm text-slate-600">Settled payouts.</p>
+            <p className="text-sm font-semibold text-[#84CC16] uppercase tracking-wider">Pending Withdrawals</p>
+            <p className="mt-4 text-4xl font-bold text-slate-950">{pendingWithdrawals.length}</p>
+            <p className="mt-2 text-sm text-slate-600">Processing requests.</p>
           </div>
           <div className="rounded-[2rem] bg-white border border-emerald-200 p-6 shadow-lg"
                style={{
                  borderColor: '#84CC16'
                }}>
-            <p className="text-sm font-semibold text-[#84CC16]">Rejected Requests</p>
+            <p className="text-sm font-semibold text-[#84CC16] uppercase tracking-wider">Platform Health</p>
+            <p className="mt-4 text-4xl font-bold text-slate-950">{statistics.platformHealth}</p>
+            <p className="mt-2 text-sm text-slate-600">System status.</p>
+          </div>
+          <div className="rounded-[2rem] bg-white border border-emerald-200 p-6 shadow-lg"
+               style={{
+                 borderColor: '#84CC16'
+               }}>
+            <p className="text-sm font-semibold text-[#84CC16] uppercase tracking-wider">Rejected Requests</p>
             <p className="mt-4 text-4xl font-bold text-slate-950">{rejectedDeposits.length + rejectedWithdrawals.length}</p>
-            <p className="mt-2 text-sm text-slate-600">Failed or cancelled requests.</p>
-          </div>
-          <div className="rounded-[2rem] bg-white border border-emerald-200 p-6 shadow-lg"
-               style={{
-                 borderColor: '#84CC16'
-               }}>
-            <p className="text-sm font-semibold text-[#84CC16]">Total Registered Users</p>
-            <p className="mt-4 text-4xl font-bold text-slate-950">{registrationCount}</p>
-            <p className="mt-2 text-sm text-slate-600">Users registered on the platform.</p>
+            <p className="mt-2 text-sm text-slate-600">Failed or cancelled.</p>
           </div>
         </div>
 
