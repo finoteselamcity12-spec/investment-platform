@@ -67,7 +67,7 @@ export function getSession() {
   if (!sessionData) return null
   
   const session = JSON.parse(sessionData)
-  const now = new Date().toTime()
+  const now = Date.now()
   
   if (new Date(session.expiresAt).getTime() < now) {
     clearSession()
@@ -75,6 +75,35 @@ export function getSession() {
   }
   
   return session
+}
+
+// Session Timeout Handler
+function setupSessionTimeout() {
+  // Clear any existing timeouts
+  if (window.sessionTimeoutHandle) {
+    clearTimeout(window.sessionTimeoutHandle)
+  }
+  if (window.sessionWarningHandle) {
+    clearTimeout(window.sessionWarningHandle)
+  }
+  
+  const warningDelay = Math.max(0, (SESSION_TIMEOUT_MINUTES - SESSION_WARNING_MINUTES) * 60000)
+  
+  window.sessionWarningHandle = setTimeout(() => {
+    const event = new CustomEvent('sessionWarning', {
+      detail: { message: 'Your session will expire in 5 minutes due to inactivity.' }
+    })
+    window.dispatchEvent(event)
+  }, warningDelay)
+  
+  // Expiration at SESSION_TIMEOUT_MINUTES
+  window.sessionTimeoutHandle = setTimeout(() => {
+    clearSession()
+    const event = new CustomEvent('sessionExpired', {
+      detail: { message: 'Session expired. Please login again.' }
+    })
+    window.dispatchEvent(event)
+  }, SESSION_TIMEOUT_MINUTES * 60 * 1000)
 }
 
 export function updateSessionActivity() {
@@ -91,34 +120,6 @@ export function updateSessionActivity() {
 export function clearSession() {
   sessionStorage.removeItem('investment_platform_session')
   localStorage.removeItem('user_email')
-}
-
-// Session Timeout Handler
-function setupSessionTimeout() {
-  // Clear any existing timeouts
-  if (window.sessionTimeoutHandle) {
-    clearTimeout(window.sessionTimeoutHandle)
-  }
-  if (window.sessionWarningHandle) {
-    clearTimeout(window.sessionWarningHandle)
-  }
-  
-  // Warning at SESSION_WARNING_MINUTES
-  window.sessionWarningHandle = setTimeout(() => {
-    const event = new CustomEvent('sessionWarning', {
-      detail: { message: 'Your session will expire in 5 minutes due to inactivity.' }
-    })
-    window.dispatchEvent(event)
-  }, (SESSION_WARNING_MINUTES * 60 - SESSION_TIMEOUT_MINUTES * 60) * 1000)
-  
-  // Expiration at SESSION_TIMEOUT_MINUTES
-  window.sessionTimeoutHandle = setTimeout(() => {
-    clearSession()
-    const event = new CustomEvent('sessionExpired', {
-      detail: { message: 'Session expired. Please login again.' }
-    })
-    window.dispatchEvent(event)
-  }, SESSION_TIMEOUT_MINUTES * 60 * 1000)
 }
 
 // Input Validation (Server-side simulation)

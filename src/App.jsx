@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import Login from './pages/Login'
 import Auth from './pages/Auth'
 import Dashboard from './pages/Dashboard'
 import AdminLogin from './pages/AdminLogin'
@@ -12,7 +13,7 @@ function App() {
       <Router>
         <Routes>
           <Route path="/" element={<Auth />} />
-          <Route path="/login" element={<Auth />} />
+          <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Auth />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/admin-login" element={<AdminLogin />} />
