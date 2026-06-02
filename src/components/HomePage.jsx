@@ -7,8 +7,8 @@ const PRIMARY_GREEN = '#84CC16'
 export default function HomePage({ ctx }) {
   const { usdBalance, etbBalance, setActivePage, showToast } = ctx
   const [profileImage, setProfileImage] = useState('')
+  // bonus feature disabled for stability
   const [bonusData, setBonusData] = useState(null)
-  const [claimedBonus, setClaimedBonus] = useState(false)
   const session = getSession()
 
   useEffect(() => {
@@ -22,43 +22,12 @@ export default function HomePage({ ctx }) {
         setProfileImage(storedImage)
       }
 
-      // Load bonus data
-      const userData = JSON.parse(localStorage.getItem('admin_user_data') || '{}')
-      const userRecord = userData[session.user.email]
-      if (userRecord) {
-        setBonusData({
-          bonusEligible: userRecord.bonusEligible || false,
-          bonusClaimed: userRecord.bonusClaimed || false,
-          totalDeposits: userRecord.totalDeposits || 0,
-          totalBonus: (userRecord.totalDeposits || 0) * 0.05,
-        })
-        setClaimedBonus(userRecord.bonusClaimed || false)
-      }
+      // Bonus feature currently disabled; do not populate bonus state
+      // (Reserved for server-side implementation)
     }
   }
 
-  const handleClaimBonus = () => {
-    if (!bonusData?.bonusEligible) {
-      showToast?.('Bonus not approved by admin yet', 'error')
-      return
-    }
-
-    if (claimedBonus) {
-      showToast?.('Bonus already claimed', 'info')
-      return
-    }
-
-    // Claim bonus
-    const userData = JSON.parse(localStorage.getItem('admin_user_data') || '{}')
-    if (userData[session.user.email]) {
-      userData[session.user.email].bonusClaimed = true
-      userData[session.user.email].usdBalance = (userData[session.user.email].usdBalance || 0) + (bonusData.totalBonus || 0)
-      localStorage.setItem('admin_user_data', JSON.stringify(userData))
-      setClaimedBonus(true)
-      showToast?.(`Bonus of $${bonusData.totalBonus.toFixed(2)} claimed successfully!`, 'success')
-      loadUserData()
-    }
-  }
+  // handleClaimBonus removed for stability
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-slate-50 to-white pb-24 pt-4">
@@ -117,30 +86,7 @@ export default function HomePage({ ctx }) {
         </div>
 
         {/* Bonus Card - Only show if eligible */}
-        {bonusData?.bonusEligible && (
-          <div className="rounded-3xl border border-white/60 bg-gradient-to-br from-amber-50/60 to-orange-50/40 backdrop-blur-xl p-6 shadow-lg">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex items-start gap-3 flex-1">
-                <Gift size={24} className="text-amber-600 mt-1 flex-shrink-0" />
-                <div>
-                  <p className="font-bold text-amber-950">Deposit Bonus Available!</p>
-                  <p className="text-sm text-amber-900 mt-1">5% bonus on deposit: <span className="font-bold">${bonusData.totalBonus.toFixed(2)}</span></p>
-                </div>
-              </div>
-            </div>
-            <button
-              onClick={handleClaimBonus}
-              disabled={claimedBonus}
-              className={`w-full mt-4 px-4 py-3 rounded-xl font-bold transition-all duration-200 ${
-                claimedBonus
-                  ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
-                  : 'bg-gradient-to-r from-amber-500 to-orange-500 text-white hover:shadow-lg hover:scale-105 active:scale-95'
-              }`}
-            >
-              {claimedBonus ? '✓ Bonus Claimed' : 'Claim Bonus Now'}
-            </button>
-          </div>
-        )}
+        {/* Bonus feature temporarily disabled for stability */}
 
         {/* Action Buttons - Glassmorphism */}
         <div className="grid grid-cols-2 gap-3">

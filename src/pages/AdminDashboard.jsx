@@ -150,22 +150,17 @@ export default function AdminDashboard() {
       totalDeposits: 0,
     }
 
-    // Calculate bonus (5% of deposit amount)
-    const bonusAmount = deposit.amount * 0.05
-
     const updatedUser = {
       ...existing,
       usdBalance: deposit.currency === 'USDT' ? (existing.usdBalance || 0) + deposit.amount : existing.usdBalance || 0,
       etbBalance: deposit.currency === 'ETB' ? (existing.etbBalance || 0) + deposit.amount : existing.etbBalance || 0,
       totalDeposits: (existing.totalDeposits || 0) + deposit.amount,
-      bonusEligible: true, // Mark as bonus eligible after deposit approved
-      bonusAmount: bonusAmount,
     }
 
     usersData[userEmail] = updatedUser
     saveStorage('admin_user_data', usersData)
     setUsers(Object.values(usersData))
-    showToast(`Deposit approved. User eligible for $${bonusAmount.toFixed(2)} bonus (5%).`, 'success')
+    showToast('Deposit approved and user wallet updated.', 'success')
   }
 
   function handleRejectDeposit(depositId) {
