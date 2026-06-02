@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard'
 import AdminLogin from './pages/AdminLogin'
 import AdminDashboard from './pages/AdminDashboard'
 import Withdraw from './pages/Withdraw'
+import SupportPage from './components/SupportPage'
 import ErrorBoundary from './components/ErrorBoundary'
 
 function App() {
@@ -19,7 +20,7 @@ function App() {
           <Route path="/admin-login" element={<AdminLogin />} />
           <Route path="/admin-dashboard" element={<AdminDashboard />} />
           <Route path="/withdraw" element={<Withdraw />} />
-          <Route path="/support" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/support" element={<SupportPage />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </Router>

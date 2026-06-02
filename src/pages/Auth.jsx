@@ -217,9 +217,14 @@ export default function Auth() {
       <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_20%_50%,rgba(255,255,255,0.8),transparent_50%),radial-gradient(circle_at_80%_80%,rgba(255,255,255,0.4),transparent_50%)]" />
 
       <div className="text-center relative z-10 mb-8">
-        <div className="mx-auto flex h-28 w-28 items-center justify-center rounded-[2.5rem] bg-white/90 shadow-[0_28px_60px_rgba(16,185,129,0.18)] ring-1 ring-white/60">
-          <div className="auth-logo-inner flex h-24 w-24 flex-col items-center justify-center rounded-[2rem] text-white">
-            <span className="text-3xl font-black tracking-[0.02em] drop-shadow-[0_2px_12px_rgba(0,0,0,0.18)]">Investment Platform</span>
+        <div className="mx-auto flex h-32 w-full max-w-xl items-center justify-center rounded-[2rem] bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 p-6 shadow-[0_28px_60px_rgba(15,23,42,0.24)] ring-1 ring-white/10">
+          <div className="relative overflow-hidden rounded-[1.5rem] px-6 py-4 text-left text-white">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.25),transparent_35%),radial-gradient(circle_at_bottom_right,rgba(34,197,94,0.18),transparent_35%)]" />
+            <div className="relative">
+              <p className="text-xs uppercase tracking-[0.35em] text-emerald-300">Investment Platform</p>
+              <h1 className="mt-3 text-4xl font-black tracking-tight text-white drop-shadow-[0_16px_24px_rgba(0,0,0,0.18)]">3D Finance Hub</h1>
+              <p className="mt-2 max-w-md text-sm text-slate-200">Secure login for a modern investment experience.</p>
+            </div>
           </div>
         </div>
       </div>
@@ -325,8 +330,16 @@ export default function Auth() {
             {loading ? 'Processing...' : isLogin ? 'LOGIN' : 'CREATE ACCOUNT'}
           </button>
 
+          {isLogin && (
+            <div className="mt-4 text-right">
+              <a href="/support" className="text-sm font-semibold text-slate-900 hover:text-slate-700">
+                Forgot password?
+              </a>
+            </div>
+          )}
+
           {message && (
-            <div className="rounded-xl border-l-4 border-lime-400 bg-lime-50 px-4 py-3 text-sm font-semibold text-gray-800 shadow-sm">
+            <div className="rounded-xl border-l-4 border-lime-400 bg-lime-50 px-4 py-3 text-sm font-semibold text-gray-800 shadow-sm mt-4">
               {message}
             </div>
           )}
