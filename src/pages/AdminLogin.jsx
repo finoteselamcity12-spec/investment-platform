@@ -23,9 +23,9 @@ export default function AdminLogin() {
     setIsLoading(true)
 
     const isAuthorized =
-      adminName.trim() === ADMIN_CREDENTIALS.name &&
+      adminName === ADMIN_CREDENTIALS.name &&
       adminPassword === ADMIN_CREDENTIALS.password &&
-      adminId.trim() === ADMIN_CREDENTIALS.id
+      adminId === ADMIN_CREDENTIALS.id
 
     if (isAuthorized) {
       sessionStorage.setItem(
@@ -37,7 +37,7 @@ export default function AdminLogin() {
         })
       )
       setIsLoading(false)
-      navigate('/admin-dashboard', { replace: true })
+      navigate('/admin-dashboard')
       return
     }
 
@@ -54,26 +54,26 @@ export default function AdminLogin() {
 
         <form className="space-y-5" onSubmit={handleSubmit}>
           <div>
-            <label className="block text-sm font-semibold text-slate-900">Username</label>
+            <label className="block text-sm font-semibold text-slate-900">Admin Name</label>
             <div className="relative mt-2">
               <User size={18} className="absolute left-4 top-3.5 text-slate-400" />
               <input
                 value={adminName}
                 onChange={(event) => setAdminName(event.target.value)}
-                placeholder="investment"
+                placeholder="Admin name"
                 className="w-full rounded-3xl border border-slate-300 bg-slate-100 px-4 py-3 pl-12 text-slate-950 outline-none focus:border-[#84CC16] focus:ring-2 focus:ring-[#84CC16]/20"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-slate-900">ID</label>
+            <label className="block text-sm font-semibold text-slate-900">Admin ID</label>
             <div className="relative mt-2">
               <Lock size={18} className="absolute left-4 top-3.5 text-slate-400" />
               <input
                 value={adminId}
                 onChange={(event) => setAdminId(event.target.value)}
-                placeholder="15610010"
+                placeholder="Admin ID"
                 className="w-full rounded-3xl border border-slate-300 bg-slate-100 px-4 py-3 pl-12 text-slate-950 outline-none focus:border-[#84CC16] focus:ring-2 focus:ring-[#84CC16]/20"
               />
             </div>
@@ -115,6 +115,10 @@ export default function AdminLogin() {
             {isLoading ? 'Verifying...' : 'Login'}
           </button>
         </form>
+
+        <p className="mt-5 text-center text-xs text-slate-500">
+          Authorized admin access only. All login activity is monitored.
+        </p>
       </div>
     </div>
   )
