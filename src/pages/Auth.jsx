@@ -217,8 +217,20 @@ export default function Auth() {
       <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_20%_50%,rgba(255,255,255,0.8),transparent_50%),radial-gradient(circle_at_80%_80%,rgba(255,255,255,0.4),transparent_50%)]" />
 
       <div className="text-center relative z-10 mb-8">
-        <div className="mx-auto flex h-28 w-full max-w-xl items-center justify-center rounded-[2rem] bg-slate-950 p-6 shadow-[0_28px_60px_rgba(15,23,42,0.24)] ring-1 ring-white/10">
-          <h1 className="text-4xl font-black text-white tracking-tight">Investment Platform</h1>
+          <div className="mx-auto flex h-28 w-full max-w-xl items-center justify-center rounded-[2rem] bg-slate-950 p-6 shadow-[0_28px_60px_rgba(15,23,42,0.24)] ring-1 ring-white/10">
+          <h1
+            className="text-4xl font-black tracking-tight"
+            style={{
+              background: 'linear-gradient(90deg, #ffd54a 0%, #ff8a00 50%, #ff3b3b 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              WebkitTextStroke: '0.6px rgba(0,0,0,0.28)',
+              textShadow: '0 1px 0 rgba(255,255,255,0.06), 0 6px 12px rgba(0,0,0,0.45), 0 14px 40px rgba(0,0,0,0.6)',
+              letterSpacing: '-0.02em'
+            }}
+          >
+            BlackRock
+          </h1>
         </div>
       </div>
 
