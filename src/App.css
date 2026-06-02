@@ -9,6 +9,7 @@
   letter-spacing: 3px;
   line-height: 1;
   font-family: inherit;
+  margin-bottom: 50px;
 
   /* EXACT Lucky Slot gradient: radial highlight + green-to-dark-green */
   background: radial-gradient(circle at top left, rgba(255,255,255,0.95), transparent 30%), 
@@ -92,5 +93,6 @@
   .blackrock-3d-text {
     font-size: 2.5rem;
     letter-spacing: 2px;
+    margin-bottom: 35px;
   }
 }
