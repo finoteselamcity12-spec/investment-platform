@@ -415,6 +415,13 @@ grid-template-columns: 1fr;
 }
 }
 
+@media (min-width: 1024px) {
+/* Desktop view maintains the same styling as mobile */
+body {
+background-color: #ffffff;
+}
+}
+
 .touch-input {
 @apply w-full rounded-[2rem] border border-slate-300 bg-slate-50 px-5 py-4 text-base text-slate-950 transition duration-200 ease-out focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20;
 min-height: 3rem;

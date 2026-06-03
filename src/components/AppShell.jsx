@@ -179,29 +179,31 @@ export default function AppShell({ children, activePage, setActivePage }) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 pb-28">
+    <div className="min-h-screen bg-white text-slate-900 pb-28">
       {/* Top Header */}
-      <div className="fixed top-0 inset-x-0 z-40 bg-white border-b border-slate-200 px-4 py-4 flex items-center justify-between shadow-sm">
-        <div>
-          <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Investment Platform</p>
-          <h1 className="text-2xl font-bold text-slate-950">Astra Wealth</h1>
+      <div className="fixed top-0 inset-x-0 z-40 bg-white border-b border-slate-200 shadow-sm">
+        <div className="mx-auto max-w-7xl px-4 py-4 flex items-center justify-between">
+          <div>
+            <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Investment Platform</p>
+            <h1 className="text-2xl font-bold text-slate-950">Astra Wealth</h1>
+          </div>
+          <button
+            onClick={() => setShowAdminLogin(true)}
+            className="w-10 h-10 rounded-full bg-[#84CC16] flex items-center justify-center text-white font-semibold text-sm shadow-lg shadow-[#84CC16]/30 transition hover:bg-lime-500"
+          >
+            {userFullName.charAt(0).toUpperCase()}
+          </button>
         </div>
-        <button
-          onClick={() => setShowAdminLogin(true)}
-          className="w-10 h-10 rounded-full bg-[#84CC16] flex items-center justify-center text-white font-semibold text-sm shadow-lg shadow-[#84CC16]/30 transition hover:bg-lime-500"
-        >
-          {userFullName.charAt(0).toUpperCase()}
-        </button>
       </div>
 
       {/* Page Content */}
-      <div className="pt-24 px-4 pb-36">
+      <div className="mx-auto max-w-7xl pt-24 px-4 pb-36">
         {children(appContext)}
       </div>
 
       {/* Bottom Navigation */}
-      <div className="fixed inset-x-0 bottom-0 z-50 bg-white border-t border-slate-200 px-3 py-3 shadow-xl">
-        <div className="mx-auto flex max-w-4xl items-center justify-between gap-2">
+      <div className="fixed inset-x-0 bottom-0 z-50 bg-white border-t border-slate-200 shadow-xl">
+        <div className="mx-auto max-w-7xl px-3 py-3 flex items-center justify-between gap-2">
           {navItems.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
