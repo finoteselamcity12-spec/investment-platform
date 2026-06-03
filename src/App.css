@@ -108,20 +108,18 @@
 
 /* 3D welcome text for Home page */
 .welcome-3d {
-  color: #ff6600; /* vibrant orange */
+  color: #D4AF37;
   font-weight: 900;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 2px;
   margin: 0.5rem 0;
-  font-size: clamp(1.5rem, 6vw, 3rem);
-  line-height: 1;
-  /* layered shadows for 3D depth */
+  font-size: clamp(2rem, 7vw, 4rem);
+  line-height: 1.05;
+  text-align: center;
   text-shadow:
-    0 1px 0 rgba(255,255,255,0.6),
-    0 2px 0 rgba(255,200,150,0.15),
-    0 6px 10px rgba(0,0,0,0.15),
-    0 10px 20px rgba(0,0,0,0.2);
-  transform: translateZ(0);
+    1px 1px 0px #CCCCCC,
+    2px 2px 0px #BBBBBB,
+    3px 3px 0px #999999;
 }
 
 @media (min-width: 1024px) {
