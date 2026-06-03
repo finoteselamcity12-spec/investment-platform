@@ -84,6 +84,7 @@ export default function AppShell({ children, activePage, setActivePage }) {
   const [transactions, setTransactions] = useState([])
   const [userFullName, setUserFullName] = useState('Account')
   const [userEmail, setUserEmail] = useState('')
+  const [profileImage, setProfileImage] = useState('')
   const [referralLink, setReferralLink] = useState('')
   const [referralCount, setReferralCount] = useState(0)
   const [referralEarningsUsd, setReferralEarningsUsd] = useState(0.0)
@@ -111,12 +112,21 @@ export default function AppShell({ children, activePage, setActivePage }) {
     if (session?.user?.email) {
       setUserEmail(session.user.email)
       setUserFullName(session.user.fullName || 'User')
+      // try session user metadata for avatar
+      const possible = session.user.user_metadata || {}
+      if (possible.avatar_url || possible.avatar || possible.photoURL) {
+        setProfileImage(possible.avatar_url || possible.avatar || possible.photoURL)
+      }
     } else {
       const userData = JSON.parse(localStorage.getItem('admin_user_data') || '{}')
       const savedEmail = Object.keys(userData)[0]
       if (savedEmail) {
         setUserEmail(savedEmail)
         setUserFullName(userData[savedEmail].fullName || 'User')
+        // load stored avatar if present
+        if (userData[savedEmail].profileImage || userData[savedEmail].avatar) {
+          setProfileImage(userData[savedEmail].profileImage || userData[savedEmail].avatar)
+        }
       }
     }
 
@@ -125,6 +135,10 @@ export default function AppShell({ children, activePage, setActivePage }) {
     if (profileEmail && userData[profileEmail]) {
       setUsdBalance(userData[profileEmail].usdBalance || 0.0)
       setEtbBalance(userData[profileEmail].etbBalance || 0.0)
+      // also ensure profile image loads for existing local users
+      if (!profileImage && (userData[profileEmail].profileImage || userData[profileEmail].avatar)) {
+        setProfileImage(userData[profileEmail].profileImage || userData[profileEmail].avatar)
+      }
     }
 
     const investments = JSON.parse(localStorage.getItem('user_investments') || '[]')
@@ -212,10 +226,14 @@ export default function AppShell({ children, activePage, setActivePage }) {
             {/* Profile Button */}
             <button
               onClick={() => setShowProfileModal(true)}
-              className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-semibold text-sm shadow-sm transition hover:bg-slate-200"
+              className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-semibold text-sm shadow-sm transition hover:bg-slate-200 overflow-hidden border border-slate-200"
               title="Profile"
             >
-              {userFullName.charAt(0).toUpperCase()}
+              {profileImage ? (
+                <img src={profileImage} alt={userFullName} className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-sm">{userFullName.charAt(0).toUpperCase()}</span>
+              )}
             </button>
             {/* Admin Button - Only for workinehabche@gmail.com */}
             {userEmail === 'workinehabche@gmail.com' && (
