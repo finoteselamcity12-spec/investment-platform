@@ -47,6 +47,11 @@ export default function HomePage({ ctx }) {
     <div className="min-h-screen bg-white pb-20">
       <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
 
+        {/* 3D Welcome Text */}
+        <div className="w-full text-center">
+          <h2 className="welcome-3d">WELCOME TO BLACKROCK</h2>
+        </div>
+
         {/* Total Balance Card */}
         <div className="rounded-3xl bg-gradient-to-br from-[#84CC16] to-lime-500 p-8 text-white shadow-lg shadow-[#84CC16]/30">
           <p className="text-sm font-semibold opacity-90">Total Balance</p>
