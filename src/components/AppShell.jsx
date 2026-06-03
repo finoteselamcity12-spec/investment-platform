@@ -204,7 +204,7 @@ export default function AppShell({ children, activePage, setActivePage }) {
             {activePage === 'home' ? null : (
               <>
                 <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Investment Platform</p>
-                <h1 className="text-2xl font-bold text-slate-950">Astra Wealth</h1>
+                <h1 className="text-2xl font-bold text-[#84CC16]">BLACKROCK</h1>
               </>
             )}
           </div>
