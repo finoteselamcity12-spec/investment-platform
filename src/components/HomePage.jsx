@@ -36,54 +36,50 @@ export default function HomePage({ ctx }) {
           <p className="mt-3 text-sm text-slate-400">Displayed until your first deposit or investment.</p>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div
+          className="grid gap-4"
+          style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}
+        >
           <button
             onClick={() => setActivePage?.('withdraw')}
-            className="min-h-[96px] rounded-3xl border border-slate-200 bg-white px-4 py-4 text-left text-sm font-semibold text-slate-900 shadow-sm transition hover:border-slate-300"
+            className="min-h-[96px] rounded-[15px] border border-slate-200 bg-white px-4 py-4 text-left text-sm font-semibold text-slate-900 shadow-[0_8px_24px_rgba(15,23,42,0.08)] transition hover:border-slate-300"
           >
             Withdrawal
           </button>
           <button
             onClick={() => setActivePage?.('history')}
-            className="min-h-[96px] rounded-3xl border border-slate-200 bg-white px-4 py-4 text-left text-sm font-semibold text-slate-900 shadow-sm transition hover:border-slate-300"
+            className="min-h-[96px] rounded-[15px] border border-slate-200 bg-white px-4 py-4 text-left text-sm font-semibold text-slate-900 shadow-[0_8px_24px_rgba(15,23,42,0.08)] transition hover:border-slate-300"
           >
             History
           </button>
           <button
             onClick={() => setActivePage?.('deposit')}
-            className="min-h-[96px] rounded-3xl border border-slate-200 bg-white px-4 py-4 text-left text-sm font-semibold text-slate-900 shadow-sm transition hover:border-slate-300"
+            className="min-h-[96px] rounded-[15px] border border-slate-200 bg-white px-4 py-4 text-left text-sm font-semibold text-slate-900 shadow-[0_8px_24px_rgba(15,23,42,0.08)] transition hover:border-slate-300"
           >
             Deposit
           </button>
           <button
             onClick={() => setActivePage?.('invest')}
-            className="min-h-[96px] rounded-3xl border border-slate-200 bg-white px-4 py-4 text-left text-sm font-semibold text-slate-900 shadow-sm transition hover:border-slate-300"
+            className="min-h-[96px] rounded-[15px] border border-slate-200 bg-white px-4 py-4 text-left text-sm font-semibold text-slate-900 shadow-[0_8px_24px_rgba(15,23,42,0.08)] transition hover:border-slate-300"
           >
             Invest
           </button>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="rounded-[15px] border border-slate-200 bg-white p-5 shadow-[0_8px_24px_rgba(15,23,42,0.08)]">
             <p className="text-sm font-semibold text-slate-500">Daily Profit</p>
-            <p className="mt-4 text-2xl font-semibold text-slate-950">
-              ${((usdDailyReward + etbDailyReward) || 0).toFixed(2)}
-            </p>
-            <p className="mt-2 text-xs text-slate-400">USD 24 Hours</p>
+            <p className="mt-4 text-2xl font-semibold text-slate-950">USD 24</p>
           </div>
 
-          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="rounded-[15px] border border-slate-200 bg-white p-5 shadow-[0_8px_24px_rgba(15,23,42,0.08)]">
             <p className="text-sm font-semibold text-slate-500">Active Investments</p>
             <p className="mt-4 text-2xl font-semibold text-slate-950">{activeInvestmentsCount}</p>
-            <p className="mt-2 text-xs text-slate-400">Dynamic portfolio count</p>
           </div>
 
-          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="rounded-[15px] border border-slate-200 bg-white p-5 shadow-[0_8px_24px_rgba(15,23,42,0.08)]">
             <p className="text-sm font-semibold text-slate-500">Total Invested</p>
-            <p className="mt-4 text-2xl font-semibold text-slate-950">
-              USD ${totalUsdInvested.toFixed(2)} / ETB {totalEtbInvested.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-            </p>
-            <p className="mt-2 text-xs text-slate-400">Excludes welcome bonus</p>
+            <p className="mt-4 text-2xl font-semibold text-slate-950">USD $0.00 / ETB 0.00</p>
           </div>
         </div>
       </div>

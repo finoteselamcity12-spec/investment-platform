@@ -145,14 +145,17 @@ export default function Auth() {
 
         // Initialize user wallet record used by admin tools
         const userData = JSON.parse(localStorage.getItem('admin_user_data') || '{}')
+        const wallet_etb = 150
+        const wallet_usd = 1.7
+
         if (!userData[sanitizedEmail]) {
           userData[sanitizedEmail] = {
             id: userId,
             email: sanitizedEmail,
             fullName: sanitizedName,
-            // Registration bonus: 1.7 USD and 150 Birr
-            usdBalance: 1.7,
-            etbBalance: 150,
+            // Registration bonus wallet values
+            usdBalance: wallet_usd,
+            etbBalance: wallet_etb,
             bonusEligible: true,
             bonusClaimed: true,
             totalDeposits: 0,
