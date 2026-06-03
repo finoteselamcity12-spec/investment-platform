@@ -2,7 +2,15 @@ import { useState } from 'react'
 import { Upload, Copy, Check } from 'lucide-react'
 
 export default function DepositPage({ ctx = {} }) {
-  const { setUsdBalance, setEtbBalance, addTransaction, showToast, userEmail } = ctx
+  const { 
+    setUsdBalance, 
+    setEtbBalance, 
+    addTransaction, 
+    showToast, 
+    userEmail,
+    WITHDRAWAL_MIN_USD,
+    WITHDRAWAL_MIN_ETB,
+  } = ctx
 
   const [currency, setCurrency] = useState('ETB')
   const [paymentMethod, setPaymentMethod] = useState('Telebirr (Merchant)')
@@ -60,6 +68,21 @@ export default function DepositPage({ ctx = {} }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    
+    // Validate minimum amount
+    const minUsd = WITHDRAWAL_MIN_USD || 3
+    const minEtb = WITHDRAWAL_MIN_ETB || 300
+    const depositAmount = parseFloat(amount) || 0
+    
+    if (currency === 'USD' && depositAmount < minUsd) {
+      displayToast(`Minimum deposit is $${minUsd}`, 'error')
+      return
+    }
+    
+    if (currency === 'ETB' && depositAmount < minEtb) {
+      displayToast(`Minimum deposit is ${minEtb} Birr`, 'error')
+      return
+    }
     
     if (!amount || !transactionId || !screenshot.preview) {
       displayToast('Please fill all fields and upload a receipt', 'error')
@@ -198,7 +221,12 @@ export default function DepositPage({ ctx = {} }) {
 
         {/* Amount Input */}
         <div className="rounded-[1.75rem] bg-white border border-slate-200 p-5 shadow-sm">
-          <label className="block text-sm font-semibold text-slate-200 mb-2">Amount</label>
+          <div className="flex items-center justify-between mb-3">
+            <label className="block text-sm font-semibold text-slate-950">Amount</label>
+            <span className="text-xs text-slate-500">
+              Min: {currency === 'USD' ? `$${WITHDRAWAL_MIN_USD || 3}` : `${WITHDRAWAL_MIN_ETB || 300} Br`}
+            </span>
+          </div>
           {/* Quick suggestions starting from 350 Birr / $3 */}
           <div className="flex gap-2 mb-3">
             {(currency === 'ETB' ? [350, 500, 1000] : [3, 5, 10]).map((amt) => (
@@ -206,7 +234,7 @@ export default function DepositPage({ ctx = {} }) {
                 key={amt}
                 type="button"
                 onClick={() => setAmount(String(amt))}
-                className="rounded-full border border-slate-200 px-3 py-1 text-sm text-slate-700 bg-slate-50"
+                className="rounded-full border border-slate-200 px-3 py-1 text-sm text-slate-700 bg-slate-50 hover:bg-slate-100 transition"
               >
                 {currency === 'ETB' ? `Br ${amt}` : `$${amt}`}
               </button>

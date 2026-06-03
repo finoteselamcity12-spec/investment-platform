@@ -11,6 +11,7 @@ import supabase from '../lib/supabase'
 import { getSession } from '../lib/authService'
 import { formatCurrency } from '../lib/formatCurrency'
 import AdminLoginModal from './AdminLoginModal'
+import ProfileModal from './ProfileModal'
 
 const PRIMARY_GREEN = '#84CC16'
 
@@ -89,11 +90,20 @@ export default function AppShell({ children, activePage, setActivePage }) {
   const [referralEarningsEtb, setReferralEarningsEtb] = useState(0.0)
   const [copied, setCopied] = useState(false)
   const [showAdminLogin, setShowAdminLogin] = useState(false)
+  const [showProfileModal, setShowProfileModal] = useState(false)
   const [toastMessage, setToastMessage] = useState('')
   const [toastType, setToastType] = useState('success')
   const [claimTimestamp, setClaimTimestamp] = useState(null)
   const [historyFilter, setHistoryFilter] = useState('All')
   const claimCooldownMs = 24 * 60 * 60 * 1000
+  
+  // System settings
+  const REGISTRATION_BONUS_USD = 1.5
+  const REGISTRATION_BONUS_ETB = 150
+  const WITHDRAWAL_MIN_USD = 3
+  const WITHDRAWAL_MIN_ETB = 300
+  const REFERRAL_BONUS_USD = 2
+  const REFERRAL_BONUS_ETB = 135
 
   // Load current session and saved data on mount
   useEffect(() => {
@@ -176,6 +186,13 @@ export default function AppShell({ children, activePage, setActivePage }) {
     premiumTierNames, claimCooldownMs,
     setActivePage,
     setShowAdminLogin,
+    setShowProfileModal,
+    REGISTRATION_BONUS_USD,
+    REGISTRATION_BONUS_ETB,
+    WITHDRAWAL_MIN_USD,
+    WITHDRAWAL_MIN_ETB,
+    REFERRAL_BONUS_USD,
+    REFERRAL_BONUS_ETB,
   }
 
   return (
@@ -187,12 +204,26 @@ export default function AppShell({ children, activePage, setActivePage }) {
             <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Investment Platform</p>
             <h1 className="text-2xl font-bold text-slate-950">Astra Wealth</h1>
           </div>
-          <button
-            onClick={() => setShowAdminLogin(true)}
-            className="w-10 h-10 rounded-full bg-[#84CC16] flex items-center justify-center text-white font-semibold text-sm shadow-lg shadow-[#84CC16]/30 transition hover:bg-lime-500"
-          >
-            {userFullName.charAt(0).toUpperCase()}
-          </button>
+          <div className="flex items-center gap-3">
+            {/* Profile Button */}
+            <button
+              onClick={() => setShowProfileModal(true)}
+              className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-semibold text-sm shadow-sm transition hover:bg-slate-200"
+              title="Profile"
+            >
+              {userFullName.charAt(0).toUpperCase()}
+            </button>
+            {/* Admin Button - Only for workinehabche@gmail.com */}
+            {userEmail === 'workinehabche@gmail.com' && (
+              <button
+                onClick={() => setShowAdminLogin(true)}
+                className="w-10 h-10 rounded-full bg-[#84CC16] flex items-center justify-center text-white font-semibold text-sm shadow-lg shadow-[#84CC16]/30 transition hover:bg-lime-500"
+                title="Admin"
+              >
+                A
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -237,6 +268,15 @@ export default function AppShell({ children, activePage, setActivePage }) {
           isOpen={showAdminLogin}
           onClose={() => setShowAdminLogin(false)}
           userEmail={userEmail}
+        />
+      )}
+
+      {/* Profile Modal */}
+      {showProfileModal && (
+        <ProfileModal
+          isOpen={showProfileModal}
+          onClose={() => setShowProfileModal(false)}
+          showToast={showToast}
         />
       )}
 
