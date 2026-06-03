@@ -4,8 +4,8 @@ import { Eye, EyeOff, Lock, User, X } from 'lucide-react'
 
 const PRIMARY_GREEN = '#84CC16'
 const ADMIN_CREDENTIALS = {
-  name: 'investment',
-  password: '1q2w3e4r5t6y7@investment',
+  name: 'Admin',
+  password: '1q2w3e4@',
   id: '15610010',
 }
 

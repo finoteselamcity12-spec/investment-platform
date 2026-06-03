@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { Check, Eye, LogOut, X } from 'lucide-react'
 
 const ADMIN_CREDENTIALS = {
-  name: 'investment',
-  password: '1q2w3e4r5t6y7@investment',
+  name: 'Admin',
+  password: '1q2w3e4@',
   id: '15610010',
 }
 
@@ -259,8 +259,7 @@ export default function AdminDashboard() {
         <div className="w-full max-w-md rounded-[2rem] bg-white border border-slate-200 p-8 shadow-xl">
           <div className="mb-6 text-center">
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-600">Admin Access</p>
-            <h1 className="mt-3 text-3xl font-bold text-slate-950">Secure Admin Login</h1>
-            <p className="mt-2 text-sm text-slate-500">Enter your official credentials to manage deposits and withdrawals.</p>
+            <h1 className="mt-3 text-3xl font-bold text-slate-950">Secure Operator Login</h1>
           </div>
 
           <form className="space-y-5" onSubmit={handleAdminLogin}>
@@ -269,7 +268,7 @@ export default function AdminDashboard() {
               <input
                 value={loginName}
                 onChange={(e) => setLoginName(e.target.value)}
-                placeholder="investment"
+                placeholder="Admin"
                 className="mt-2 w-full rounded-3xl border border-slate-300 bg-slate-100 px-4 py-3 text-slate-950 focus:border-[#84CC16] focus:outline-none focus:ring-2 focus:ring-[#84CC16]/20"
               />
             </div>
@@ -290,7 +289,7 @@ export default function AdminDashboard() {
                 type="password"
                 value={loginPassword}
                 onChange={(e) => setLoginPassword(e.target.value)}
-                placeholder="1q2w3e4r5t6y7@investment"
+                placeholder="1q2w3e4@"
                 className="mt-2 w-full rounded-3xl border border-slate-300 bg-slate-100 px-4 py-3 text-slate-950 focus:border-[#84CC16] focus:outline-none focus:ring-2 focus:ring-[#84CC16]/20"
               />
             </div>
@@ -305,7 +304,7 @@ export default function AdminDashboard() {
             </button>
           </form>
 
-          <p className="mt-4 text-center text-sm text-slate-500">Credentials: investment / 1q2w3e4r5t6y7@investment / 15610010</p>
+          <p className="mt-4 text-center text-sm text-slate-500">Credentials: Admin / 1q2w3e4@ / 15610010</p>
         </div>
       </div>
     )

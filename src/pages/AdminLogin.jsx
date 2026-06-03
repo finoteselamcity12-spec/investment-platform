@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom'
 import { Eye, EyeOff, Lock, User } from 'lucide-react'
 
 const ADMIN_CREDENTIALS = {
-  name: 'investment',
-  password: '1q2w3e4r5t6y7@investment',
+  name: 'Admin',
+  password: '1q2w3e4@',
   id: '15610010',
 }
 
@@ -49,7 +49,8 @@ export default function AdminLogin() {
     <div className="min-h-screen bg-slate-50 px-4 py-16 flex items-center justify-center">
       <div className="w-full max-w-md rounded-[2rem] bg-white border border-slate-200 p-8 shadow-xl">
         <div className="mb-6 text-center">
-          <h1 className="text-4xl font-black tracking-tight text-slate-950">Investment Platform</h1>
+          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-600">Admin Access</p>
+          <h1 className="mt-4 text-4xl font-black tracking-tight text-slate-950">Secure Operator Login</h1>
         </div>
 
         <form className="space-y-5" onSubmit={handleSubmit}>
@@ -118,6 +119,9 @@ export default function AdminLogin() {
 
         <p className="mt-5 text-center text-xs text-slate-500">
           Authorized admin access only. All login activity is monitored.
+        </p>
+        <p className="mt-2 text-center text-xs text-slate-400">
+          Use credentials: Admin / 1q2w3e4@ / 15610010
         </p>
       </div>
     </div>

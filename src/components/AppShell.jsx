@@ -14,6 +14,7 @@ import AdminLoginModal from './AdminLoginModal'
 import ProfileModal from './ProfileModal'
 
 const PRIMARY_GREEN = '#84CC16'
+const ADMIN_SUPPORT_EMAIL = 'workinehabche@gmail.com'
 
 // Premium tier naming
 const premiumTierNames = {
@@ -165,6 +166,10 @@ export default function AppShell({ children, activePage, setActivePage }) {
     { id: 'support', label: 'Support', icon: HelpCircle },
   ]
 
+  const visibleNavItems = navItems.filter(
+    (item) => item.id !== 'support' || userEmail === ADMIN_SUPPORT_EMAIL
+  )
+
   async function handleSignOut() {
     await supabase.auth.signOut()
     navigate('/')
@@ -257,10 +262,16 @@ export default function AppShell({ children, activePage, setActivePage }) {
       {/* Bottom Navigation */}
       <div className="fixed inset-x-0 bottom-0 z-50 bg-white border-t border-slate-200 shadow-xl">
         <div className="mx-auto max-w-7xl px-3 py-3 flex items-center justify-between gap-2">
-          {navItems.map(({ id, label, icon: Icon }) => (
+          {visibleNavItems.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
-              onClick={() => setActivePage(id)}
+              onClick={() => {
+                if (id === 'support') {
+                  navigate('/admin-dashboard')
+                  return
+                }
+                setActivePage(id)
+              }}
               className={`relative flex-1 rounded-3xl border border-slate-200 px-3 py-3 text-center text-xs font-semibold transition-all ${
                 activePage === id
                   ? 'bg-[#84CC16] text-white shadow-lg shadow-[#84CC16]/20'
@@ -269,16 +280,6 @@ export default function AppShell({ children, activePage, setActivePage }) {
             >
               <Icon size={22} className="mx-auto mb-1" />
               <span>{label}</span>
-              {id === 'support' && (
-                <span
-                  className="absolute top-2 right-2 h-6 w-10 cursor-pointer opacity-0"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setShowAdminLogin(true)
-                  }}
-                  aria-hidden="true"
-                />
-              )}
             </button>
           ))}
         </div>
