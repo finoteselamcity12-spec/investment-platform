@@ -125,3 +125,35 @@
 @media (min-width: 1024px) {
   .welcome-3d { font-size: clamp(2.25rem, 4vw, 4rem); }
 }
+
+@media (max-width: 768px) {
+  .max-w-5xl {
+    width: 95%;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .welcome-3d {
+    font-size: clamp(1.75rem, 9vw, 2.75rem);
+    letter-spacing: 1.5px;
+  }
+
+  .grid.grid-cols-2 {
+    gap: 10px !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-rows: minmax(80px, auto);
+  }
+
+  .grid.grid-cols-2 > * {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .rounded-3xl,
+  .rounded-2xl,
+  .rounded-xl {
+    width: 100%;
+    max-width: 100%;
+  }
+}
