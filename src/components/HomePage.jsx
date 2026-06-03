@@ -45,12 +45,7 @@ export default function HomePage({ ctx }) {
 
   return (
     <div className="min-h-screen bg-white pb-20">
-      <div className="max-w-5xl mx-auto px-4 py-6 space-y-8">
-        {/* Header */}
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-600">Welcome Back</p>
-          <h1 className="mt-1 text-3xl font-bold text-slate-950">Smart Wealth Dashboard</h1>
-        </div>
+      <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
 
         {/* Total Balance Card */}
         <div className="rounded-3xl bg-gradient-to-br from-[#84CC16] to-lime-500 p-8 text-white shadow-lg shadow-[#84CC16]/30">
@@ -131,79 +126,7 @@ export default function HomePage({ ctx }) {
           </div>
         </div>
 
-        {/* Market Overview */}
-        {marketData && marketData.length > 0 && (
-          <div>
-            <h2 className="mb-4 text-xl font-bold text-slate-950">Market Overview</h2>
-            <div className="grid gap-3 md:grid-cols-3">
-              {marketData.map((asset, idx) => (
-                <div key={idx} className="rounded-2xl border-2 border-slate-200 bg-white p-4">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="font-bold text-slate-950">{asset.title}</p>
-                      <p className="text-xs text-slate-600">{asset.symbol}</p>
-                    </div>
-                    <TrendingUp className="h-5 w-5 text-[#84CC16]" />
-                  </div>
-                  <div className="mt-3">
-                    <p className="font-bold text-slate-950">{asset.price}</p>
-                    <p className={`text-sm font-semibold ${asset.trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
-                      {asset.change}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Active Investments Table */}
-        {myActiveInvestmentsList.length > 0 && (
-          <div>
-            <h2 className="mb-4 text-xl font-bold text-slate-950">Active Investments</h2>
-            <div className="overflow-x-auto rounded-2xl border-2 border-slate-200 bg-white">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b-2 border-slate-200 bg-slate-50">
-                    <th className="px-4 py-3 text-left font-bold text-slate-950">Investment</th>
-                    <th className="px-4 py-3 text-center font-bold text-slate-950">Days</th>
-                    <th className="px-4 py-3 text-right font-bold text-slate-950">Profit</th>
-                    <th className="px-4 py-3 text-right font-bold text-slate-950">Deposit</th>
-                    <th className="px-4 py-3 text-right font-bold text-slate-950">Bonus</th>
-                    <th className="px-4 py-3 text-right font-bold text-slate-950">Total</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {myActiveInvestmentsList.map((inv) => {
-                    const profitAmount = inv.totalReturn || (inv.dailyProfit * inv.days) || 0
-                    const depositAmount = inv.amount || 0
-                    const bonusAmount = inv.bonus || 0
-                    const total = (Number(profitAmount) + Number(depositAmount) + Number(bonusAmount))
-                    
-                    return (
-                      <tr key={inv.id} className="border-b border-slate-200 hover:bg-slate-50">
-                        <td className="px-4 py-3 font-semibold text-slate-950">{inv.tierName}</td>
-                        <td className="px-4 py-3 text-center text-slate-700">{inv.days}</td>
-                        <td className="px-4 py-3 text-right text-slate-700">
-                          {inv.currency === 'USD' ? `$${(Number(profitAmount)).toFixed(2)}` : `${(Number(profitAmount)).toLocaleString()} Br`}
-                        </td>
-                        <td className="px-4 py-3 text-right font-semibold text-slate-950">
-                          {inv.currency === 'USD' ? `$${(Number(depositAmount)).toFixed(2)}` : `${(Number(depositAmount)).toLocaleString()} Br`}
-                        </td>
-                        <td className="px-4 py-3 text-right text-slate-700">
-                          {inv.currency === 'USD' ? `$${(Number(bonusAmount)).toFixed(2)}` : `${(Number(bonusAmount)).toLocaleString()} Br`}
-                        </td>
-                        <td className="px-4 py-3 text-right font-bold text-[#84CC16] text-base">
-                          {inv.currency === 'USD' ? `$${(Number(total)).toFixed(2)}` : `${(Number(total)).toLocaleString()} Br`}
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
+        {/* Removed Market Overview and Active Investments sections to simplify Home Page per request */}
       </div>
     </div>
   )
