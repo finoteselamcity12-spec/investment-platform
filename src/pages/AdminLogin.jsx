@@ -120,9 +120,6 @@ export default function AdminLogin() {
         <p className="mt-5 text-center text-xs text-slate-500">
           Authorized admin access only. All login activity is monitored.
         </p>
-        <p className="mt-2 text-center text-xs text-slate-400">
-          Use credentials: Admin / 1q2w3e4@ / 15610010
-        </p>
       </div>
     </div>
   )

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Check, Eye, LogOut, ShieldCheck, Image, Hash, Database, X } from 'lucide-react'
+import { Navigate } from 'react-router-dom'
 import { getSession } from '../lib/authService'
 
 const ADMIN_CREDENTIALS = {
@@ -24,6 +25,8 @@ function groupBy(items, key) {
 
 export default function AdminDashboard() {
   const [adminSession, setAdminSession] = useState(null)
+  const [authChecked, setAuthChecked] = useState(false)
+  const [isAuthorized, setIsAuthorized] = useState(false)
   const [loginName, setLoginName] = useState('')
   const [loginPassword, setLoginPassword] = useState('')
   const [loginId, setLoginId] = useState('')
@@ -41,22 +44,35 @@ export default function AdminDashboard() {
   const [selectedDepositReceipt, setSelectedDepositReceipt] = useState(null)
 
   useEffect(() => {
-    const session = sessionStorage.getItem('admin_session')
-    if (session) {
-      setAdminSession(JSON.parse(session))
-    } else {
-      const mainSession = getSession()
-      if (mainSession?.user?.email === ADMIN_EMAIL) {
-        setAdminSession({
+    const storedAdminSession = JSON.parse(sessionStorage.getItem('admin_session') || 'null')
+    const mainSession = getSession()
+    const isAdmin = storedAdminSession?.email === ADMIN_EMAIL || mainSession?.user?.email === ADMIN_EMAIL
+
+    if (isAdmin) {
+      setIsAuthorized(true)
+      setAdminSession(
+        storedAdminSession || {
           name: 'Admin',
           id: ADMIN_CREDENTIALS.id,
           email: ADMIN_EMAIL,
           loginTime: new Date().toISOString(),
-        })
-      }
+        }
+      )
+      loadAdminData()
+    } else {
+      setIsAuthorized(false)
     }
-    loadAdminData()
+
+    setAuthChecked(true)
   }, [])
+
+  if (!authChecked) {
+    return null
+  }
+
+  if (!isAuthorized) {
+    return <Navigate to="/dashboard" replace />
+  }
 
   function showToast(message, type = 'success') {
     setToastType(type)
@@ -266,6 +282,11 @@ export default function AdminDashboard() {
   )
 
   if (!adminSession) {
+    const mainSession = getSession()
+    if (mainSession?.user?.email && mainSession.user.email !== ADMIN_EMAIL) {
+      return <Navigate to="/dashboard" replace />
+    }
+
     return (
       <div className="min-h-screen bg-slate-50 text-slate-950 flex items-center justify-center px-4 py-16">
         <div className="w-full max-w-md rounded-[2rem] bg-white border border-slate-200 p-8 shadow-xl">
@@ -316,7 +337,6 @@ export default function AdminDashboard() {
             </button>
           </form>
 
-          <p className="mt-4 text-center text-sm text-slate-500">Credentials: Admin / 1q2w3e4@ / 15610010</p>
         </div>
       </div>
     )

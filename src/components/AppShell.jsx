@@ -14,7 +14,6 @@ import AdminLoginModal from './AdminLoginModal'
 import ProfileModal from './ProfileModal'
 
 const PRIMARY_GREEN = '#84CC16'
-const ADMIN_SUPPORT_EMAIL = 'workinehabche@gmail.com'
 
 // Premium tier naming
 const premiumTierNames = {
@@ -166,9 +165,7 @@ export default function AppShell({ children, activePage, setActivePage }) {
     { id: 'support', label: 'Support', icon: HelpCircle },
   ]
 
-  const visibleNavItems = navItems.filter(
-    (item) => item.id !== 'support' || userEmail === ADMIN_SUPPORT_EMAIL
-  )
+  const visibleNavItems = navItems
 
   async function handleSignOut() {
     await supabase.auth.signOut()
@@ -264,7 +261,7 @@ export default function AppShell({ children, activePage, setActivePage }) {
               key={id}
               onClick={() => {
                 if (id === 'support') {
-                  navigate('/admin-dashboard')
+                  navigate('/support')
                   return
                 }
                 setActivePage(id)
