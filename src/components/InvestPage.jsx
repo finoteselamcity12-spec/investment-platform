@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Clock, Gift, Star, TrendingUp } from 'lucide-react'
 
 export default function InvestPage({ ctx = {} }) {
   const { usdBalance, etbBalance } = ctx
@@ -27,7 +28,6 @@ export default function InvestPage({ ctx = {} }) {
     { amount: 1000, days: 69, profit: 155, deposit: 210, bonus: 210 },
     { amount: 5000, days: 72, profit: 360, deposit: 407, bonus: 407 },
   ]
-  // Total column calculated as: Total = Profit + Deposit + Bonus
 
   // Hardcoded ETB plans (strict replacement)
   const etbPlans = [
@@ -47,131 +47,148 @@ export default function InvestPage({ ctx = {} }) {
     { amount: 45000, days: 80, profit: 4750, deposit: 4000, bonus: 4000 },
     { amount: 50000, days: 90, profit: 5000, deposit: 55000, bonus: 55000 },
   ]
-  // Total column calculated as: Total = Profit + Deposit + Bonus
 
-  function renderUsdTable() {
-    return (
-      <div>
-        <div className="px-6 py-4 border-b border-slate-200 bg-slate-50">
-          <h2 className="text-lg font-bold text-slate-950">USD Investment Plans</h2>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-200">
-                <th className="px-4 py-3 text-left font-bold text-slate-950">Amount</th>
-                <th className="px-4 py-3 text-center font-bold text-slate-950">Days</th>
-                <th className="px-4 py-3 text-right font-bold text-slate-950">Profit</th>
-                <th className="px-4 py-3 text-right font-bold text-slate-950">Deposit</th>
-                <th className="px-4 py-3 text-right font-bold text-slate-950">Bonus</th>
-                <th className="px-4 py-3 text-right font-bold text-slate-950">Total</th>
-                <th className="px-4 py-3 text-right font-bold text-slate-950">All Days Income</th>
-                <th className="px-4 py-3 text-center font-bold text-slate-950">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {usdPlans.map((p, idx) => {
-                const profit = Number(p.profit) || 0
-                const deposit = Number(p.deposit) || 0
-                const bonus = Number(p.bonus) || 0
-                const total = Number(profit) + Number(deposit) + Number(bonus)
-                const allDaysIncome = (Number(profit) * Number(p.days)) + Number(deposit) + Number(bonus)
-                return (
-                  <tr key={idx} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                    <td className="px-4 py-3 font-semibold text-slate-950">${(Number(p.amount)).toFixed(2)}</td>
-                    <td className="px-4 py-3 text-center text-slate-700">{p.days}</td>
-                    <td className="px-4 py-3 text-right text-slate-700">${(Number(profit)).toFixed(2)}</td>
-                    <td className="px-4 py-3 text-right font-semibold text-slate-950">${(Number(deposit)).toFixed(2)}</td>
-                    <td className="px-4 py-3 text-right text-slate-700">${(Number(bonus)).toFixed(2)}</td>
-                    <td className="px-4 py-3 text-right font-bold text-[#84CC16] text-base">${(Number(total)).toFixed(2)}</td>
-                    <td className="px-4 py-3 text-right font-bold text-slate-950">${(Number(allDaysIncome)).toFixed(2)}</td>
-                    <td className="px-4 py-3 text-center"><button className="px-3 py-1 bg-[#84CC16] hover:bg-lime-500 text-white font-semibold rounded-lg transition-all text-xs">Invest Now</button></td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    )
+  // Get VIP level based on amount
+  const getVipLevel = (amount) => {
+    if (currency === 'USD') {
+      if (amount <= 10) return 'Bronze'
+      if (amount <= 50) return 'Silver'
+      if (amount <= 200) return 'Gold'
+      if (amount <= 500) return 'Platinum'
+      return 'Diamond'
+    } else {
+      if (amount <= 1000) return 'Bronze'
+      if (amount <= 5000) return 'Silver'
+      if (amount <= 15000) return 'Gold'
+      if (amount <= 30000) return 'Platinum'
+      return 'Diamond'
+    }
   }
 
-  function renderEtbTable() {
+  function renderCards() {
+    const plans = currency === 'USD' ? usdPlans : etbPlans
+    const isUSD = currency === 'USD'
+
     return (
-      <div>
-        <div className="px-6 py-4 border-b border-slate-200 bg-slate-50">
-          <h2 className="text-lg font-bold text-slate-950">ETB Investment Plans</h2>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-200">
-                <th className="px-4 py-3 text-left font-bold text-slate-950">Amount</th>
-                <th className="px-4 py-3 text-center font-bold text-slate-950">Days</th>
-                <th className="px-4 py-3 text-right font-bold text-slate-950">Profit</th>
-                <th className="px-4 py-3 text-right font-bold text-slate-950">Deposit</th>
-                <th className="px-4 py-3 text-right font-bold text-slate-950">Bonus</th>
-                <th className="px-4 py-3 text-right font-bold text-slate-950">Total</th>
-                <th className="px-4 py-3 text-right font-bold text-slate-950">All Days Income</th>
-                <th className="px-4 py-3 text-center font-bold text-slate-950">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {etbPlans.map((p, idx) => {
-                const profit = Number(p.profit) || 0
-                const deposit = Number(p.deposit) || 0
-                const bonus = Number(p.bonus) || 0
-                const total = Number(profit) + Number(deposit) + Number(bonus)
-                const allDaysIncome = (Number(profit) * Number(p.days)) + Number(deposit) + Number(bonus)
-                return (
-                  <tr key={idx} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
-                    <td className="px-4 py-3 font-semibold text-slate-950">{(Number(p.amount)).toLocaleString()} Br</td>
-                    <td className="px-4 py-3 text-center text-slate-700">{p.days}</td>
-                    <td className="px-4 py-3 text-right text-slate-700">{(Number(profit)).toLocaleString()} Br</td>
-                    <td className="px-4 py-3 text-right font-semibold text-slate-950">{(Number(deposit)).toLocaleString()} Br</td>
-                    <td className="px-4 py-3 text-right text-slate-700">{(Number(bonus)).toLocaleString()} Br</td>
-                    <td className="px-4 py-3 text-right font-bold text-[#84CC16] text-base">{(Number(total)).toLocaleString()} Br</td>
-                    <td className="px-4 py-3 text-right font-bold text-slate-950">{(Number(allDaysIncome)).toLocaleString()} Br</td>
-                    <td className="px-4 py-3 text-center"><button className="px-3 py-1 bg-[#84CC16] hover:bg-lime-500 text-white font-semibold rounded-lg transition-all text-xs">Invest Now</button></td>
-                  </tr>
-                )
-              })}
-            </tbody>
-          </table>
-        </div>
+      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+        {plans.map((plan, idx) => {
+          const dailyEarnings = Number(plan.profit) || 0
+          const bonusAmount = Number(plan.bonus) || 0
+          const totalReturnAllDays = (dailyEarnings * Number(plan.days)) + bonusAmount
+          
+          return (
+            <div
+              key={idx}
+              className="rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 overflow-hidden shadow-md hover:shadow-lg transition-shadow"
+            >
+              {/* Card Header */}
+              <div className="bg-gradient-to-r from-amber-100 to-orange-100 px-5 py-4">
+                <div className="flex items-start justify-between mb-2">
+                  <div>
+                    <p className="text-2xl font-bold text-slate-950">
+                      {isUSD ? `$${(Number(plan.amount)).toFixed(2)}` : `${(Number(plan.amount)).toLocaleString()} Br`}
+                    </p>
+                    <p className="text-xs font-semibold text-amber-700 uppercase tracking-wider mt-1">
+                      {getVipLevel(plan.amount)} Tier
+                    </p>
+                  </div>
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-600/10">
+                    <TrendingUp size={20} className="text-amber-700" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Card Body */}
+              <div className="px-5 py-4 space-y-3 border-b border-amber-200">
+                {/* Duration */}
+                <div className="flex items-center gap-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100">
+                    <Clock size={16} className="text-amber-700" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-600">Duration</p>
+                    <p className="font-semibold text-slate-900">{plan.days} Days</p>
+                  </div>
+                </div>
+
+                {/* Daily Earnings */}
+                <div className="flex items-center gap-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-green-100">
+                    <Gift size={16} className="text-green-700" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-600">Daily Earnings</p>
+                    <p className="font-semibold text-slate-900">
+                      {isUSD ? `$${(Number(dailyEarnings)).toFixed(2)}` : `${(Number(dailyEarnings)).toLocaleString()} Br`}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Bonus Reward */}
+                <div className="flex items-center gap-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100">
+                    <Star size={16} className="text-blue-700" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-slate-600">Bonus Reward</p>
+                    <p className="font-semibold text-slate-900">
+                      {isUSD ? `$${(Number(bonusAmount)).toFixed(2)}` : `${(Number(bonusAmount)).toLocaleString()} Br`}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Total Return Section */}
+              <div className="bg-slate-100 px-5 py-3 text-center mb-4 mx-5 mt-4 rounded-xl">
+                <p className="text-xs text-slate-600 font-medium">Total Return (All Days)</p>
+                <p className="text-lg font-bold text-slate-950 mt-1">
+                  {isUSD ? `$${(Number(totalReturnAllDays)).toFixed(2)}` : `${(Number(totalReturnAllDays)).toLocaleString()} Br`}
+                </p>
+              </div>
+
+              {/* Invest Button */}
+              <div className="px-5 pb-5">
+                <button className="w-full py-3 bg-[#84CC16] hover:bg-lime-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-[#84CC16]/30 flex items-center justify-center gap-2">
+                  <span>Invest Now</span>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          )
+        })}
       </div>
     )
   }
 
   return (
     <div className="min-h-screen bg-slate-50 pb-24">
-      <div className="mx-auto max-w-2xl px-4 py-6 sm:px-6">
+      <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-slate-950">Investment Plans</h1>
-          <p className="text-sm text-slate-600 mt-1">Select your investment tier</p>
+          <p className="text-sm text-slate-600 mt-1">Select your investment tier and start earning daily returns</p>
         </div>
 
         {/* Currency Toggle */}
-        <div className="flex gap-2 mb-6">
+        <div className="flex gap-2 mb-8">
           <button 
             onClick={() => setCurrency('USD')} 
-            className={`flex-1 px-4 py-2 rounded-xl font-semibold transition-all ${currency === 'USD' ? 'bg-[#84CC16] text-white shadow-lg shadow-[#84CC16]/30' : 'bg-white text-slate-700 border border-slate-200'}`}
+            className={`flex-1 px-4 py-3 rounded-xl font-semibold transition-all ${currency === 'USD' ? 'bg-[#84CC16] text-white shadow-lg shadow-[#84CC16]/30' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'}`}
           >
             USD ($)
           </button>
           <button 
             onClick={() => setCurrency('ETB')} 
-            className={`flex-1 px-4 py-2 rounded-xl font-semibold transition-all ${currency === 'ETB' ? 'bg-[#84CC16] text-white shadow-lg shadow-[#84CC16]/30' : 'bg-white text-slate-700 border border-slate-200'}`}
+            className={`flex-1 px-4 py-3 rounded-xl font-semibold transition-all ${currency === 'ETB' ? 'bg-[#84CC16] text-white shadow-lg shadow-[#84CC16]/30' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'}`}
           >
             ETB (Br)
           </button>
         </div>
 
-        {/* Table Card */}
-        <div className="bg-white rounded-3xl shadow-lg overflow-hidden">
-          {currency === 'USD' ? renderUsdTable() : renderEtbTable()}
-        </div>
+        {/* Cards Grid */}
+        {renderCards()}
       </div>
     </div>
   )
