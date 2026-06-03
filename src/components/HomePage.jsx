@@ -23,6 +23,11 @@ export default function HomePage({ ctx }) {
     ? Math.max(0, Math.ceil((claimCooldownMs - lastClaimAge) / 3600000))
     : 0
 
+  const usdInvestments = myActiveInvestmentsList.filter((item) => item.currency === 'USD')
+  const etbInvestments = myActiveInvestmentsList.filter((item) => item.currency === 'ETB')
+  const usdInvestmentsTotal = usdInvestments.reduce((sum, item) => sum + (item.total || 0), 0)
+  const etbInvestmentsTotal = etbInvestments.reduce((sum, item) => sum + (item.total || 0), 0)
+
   const handleClaimRewards = () => {
     if (!claimAvailable) {
       showToast(`Claim available in ${claimRemainingHours} hours`, 'error')
@@ -125,6 +130,104 @@ export default function HomePage({ ctx }) {
               .reduce((sum, i) => sum + i.amount, 0)
               .toFixed(2)}
           </p>
+        </div>
+      </div>
+
+      <div className="rounded-[2rem] border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="flex items-center justify-between gap-3 mb-5">
+          <div>
+            <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Investment Tables</p>
+            <h2 className="text-lg font-bold text-slate-950">USD and ETB Investment Summary</h2>
+          </div>
+          <div className="rounded-3xl bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700">
+            Total USD: ${usdInvestmentsTotal.toFixed(2)}
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <div className="rounded-[1.75rem] border border-slate-200 bg-slate-50 p-4 shadow-sm">
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <div>
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-500">USD Investments</p>
+                <p className="mt-1 text-sm text-slate-600">Records with profit, bonus, and total.</p>
+              </div>
+              <p className="text-sm font-semibold text-slate-950">Total {formatCurrency(usdInvestmentsTotal, 'USD')}</p>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-left text-sm text-slate-700">
+                <thead>
+                  <tr>
+                    <th className="pb-3 text-slate-500">Plan</th>
+                    <th className="pb-3 text-slate-500">Amount</th>
+                    <th className="pb-3 text-slate-500">Profit</th>
+                    <th className="pb-3 text-slate-500">Bonus</th>
+                    <th className="pb-3 text-slate-500">Total</th>
+                    <th className="pb-3 text-slate-500">Maturity</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {usdInvestments.length === 0 ? (
+                    <tr>
+                      <td colSpan="6" className="py-4 text-center text-slate-500">No active USD investments yet.</td>
+                    </tr>
+                  ) : (
+                    usdInvestments.map((item) => (
+                      <tr key={item.id} className="border-t border-slate-200">
+                        <td className="py-3 text-slate-950">{item.tierName || item.amount}</td>
+                        <td className="py-3">{formatCurrency(item.amount, 'USD')}</td>
+                        <td className="py-3">{formatCurrency(item.profit || 0, 'USD')}</td>
+                        <td className="py-3">{formatCurrency(item.depBonus || 0, 'USD')}</td>
+                        <td className="py-3 font-semibold text-slate-950">{formatCurrency(item.total || ((item.profit || 0) + (item.depBonus || 0)), 'USD')}</td>
+                        <td className="py-3 text-slate-500">{new Date(item.endDate).toLocaleDateString()}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div className="rounded-[1.75rem] border border-slate-200 bg-slate-50 p-4 shadow-sm">
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <div>
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-500">ETB Investments</p>
+                <p className="mt-1 text-sm text-slate-600">Records with profit, bonus, and total.</p>
+              </div>
+              <p className="text-sm font-semibold text-slate-950">Total {formatCurrency(etbInvestmentsTotal, 'ETB')}</p>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-left text-sm text-slate-700">
+                <thead>
+                  <tr>
+                    <th className="pb-3 text-slate-500">Plan</th>
+                    <th className="pb-3 text-slate-500">Amount</th>
+                    <th className="pb-3 text-slate-500">Profit</th>
+                    <th className="pb-3 text-slate-500">Bonus</th>
+                    <th className="pb-3 text-slate-500">Total</th>
+                    <th className="pb-3 text-slate-500">Maturity</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {etbInvestments.length === 0 ? (
+                    <tr>
+                      <td colSpan="6" className="py-4 text-center text-slate-500">No active ETB investments yet.</td>
+                    </tr>
+                  ) : (
+                    etbInvestments.map((item) => (
+                      <tr key={item.id} className="border-t border-slate-200">
+                        <td className="py-3 text-slate-950">{item.tierName || item.amount}</td>
+                        <td className="py-3">{formatCurrency(item.amount, 'ETB')}</td>
+                        <td className="py-3">{formatCurrency(item.profit || 0, 'ETB')}</td>
+                        <td className="py-3">{formatCurrency(item.depBonus || 0, 'ETB')}</td>
+                        <td className="py-3 font-semibold text-slate-950">{formatCurrency(item.total || ((item.profit || 0) + (item.depBonus || 0)), 'ETB')}</td>
+                        <td className="py-3 text-slate-500">{new Date(item.endDate).toLocaleDateString()}</td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
 

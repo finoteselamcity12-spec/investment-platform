@@ -200,10 +200,10 @@ export default function AppShell({ children, activePage, setActivePage }) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-900">
-      <div className="mx-auto w-full max-w-[460px]">
+    <div className="min-h-screen bg-slate-950 text-slate-50">
+      <div className="mx-auto flex min-h-screen w-full max-w-[460px] flex-col justify-between px-0">
         <div className="fixed inset-x-0 top-0 z-40 flex justify-center px-4">
-          <div className="w-full rounded-b-[2rem] border border-slate-200 border-t-0 bg-white/95 px-4 py-4 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+          <div className="w-full max-w-[460px] rounded-b-[2rem] border border-slate-200 border-t-0 bg-white/95 px-4 py-4 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur-xl">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Investment Platform</p>
