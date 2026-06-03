@@ -14,6 +14,7 @@ import {
   Zap,
 } from 'lucide-react'
 import supabase from '../lib/supabase'
+import { getSession } from '../lib/authService'
 import AdminLoginModal from './AdminLoginModal'
 import ProfileButton from './ProfileButton'
 
@@ -106,16 +107,26 @@ export default function AppShell({ children, activePage, setActivePage }) {
   const [historyFilter, setHistoryFilter] = useState('All')
   const claimCooldownMs = 24 * 60 * 60 * 1000
 
-  // Load data from localStorage on mount
+  // Load current session and saved data on mount
   useEffect(() => {
+    const session = getSession()
+    if (session?.user?.email) {
+      setUserEmail(session.user.email)
+      setUserFullName(session.user.fullName || 'User')
+    } else {
+      const userData = JSON.parse(localStorage.getItem('admin_user_data') || '{}')
+      const savedEmail = Object.keys(userData)[0]
+      if (savedEmail) {
+        setUserEmail(savedEmail)
+        setUserFullName(userData[savedEmail].fullName || 'User')
+      }
+    }
+
     const userData = JSON.parse(localStorage.getItem('admin_user_data') || '{}')
-    const userEmail = Object.keys(userData)[0]
-    
-    if (userEmail) {
-      setUserEmail(userEmail)
-      setUserFullName(userData[userEmail].fullName || 'User')
-      setUsdBalance(userData[userEmail].usdBalance || 0.0)
-      setEtbBalance(userData[userEmail].etbBalance || 0.0)
+    const profileEmail = session?.user?.email || Object.keys(userData)[0]
+    if (profileEmail && userData[profileEmail]) {
+      setUsdBalance(userData[profileEmail].usdBalance || 0.0)
+      setEtbBalance(userData[profileEmail].etbBalance || 0.0)
     }
 
     const investments = JSON.parse(localStorage.getItem('user_investments') || '[]')
