@@ -65,6 +65,8 @@ export default function InvestPage({ ctx = {} }) {
                 <th className="px-4 py-3 text-right font-bold text-slate-950">Deposit</th>
                 <th className="px-4 py-3 text-right font-bold text-slate-950">Bonus</th>
                 <th className="px-4 py-3 text-right font-bold text-slate-950">Total</th>
+                <th className="px-4 py-3 text-right font-bold text-slate-950">All Days Income</th>
+                <th className="px-4 py-3 text-center font-bold text-slate-950">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -73,6 +75,7 @@ export default function InvestPage({ ctx = {} }) {
                 const deposit = Number(p.deposit) || 0
                 const bonus = Number(p.bonus) || 0
                 const total = Number(profit) + Number(deposit) + Number(bonus)
+                const allDaysIncome = (Number(profit) * Number(p.days)) + Number(deposit) + Number(bonus)
                 return (
                   <tr key={idx} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
                     <td className="px-4 py-3 font-semibold text-slate-950">${(Number(p.amount)).toFixed(2)}</td>
@@ -81,6 +84,8 @@ export default function InvestPage({ ctx = {} }) {
                     <td className="px-4 py-3 text-right font-semibold text-slate-950">${(Number(deposit)).toFixed(2)}</td>
                     <td className="px-4 py-3 text-right text-slate-700">${(Number(bonus)).toFixed(2)}</td>
                     <td className="px-4 py-3 text-right font-bold text-[#84CC16] text-base">${(Number(total)).toFixed(2)}</td>
+                    <td className="px-4 py-3 text-right font-bold text-slate-950">${(Number(allDaysIncome)).toFixed(2)}</td>
+                    <td className="px-4 py-3 text-center"><button className="px-3 py-1 bg-[#84CC16] hover:bg-lime-500 text-white font-semibold rounded-lg transition-all text-xs">Invest Now</button></td>
                   </tr>
                 )
               })}
@@ -107,6 +112,8 @@ export default function InvestPage({ ctx = {} }) {
                 <th className="px-4 py-3 text-right font-bold text-slate-950">Deposit</th>
                 <th className="px-4 py-3 text-right font-bold text-slate-950">Bonus</th>
                 <th className="px-4 py-3 text-right font-bold text-slate-950">Total</th>
+                <th className="px-4 py-3 text-right font-bold text-slate-950">All Days Income</th>
+                <th className="px-4 py-3 text-center font-bold text-slate-950">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -115,6 +122,7 @@ export default function InvestPage({ ctx = {} }) {
                 const deposit = Number(p.deposit) || 0
                 const bonus = Number(p.bonus) || 0
                 const total = Number(profit) + Number(deposit) + Number(bonus)
+                const allDaysIncome = (Number(profit) * Number(p.days)) + Number(deposit) + Number(bonus)
                 return (
                   <tr key={idx} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
                     <td className="px-4 py-3 font-semibold text-slate-950">{(Number(p.amount)).toLocaleString()} Br</td>
@@ -123,6 +131,8 @@ export default function InvestPage({ ctx = {} }) {
                     <td className="px-4 py-3 text-right font-semibold text-slate-950">{(Number(deposit)).toLocaleString()} Br</td>
                     <td className="px-4 py-3 text-right text-slate-700">{(Number(bonus)).toLocaleString()} Br</td>
                     <td className="px-4 py-3 text-right font-bold text-[#84CC16] text-base">{(Number(total)).toLocaleString()} Br</td>
+                    <td className="px-4 py-3 text-right font-bold text-slate-950">{(Number(allDaysIncome)).toLocaleString()} Br</td>
+                    <td className="px-4 py-3 text-center"><button className="px-3 py-1 bg-[#84CC16] hover:bg-lime-500 text-white font-semibold rounded-lg transition-all text-xs">Invest Now</button></td>
                   </tr>
                 )
               })}
