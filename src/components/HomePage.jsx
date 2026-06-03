@@ -86,7 +86,7 @@ export default function HomePage({ ctx }) {
         {/* Total Balance Card removed per request */}
 
         {/* Action Buttons */}
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <button
             onClick={() => setActivePage?.('deposit')}
             className="rounded-2xl bg-[#84CC16] px-4 py-4 font-bold text-white shadow-lg shadow-[#84CC16]/30 transition-all hover:bg-lime-500 flex flex-col items-center gap-2"
@@ -100,13 +100,6 @@ export default function HomePage({ ctx }) {
           >
             <TrendingUp size={24} />
             <span>Invest</span>
-          </button>
-          <button
-            onClick={() => setActivePage?.('history')}
-            className="rounded-2xl border-2 border-[#84CC16] bg-white px-4 py-4 font-bold text-[#84CC16] transition-all hover:bg-[#84CC16] hover:text-white flex flex-col items-center gap-2 col-span-2 md:col-span-1"
-          >
-            <ArrowUpRight size={24} />
-            <span>History</span>
           </button>
         </div>
 

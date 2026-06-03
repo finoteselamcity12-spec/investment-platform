@@ -4,7 +4,7 @@ import {
   Home,
   Wallet,
   TrendingUp,
-  Clock4,
+  ArrowDownRight,
   HelpCircle,
 } from 'lucide-react'
 import supabase from '../lib/supabase'
@@ -147,7 +147,7 @@ export default function AppShell({ children, activePage, setActivePage }) {
     { id: 'home', label: 'Home', icon: Home },
     { id: 'deposit', label: 'Deposit', icon: Wallet },
     { id: 'invest', label: 'Invest', icon: TrendingUp },
-    { id: 'history', label: 'History', icon: Clock4 },
+    { id: 'withdraw', label: 'Withdraw', icon: ArrowDownRight },
     { id: 'support', label: 'Support', icon: HelpCircle },
   ]
 
