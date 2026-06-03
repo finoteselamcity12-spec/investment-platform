@@ -68,23 +68,20 @@ export default function HomePage({ ctx }) {
           </div>
         </div>
 
-        <div className="w-full flex flex-col sm:flex-row items-center justify-center gap-4">
+        <div className="grid grid-cols-2 gap-4">
           <button
             onClick={() => setActivePage?.('withdraw')}
-            className="w-full sm:w-auto rounded-2xl bg-[#84CC16] px-4 py-3 font-bold text-white shadow-lg shadow-[#84CC16]/30 transition-all hover:bg-lime-500"
+            className="w-full rounded-2xl bg-[#84CC16] px-4 py-4 font-bold text-white shadow-lg shadow-[#84CC16]/30 transition-all hover:bg-lime-500"
           >
             Withdrawal
           </button>
           <button
             onClick={() => setActivePage?.('history')}
-            className="w-full sm:w-auto rounded-2xl bg-[#84CC16] px-4 py-3 font-bold text-white shadow-lg shadow-[#84CC16]/30 transition-all hover:bg-lime-500"
+            className="w-full rounded-2xl bg-[#84CC16] px-4 py-4 font-bold text-white shadow-lg shadow-[#84CC16]/30 transition-all hover:bg-lime-500"
           >
             History
           </button>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          
           <button
             onClick={() => setActivePage?.('deposit')}
             className="rounded-2xl bg-[#84CC16] px-4 py-4 font-bold text-white shadow-lg shadow-[#84CC16]/30 transition-all hover:bg-lime-500 flex flex-col items-center gap-2"
