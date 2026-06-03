@@ -84,3 +84,24 @@
   mix-blend-mode: screen;
   opacity: 0.85;
 }
+
+/* Investment cards grid constraints for PC */
+@media (min-width: 1024px) {
+  .invest-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem; /* matches tailwind gap-5 */
+    max-width: 1200px; /* constrain cards on large screens */
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  /* Prevent individual cards from stretching too wide */
+  .invest-cards-grid > * {
+    max-width: 420px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}

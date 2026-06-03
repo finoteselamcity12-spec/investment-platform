@@ -70,7 +70,7 @@ export default function InvestPage({ ctx = {} }) {
     const isUSD = currency === 'USD'
 
     return (
-      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+      <div className="invest-cards-grid grid gap-5 md:grid-cols-2 lg:grid-cols-3">
         {plans.map((plan, idx) => {
           const dailyEarnings = Number(plan.profit) || 0
           const bonusAmount = Number(plan.bonus) || 0
