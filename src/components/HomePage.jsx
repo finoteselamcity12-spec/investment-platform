@@ -52,6 +52,37 @@ export default function HomePage({ ctx }) {
           <h2 className="welcome-3d">WELCOME TO BLACKROCK</h2>
         </div>
 
+        {/* Wallet toggles and Withdrawal */}
+        <div className="w-full flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="inline-flex rounded-full bg-white/10 p-1">
+            <button
+              onClick={() => setActiveWallet?.('USD')}
+              className={`rounded-full px-4 py-2 font-semibold transition-all ${
+                (typeof window !== 'undefined' && window.activeWallet === 'ETB') ? '' : 'bg-[#84CC16] text-white'
+              }`}
+            >
+              USD wallet
+            </button>
+            <button
+              onClick={() => setActiveWallet?.('ETB')}
+              className={`rounded-full px-4 py-2 font-semibold transition-all ${
+                (typeof window !== 'undefined' && window.activeWallet === 'ETB') ? 'bg-[#84CC16] text-white' : 'bg-white text-[#84CC16] border border-[#84CC16]'
+              }`}
+            >
+              ETB wallet
+            </button>
+          </div>
+
+          <div className="w-full sm:w-auto">
+            <button
+              onClick={() => setActivePage?.('withdraw')}
+              className="w-full sm:w-auto rounded-2xl border-2 border-[#84CC16] bg-white px-4 py-3 font-bold text-[#84CC16] transition-all hover:bg-[#84CC16] hover:text-white"
+            >
+              Withdrawal
+            </button>
+          </div>
+        </div>
+
         {/* Total Balance Card removed per request */}
 
         {/* Action Buttons */}
