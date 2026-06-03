@@ -1,6 +1,17 @@
 import { useState } from 'react'
 import { TrendingUp, Clock, Gift, Star, ArrowRight } from 'lucide-react'
 
+// Safe numeric helpers
+const parseNumber = (value) => Number(value ?? 0)
+const formatSafeFixed = (value, digits = 2) => {
+  const parsed = parseNumber(value)
+  return Number.isFinite(parsed) ? parsed.toFixed(digits) : '0'.padEnd(digits + 2, '0')
+}
+const formatSafeInteger = (value) => {
+  const parsed = parseNumber(value)
+  return Number.isFinite(parsed) ? parsed.toLocaleString() : '0'
+}
+
 export default function InvestPage({ ctx }) {
   const {
     usdBalance, etbBalance, myActiveInvestmentsList, setMyActiveInvestmentsList,
@@ -114,7 +125,7 @@ export default function InvestPage({ ctx }) {
         <div className="mb-8 rounded-3xl bg-gradient-to-r from-[#84CC16] to-lime-500 p-6 text-white shadow-lg shadow-[#84CC16]/30">
           <p className="text-sm font-semibold opacity-90">Available Balance</p>
           <p className="mt-2 text-3xl font-bold">
-            {selectedCurrency === 'USD' ? `$${balance.toFixed(2)}` : `${balance.toLocaleString()} Br`}
+            {selectedCurrency === 'USD' ? `$${formatSafeFixed(balance)}` : `${formatSafeInteger(balance)} Br`}
           </p>
         </div>
 
@@ -131,7 +142,7 @@ export default function InvestPage({ ctx }) {
                 <div className="mb-4 flex items-start justify-between">
                   <div>
                     <p className={`text-3xl font-bold ${colors.icon}`}>
-                      {selectedCurrency === 'USD' ? `$${tier.amount}` : `${tier.amount.toLocaleString()}`}
+                      {selectedCurrency === 'USD' ? `$${formatSafeFixed(tier.amount)}` : `${formatSafeInteger(tier.amount)}`}
                     </p>
                     <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-slate-600">
                       {premiumTierNames[tier.amount] || 'Plan'}
@@ -159,7 +170,7 @@ export default function InvestPage({ ctx }) {
                     <div>
                       <p className="text-xs text-slate-500">Daily Earnings</p>
                       <p className="font-bold text-slate-900">
-                        {selectedCurrency === 'USD' ? `$${tier.dailyProfit.toFixed(2)}` : `${tier.dailyProfit.toLocaleString()} Br`}
+                        {selectedCurrency === 'USD' ? `$${formatSafeFixed(tier.dailyProfit)}` : `${formatSafeInteger(tier.dailyProfit)} Br`}
                       </p>
                     </div>
                   </div>
@@ -170,7 +181,7 @@ export default function InvestPage({ ctx }) {
                     <div>
                       <p className="text-xs text-slate-500">Bonus Reward</p>
                       <p className="font-bold text-slate-900">
-                        {selectedCurrency === 'USD' ? `$${tier.bonus.toFixed(2)}` : `${tier.bonus.toLocaleString()} Br`}
+                        {selectedCurrency === 'USD' ? `$${formatSafeFixed(tier.bonus)}` : `${formatSafeInteger(tier.bonus)} Br`}
                       </p>
                     </div>
                   </div>
@@ -181,8 +192,8 @@ export default function InvestPage({ ctx }) {
                   <p className="text-xs text-slate-600">Total Return (All Days)</p>
                   <p className="text-lg font-bold text-slate-950">
                     {selectedCurrency === 'USD'
-                      ? `$${(tier.dailyProfit * tier.days).toFixed(2)}`
-                      : `${(tier.dailyProfit * tier.days).toLocaleString()} Br`}
+                      ? `$${formatSafeFixed(tier.dailyProfit * tier.days)}`
+                      : `${formatSafeInteger(tier.dailyProfit * tier.days)} Br`}
                   </p>
                 </div>
 
