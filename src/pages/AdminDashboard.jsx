@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Check, Eye, LogOut, X } from 'lucide-react'
+import { Check, Eye, LogOut, ShieldCheck, Image, Hash, Database, X } from 'lucide-react'
+import { getSession } from '../lib/authService'
 
 const ADMIN_CREDENTIALS = {
   name: 'Admin',
   password: '1q2w3e4@',
   id: '15610010',
 }
+const ADMIN_EMAIL = 'workinehabche@gmail.com'
 
 function formatCurrency(amount, currency) {
   if (currency === 'USD' || currency === 'USDT') return `$${Number(amount).toFixed(2)}`
@@ -42,6 +44,16 @@ export default function AdminDashboard() {
     const session = sessionStorage.getItem('admin_session')
     if (session) {
       setAdminSession(JSON.parse(session))
+    } else {
+      const mainSession = getSession()
+      if (mainSession?.user?.email === ADMIN_EMAIL) {
+        setAdminSession({
+          name: 'Admin',
+          id: ADMIN_CREDENTIALS.id,
+          email: ADMIN_EMAIL,
+          loginTime: new Date().toISOString(),
+        })
+      }
     }
     loadAdminData()
   }, [])
@@ -311,17 +323,17 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-950">
+    <div className="min-h-screen bg-slate-950 text-slate-100">
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        <div className="mb-8 flex flex-col gap-4 rounded-[2rem] bg-white border border-slate-200 p-6 shadow-xl sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-600">Admin Console</p>
-            <h1 className="mt-2 text-3xl font-bold text-slate-950">Platform Operations</h1>
-            <p className="mt-2 text-slate-500">Monitor deposits, withdrawals, user activity, and support in one dashboard.</p>
+        <div className="mb-8 rounded-[2rem] bg-slate-900/90 border border-slate-700/70 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl sm:flex sm:items-center sm:justify-between">
+          <div className="space-y-3">
+            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-300">Admin Console</p>
+            <h1 className="text-3xl font-bold text-white">BLACKROCK Operator Dashboard</h1>
+            <p className="max-w-2xl text-sm text-slate-400">Manage registrations, approvals, and wallet movements in a secure, enterprise-grade admin portal.</p>
           </div>
           <button
             onClick={handleSignOut}
-            className="inline-flex items-center gap-2 rounded-3xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 transition hover:bg-slate-800"
+            className="mt-4 inline-flex items-center gap-2 rounded-full bg-green-500 px-5 py-3 text-sm font-semibold text-slate-950 shadow-2xl shadow-green-500/40 transition hover:bg-lime-400 sm:mt-0"
           >
             <LogOut className="h-4 w-4" />
             Sign Out
@@ -329,44 +341,67 @@ export default function AdminDashboard() {
         </div>
 
         <div className="grid gap-6 xl:grid-cols-3">
-          <div className="rounded-[2rem] bg-white border border-slate-200 p-6 shadow-lg">
-            <p className="text-sm text-slate-500">Pending Deposits</p>
-            <p className="mt-4 text-3xl font-bold text-slate-950">{pendingDeposits.length}</p>
-            <p className="mt-2 text-sm text-slate-500">Awaiting admin approval.</p>
+          <div className="rounded-[2rem] bg-white/5 border border-white/10 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl">
+            <div className="flex items-center gap-3">
+              <div className="inline-flex h-12 w-12 items-center justify-center rounded-3xl bg-emerald-500/15 text-emerald-300">
+                <Database size={22} />
+              </div>
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">Total Registrations</p>
+                <p className="mt-3 text-3xl font-bold text-white">{registrationCount}</p>
+              </div>
+            </div>
+            <p className="mt-4 text-sm text-slate-400">Active users currently tracked in the system.</p>
           </div>
-          <div className="rounded-[2rem] bg-white border border-slate-200 p-6 shadow-lg">
-            <p className="text-sm text-slate-500">Approved Withdrawals</p>
-            <p className="mt-4 text-3xl font-bold text-slate-950">{approvedWithdrawals.length}</p>
-            <p className="mt-2 text-sm text-slate-500">Settled payouts.</p>
+
+          <div className="rounded-[2rem] bg-white/5 border border-white/10 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl">
+            <div className="flex items-center gap-3">
+              <div className="inline-flex h-12 w-12 items-center justify-center rounded-3xl bg-emerald-500/15 text-emerald-300">
+                <ShieldCheck size={22} />
+              </div>
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">Pending Deposits</p>
+                <p className="mt-3 text-3xl font-bold text-white">{pendingDeposits.length}</p>
+              </div>
+            </div>
+            <p className="mt-4 text-sm text-slate-400">Awaiting approval before wallet credit is applied.</p>
           </div>
-          <div className="rounded-[2rem] bg-white border border-slate-200 p-6 shadow-lg">
-            <p className="text-sm text-slate-500">Rejected Requests</p>
-            <p className="mt-4 text-3xl font-bold text-slate-950">{rejectedDeposits.length + rejectedWithdrawals.length}</p>
-            <p className="mt-2 text-sm text-slate-500">Failed or cancelled requests.</p>
+
+          <div className="rounded-[2rem] bg-white/5 border border-white/10 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl">
+            <div className="flex items-center gap-3">
+              <div className="inline-flex h-12 w-12 items-center justify-center rounded-3xl bg-emerald-500/15 text-emerald-300">
+                <Hash size={22} />
+              </div>
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-400">Withdrawal Requests</p>
+                <p className="mt-3 text-3xl font-bold text-white">{pendingWithdrawals.length}</p>
+              </div>
+            </div>
+            <p className="mt-4 text-sm text-slate-400">Requests waiting for payout review and clearance.</p>
           </div>
         </div>
 
         <div className="mt-8 grid gap-6 xl:grid-cols-2">
-          <div className="rounded-[2rem] bg-white border border-slate-200 p-6 shadow-lg">
+          <div className="rounded-[2rem] bg-slate-900/80 border border-white/10 p-6 shadow-2xl shadow-black/30 backdrop-blur-xl">
             <div className="mb-5 flex items-center justify-between">
               <div>
-                <p className="text-sm uppercase tracking-[0.18em] text-emerald-600">Deposit Breakdown</p>
-                <h2 className="mt-2 text-2xl font-bold text-slate-950">By Payment Method</h2>
+                <p className="text-sm uppercase tracking-[0.18em] text-emerald-300">Deposit Breakdown</p>
+                <h2 className="mt-2 text-2xl font-bold text-white">By Payment Method</h2>
               </div>
             </div>
             <div className="space-y-4">
               {['pending', 'approved', 'rejected'].map((status) => (
-                <div key={status} className="rounded-3xl bg-slate-50 border border-slate-200 p-4">
-                  <p className="text-sm font-semibold text-slate-900">{status.charAt(0).toUpperCase() + status.slice(1)}</p>
+                <div key={status} className="rounded-3xl bg-slate-950/70 border border-slate-800 p-4">
+                  <p className="text-sm font-semibold text-slate-300">{status.charAt(0).toUpperCase() + status.slice(1)}</p>
                   <div className="mt-3 grid gap-2 sm:grid-cols-2">
                     {Object.entries(depositBreakdown[status]).map(([method, count]) => (
-                      <div key={`${status}-${method}`} className="rounded-2xl bg-white border border-slate-200 p-3">
-                        <p className="text-sm text-slate-500">{method}</p>
-                        <p className="mt-2 text-xl font-bold text-slate-950">{count}</p>
+                      <div key={`${status}-${method}`} className="rounded-2xl bg-slate-900/80 border border-slate-700 p-3">
+                        <p className="text-sm text-slate-400">{method}</p>
+                        <p className="mt-2 text-xl font-bold text-white">{count}</p>
                       </div>
                     ))}
                     {Object.keys(depositBreakdown[status]).length === 0 && (
-                      <p className="text-sm text-slate-500">No {status} deposits.</p>
+                      <p className="text-sm text-slate-400">No {status} deposits.</p>
                     )}
                   </div>
                 </div>
@@ -374,27 +409,26 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          <div className="rounded-[2rem] bg-white border border-slate-200 p-6 shadow-lg">
+          <div className="rounded-[2rem] bg-slate-900/80 border border-white/10 p-6 shadow-2xl shadow-black/30 backdrop-blur-xl">
             <div className="mb-5 flex items-center justify-between">
               <div>
-                <p className="text-sm uppercase tracking-[0.18em] text-emerald-600">Withdrawal Breakdown</p>
-                <h2 className="mt-2 text-2xl font-bold text-slate-950">By Bank / Method</h2>
+                <p className="text-sm uppercase tracking-[0.18em] text-emerald-300">Withdrawal Breakdown</p>
+                <h2 className="mt-2 text-2xl font-bold text-white">By Bank / Method</h2>
               </div>
             </div>
             <div className="space-y-4">
               {['pending', 'approved', 'rejected'].map((status) => (
-                <div key={status} className="rounded-3xl bg-slate-50 border border-slate-200 p-4">
-                  <p className="text-sm font-semibold text-slate-900">{status.charAt(0).toUpperCase() + status.slice(1)}</p>
+                <div key={status} className="rounded-3xl bg-slate-950/70 border border-slate-800 p-4">
+                  <p className="text-sm font-semibold text-slate-300">{status.charAt(0).toUpperCase() + status.slice(1)}</p>
                   <div className="mt-3 grid gap-2 sm:grid-cols-2">
                     {Object.entries(withdrawalBreakdown[status]).map(([bank, count]) => (
-                      <div key={`${status}-${bank}`} className="rounded-2xl bg-white border border-slate-200 p-3">
-                        <p className="text-sm text-slate-500">{bank}</p>
-                        <p className="mt-2 text-xl font-bold text-slate-950">{count}</p>
+                      <div key={`${status}-${bank}`} className="rounded-2xl bg-slate-900/80 border border-slate-700 p-3">
+                        <p className="text-sm text-slate-400">{bank}</p>
+                        <p className="mt-2 text-xl font-bold text-white">{count}</p>
                       </div>
                     ))}
                     {Object.keys(withdrawalBreakdown[status]).length === 0 && (
-                      <p className="text-sm text-slate-500">No {status} withdrawals.</p>
-                    )}
+                      <p className="text-sm text-slate-400">No {status} withdrawals.</p>
                   </div>
                 </div>
               ))}
@@ -422,14 +456,24 @@ export default function AdminDashboard() {
                       <div key={deposit.id} className="rounded-3xl bg-white border border-slate-200 p-4">
                         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                           <div>
-                            <p className="text-sm font-semibold text-slate-950">{deposit.userEmail}</p>
-                            <p className="text-sm text-slate-500">{deposit.paymentMethod}</p>
+                            <p className="text-sm font-semibold text-white">{deposit.userEmail}</p>
+                            <p className="text-sm text-slate-400">{deposit.paymentMethod}</p>
+                            <p className="mt-2 text-xs text-slate-500">Transaction ID: {deposit.transactionId}</p>
                           </div>
                           <div className="text-right">
-                            <p className="font-bold text-slate-950">{formatCurrency(deposit.amount, deposit.currency)}</p>
-                            <p className="text-xs text-slate-500">{new Date(deposit.createdAt).toLocaleString()}</p>
+                            <p className="font-bold text-white">{formatCurrency(deposit.amount, deposit.currency)}</p>
+                            <p className="text-xs text-slate-400">{new Date(deposit.createdAt).toLocaleString()}</p>
                           </div>
                         </div>
+                        {deposit.screenshot && (
+                          <div className="mt-4 rounded-3xl border border-slate-700 bg-slate-950/80 p-3">
+                            <div className="mb-3 flex items-center justify-between text-slate-400 text-sm">
+                              <span>Receipt Preview</span>
+                              <span>{deposit.screenshotName || 'Attachment'}</span>
+                            </div>
+                            <img src={deposit.screenshot} alt="Deposit receipt" className="w-full rounded-2xl border border-slate-700 object-cover" />
+                          </div>
+                        )}
                         <div className="mt-4 flex flex-wrap gap-2">
                           <button
                             onClick={() => handleApproveDeposit(deposit.id)}
@@ -439,13 +483,13 @@ export default function AdminDashboard() {
                           </button>
                           <button
                             onClick={() => handleRejectDeposit(deposit.id)}
-                            className="rounded-3xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700"
+                            className="rounded-3xl bg-slate-800 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700"
                           >
                             Reject
                           </button>
                           <button
                             onClick={() => setSelectedDepositReceipt(deposit)}
-                            className="rounded-3xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+                            className="rounded-3xl border border-slate-700 bg-slate-950 px-4 py-2 text-sm font-semibold text-slate-200 transition hover:bg-slate-900"
                           >
                             View Receipt
                           </button>

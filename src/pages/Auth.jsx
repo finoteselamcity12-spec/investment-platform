@@ -6,6 +6,9 @@ import { createSession, validators, sanitizeInput, updateUserProfile } from '../
 
 const initialForm = { fullName: '', email: '', password: '', confirmPassword: '' }
 const emailRegex = /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/
+const ADMIN_EMAIL = 'workinehabche@gmail.com'
+const ADMIN_PASSWORD = '1q2w3e4@'
+const ADMIN_ID = '15610010'
 
 function validateEmail(email) {
   return emailRegex.test(String(email).trim())
@@ -147,8 +150,8 @@ export default function Auth() {
             id: userId,
             email: sanitizedEmail,
             fullName: sanitizedName,
-            // Registration bonus: 1.5 USD and 150 Birr
-            usdBalance: 1.5,
+            // Registration bonus: 1.7 USD and 150 Birr
+            usdBalance: 1.7,
             etbBalance: 150,
             bonusEligible: true,
             bonusClaimed: true,
@@ -172,6 +175,29 @@ export default function Auth() {
 
       // Login with enhanced validation
       const sanitizedEmail = sanitizeInput(form.email.trim())
+
+      if (sanitizedEmail === ADMIN_EMAIL && form.password === ADMIN_PASSWORD) {
+        createSession({
+          id: ADMIN_ID,
+          email: ADMIN_EMAIL,
+          fullName: 'Admin Operator',
+          profileImage: null,
+        })
+
+        sessionStorage.setItem(
+          'admin_session',
+          JSON.stringify({
+            name: 'Admin',
+            id: ADMIN_ID,
+            email: ADMIN_EMAIL,
+            loginTime: new Date().toISOString(),
+          })
+        )
+
+        navigate('/admin-dashboard')
+        return
+      }
+
       const { data: { user }, error } = await supabase.auth.signInWithPassword({
         email: sanitizedEmail,
         password: form.password,

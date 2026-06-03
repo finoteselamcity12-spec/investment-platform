@@ -6,6 +6,55 @@
 const JWT_SECRET = 'investment-platform-secret-key-2024'
 const SESSION_TIMEOUT_MINUTES = 30
 const SESSION_WARNING_MINUTES = 25
+const DATA_RESET_KEY = 'investment_platform_data_reset_v2'
+
+function clearLegacyAppData() {
+  try {
+    if (localStorage.getItem(DATA_RESET_KEY)) return
+
+    const keysToClear = [
+      'platform_registered_users',
+      'platform_registered_users_data',
+      'admin_user_data',
+      'user_transactions',
+      'user_investments',
+      'admin_pending_deposits',
+      'admin_approved_deposits',
+      'admin_rejected_deposits',
+      'admin_pending_withdrawals',
+      'admin_approved_withdrawals',
+      'admin_rejected_withdrawals',
+      'support_messages',
+      'referral_data',
+      'lastClaimTimestamp',
+      'user_pending_deposit_',
+      'user_pending_withdrawal_',
+      'investment_platform_session',
+      'user_email',
+    ]
+
+    keysToClear.forEach((key) => {
+      if (key.endsWith('_')) {
+        Object.keys(localStorage).forEach((storageKey) => {
+          if (storageKey.startsWith(key)) {
+            localStorage.removeItem(storageKey)
+          }
+        })
+      } else {
+        localStorage.removeItem(key)
+      }
+    })
+
+    sessionStorage.removeItem('investment_platform_session')
+    sessionStorage.removeItem('admin_session')
+
+    localStorage.setItem(DATA_RESET_KEY, 'true')
+  } catch (err) {
+    console.error('Failed to clear legacy data:', err)
+  }
+}
+
+clearLegacyAppData()
 
 // JWT Token Generation (Simulated - in production, use backend)
 export function generateJWT(user) {

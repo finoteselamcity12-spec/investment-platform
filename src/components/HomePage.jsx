@@ -55,7 +55,7 @@ export default function HomePage({ ctx }) {
         {/* Total Balance Card */}
         <div className="rounded-3xl bg-gradient-to-br from-[#84CC16] to-lime-500 p-8 text-white shadow-lg shadow-[#84CC16]/30">
           <p className="text-sm font-semibold opacity-90">Total Balance</p>
-          <p className="mt-3 text-5xl font-bold">${(Number(usdBalance) + Number(etbBalance)).toFixed(2)}</p>
+          <p className="mt-3 text-5xl font-bold">$0.00</p>
           <div className="mt-6 grid grid-cols-2 gap-4">
             <div className="rounded-xl bg-white/20 p-3 backdrop-blur-sm">
               <p className="text-xs font-semibold opacity-80">USD Wallet</p>

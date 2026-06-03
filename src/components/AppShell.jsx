@@ -100,7 +100,7 @@ export default function AppShell({ children, activePage, setActivePage }) {
   const claimCooldownMs = 24 * 60 * 60 * 1000
   
   // System settings
-  const REGISTRATION_BONUS_USD = 1.5
+  const REGISTRATION_BONUS_USD = 1.7
   const REGISTRATION_BONUS_ETB = 150
   const WITHDRAWAL_MIN_USD = 3
   const WITHDRAWAL_MIN_ETB = 300
