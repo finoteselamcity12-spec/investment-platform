@@ -181,15 +181,56 @@ export default function AppShell({ children, activePage, setActivePage }) {
   }
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 pb-32">
+    <div className="min-h-screen bg-slate-50 text-slate-900">
+      <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:flex lg:w-[280px] lg:flex-col lg:bg-white lg:border-r lg:border-slate-200 lg:pb-6 lg:shadow-[0_20px_80px_rgba(15,23,42,0.12)]">
+        <div className="px-6 py-7">
+          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">Investment Platform</p>
+          <h2 className="mt-2 text-2xl font-extrabold text-slate-950">Dashboard</h2>
+        </div>
+
+        <nav className="mt-6 space-y-2 px-4">
+          {navItems.map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              onClick={() => {
+                setActivePage(id)
+                if (id === 'admin') {
+                  setShowAdminLogin(true)
+                }
+              }}
+              className={`flex w-full items-center gap-3 rounded-3xl px-4 py-3 text-left text-sm font-semibold transition duration-200 ease-out ${
+                activePage === id
+                  ? 'bg-slate-900 text-white shadow-[0_20px_60px_rgba(15,23,42,0.24)]'
+                  : 'text-slate-600 hover:bg-slate-100'
+              }`}
+            >
+              <span className="inline-flex h-10 w-10 items-center justify-center rounded-3xl bg-slate-100 text-slate-700">
+                <Icon size={18} />
+              </span>
+              <span>{label}</span>
+            </button>
+          ))}
+        </nav>
+
+        {userEmail === 'workinehabche@gmail.com' && (
+          <div className="mt-auto px-4">
+            <button
+              onClick={() => setShowAdminLogin(true)}
+              className="mt-4 w-full rounded-3xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-600/20 transition hover:bg-emerald-700"
+            >
+              Admin Access
+            </button>
+          </div>
+        )}
+      </aside>
+
       {/* Mobile-First Top Header - Clean & Minimal */}
-      <div className="fixed top-0 inset-x-0 z-40 bg-white border-b border-slate-100 px-4 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="fixed top-0 inset-x-0 z-40 bg-white border-b border-slate-100 px-4 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:left-[280px] lg:px-8">
         <div>
           <h1 className="text-lg font-bold text-emerald-600">Welcome!</h1>
         </div>
         <div className="relative flex items-center gap-3">
           <ProfileButton showToast={showToast} />
-          {/* Only show admin access button when signed-in email matches admin address */}
           {userEmail === 'workinehabche@gmail.com' && (
             <button
               onClick={() => setShowAdminLogin(true)}
@@ -206,13 +247,13 @@ export default function AppShell({ children, activePage, setActivePage }) {
         </div>
       </div>
 
-      {/* Page Content - Mobile optimized padding */}
-      <div className="pt-20 px-4 pb-24">
+      {/* Page Content - Responsive padding */}
+      <div className="pt-20 px-4 pb-24 lg:ml-[280px] lg:px-8 lg:pt-24">
         {children(appContext)}
       </div>
 
       {/* Bottom Navigation - Mobile-First Design */}
-      <div className="fixed inset-x-0 bottom-0 z-50 bg-white border-t border-slate-100 px-2 py-2 shadow-2xl">
+      <div className="fixed inset-x-0 bottom-0 z-50 bg-white border-t border-slate-100 px-2 py-2 shadow-2xl lg:hidden">
         <div className="flex items-center justify-between gap-1 max-w-lg mx-auto">
           {navItems.map(({ id, label, icon: Icon }) => (
             <button
