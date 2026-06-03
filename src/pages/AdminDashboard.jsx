@@ -316,7 +316,7 @@ export default function AdminDashboard() {
         <div className="mb-8 flex flex-col gap-4 rounded-[2rem] bg-white border border-slate-200 p-6 shadow-xl sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-600">Admin Console</p>
-            <h1 className="mt-2 text-3xl font-bold text-slate-950">Investment Platform Operations</h1>
+            <h1 className="mt-2 text-3xl font-bold text-slate-950">Platform Operations</h1>
             <p className="mt-2 text-slate-500">Monitor deposits, withdrawals, user activity, and support in one dashboard.</p>
           </div>
           <button

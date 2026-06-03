@@ -180,7 +180,6 @@ export default function AppShell({ children, activePage, setActivePage }) {
       {/* Top Header */}
       <div className="fixed top-0 inset-x-0 z-40 bg-white border-b border-slate-200 px-4 py-4 flex items-center justify-between shadow-sm">
         <div>
-          <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Investment Platform</p>
           <h1 className="text-2xl font-bold text-[#84CC16]">BLACKROCK</h1>
         </div>
         <button

@@ -12,7 +12,7 @@ export default function DashboardView() {
       <div className="dashboard-header">
         <div>
           <p className="dashboard-label">Main Dashboard</p>
-          <h1 className="dashboard-title">Investment Platform</h1>
+          <h1 className="dashboard-title">BLACKROCK</h1>
         </div>
         <span className="dashboard-badge">Live</span>
       </div>

@@ -221,10 +221,7 @@ export default function AppShell({ children, activePage, setActivePage }) {
         <div className="mx-auto max-w-7xl px-4 py-4 flex items-center justify-between">
           <div>
             {activePage === 'home' ? null : (
-              <>
-                <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Investment Platform</p>
-                <h1 className="text-2xl font-bold text-[#84CC16]">BLACKROCK</h1>
-              </>
+              <h1 className="text-2xl font-bold text-[#84CC16]">BLACKROCK</h1>
             )}
           </div>
           <div className="flex items-center gap-3">
