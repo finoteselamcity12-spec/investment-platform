@@ -1,43 +1,19 @@
 import { useState } from 'react'
 import { TrendingUp, Wallet, Gift, ArrowUpRight } from 'lucide-react'
 
-// Safe numeric helpers
-const parseNumber = (value) => Number(value ?? 0)
-const formatSafeFixed = (value, digits = 2) => {
-  const parsed = parseNumber(value)
-  return Number.isFinite(parsed) ? parsed.toFixed(digits) : '0'.padEnd(digits + 2, '0')
-}
-const formatSafeInteger = (value) => {
-  const parsed = parseNumber(value)
-  return Number.isFinite(parsed) ? parsed.toLocaleString() : '0'
-}
-
 export default function HomePage({ ctx }) {
   const {
     usdBalance, etbBalance, myActiveInvestmentsList, marketData,
-    showToast, claimTimestamp, claimCooldownMs, setActivePage,
+    showToast, claimTimestamp, claimCooldownMs, setActivePage, userEmail,
   } = ctx
-
-  const parseNumber = (value) => Number(value ?? 0)
-  const formatSafeFixed = (value, digits = 2) => {
-    const parsed = parseNumber(value)
-    return Number.isFinite(parsed) ? parsed.toFixed(digits) : '0.00'
-  }
-  const formatSafeInteger = (value) => {
-    const parsed = parseNumber(value)
-    return Number.isFinite(parsed) ? parsed.toLocaleString() : '0'
-  }
-
-  const usdBalanceNumber = parseNumber(usdBalance)
-  const etbBalanceNumber = parseNumber(etbBalance)
 
   const usdDailyReward = myActiveInvestmentsList
     .filter((item) => item.currency === 'USD')
-    .reduce((sum, item) => sum + parseNumber(item.dailyProfit), 0)
+    .reduce((sum, item) => sum + (item.dailyProfit || 0), 0)
 
   const etbDailyReward = myActiveInvestmentsList
     .filter((item) => item.currency === 'ETB')
-    .reduce((sum, item) => sum + parseNumber(item.dailyProfit), 0)
+    .reduce((sum, item) => sum + (item.dailyProfit || 0), 0)
 
   const lastClaimAge = claimTimestamp ? Date.now() - claimTimestamp : null
   const claimAvailable = !claimTimestamp || lastClaimAge >= claimCooldownMs
@@ -79,27 +55,15 @@ export default function HomePage({ ctx }) {
         {/* Total Balance Card */}
         <div className="rounded-3xl bg-gradient-to-br from-[#84CC16] to-lime-500 p-8 text-white shadow-lg shadow-[#84CC16]/30">
           <p className="text-sm font-semibold opacity-90">Total Balance</p>
-<<<<<<< HEAD
-          <p className="mt-3 text-5xl font-bold">${formatSafeFixed(usdBalance + etbBalance)}</p>
+          <p className="mt-3 text-5xl font-bold">${(Number(usdBalance) + Number(etbBalance)).toFixed(2)}</p>
           <div className="mt-6 grid grid-cols-2 gap-4">
             <div className="rounded-xl bg-white/20 p-3 backdrop-blur-sm">
               <p className="text-xs font-semibold opacity-80">USD Wallet</p>
-              <p className="mt-1 text-xl font-bold">${formatSafeFixed(usdBalance)}</p>
+              <p className="mt-1 text-xl font-bold">${(Number(usdBalance)).toFixed(2)}</p>
             </div>
             <div className="rounded-xl bg-white/20 p-3 backdrop-blur-sm">
               <p className="text-xs font-semibold opacity-80">ETB Wallet</p>
-              <p className="mt-1 text-xl font-bold">{formatSafeInteger(etbBalance)} Br</p>
-=======
-          <p className="mt-3 text-5xl font-bold">${formatSafeFixed(usdBalanceNumber + etbBalanceNumber)}</p>
-          <div className="mt-6 grid grid-cols-2 gap-4">
-            <div className="rounded-xl bg-white/20 p-3 backdrop-blur-sm">
-              <p className="text-xs font-semibold opacity-80">USD Wallet</p>
-              <p className="mt-1 text-xl font-bold">${formatSafeFixed(usdBalanceNumber)}</p>
-            </div>
-            <div className="rounded-xl bg-white/20 p-3 backdrop-blur-sm">
-              <p className="text-xs font-semibold opacity-80">ETB Wallet</p>
-              <p className="mt-1 text-xl font-bold">{formatSafeInteger(etbBalanceNumber)} Br</p>
->>>>>>> ad935ea6c179c5e59c69707cd00c697dbeca4bbe
+              <p className="mt-1 text-xl font-bold">{(Number(etbBalance)).toLocaleString()} Br</p>
             </div>
           </div>
         </div>
@@ -134,7 +98,7 @@ export default function HomePage({ ctx }) {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-semibold text-slate-600">Daily Profit</p>
-              <p className="mt-2 text-3xl font-bold text-slate-950">${formatSafeFixed(usdDailyReward + etbDailyReward)}</p>
+              <p className="mt-2 text-3xl font-bold text-slate-950">${(Number(usdDailyReward) + Number(etbDailyReward)).toFixed(2)}</p>
               <p className="mt-1 text-xs text-slate-500">From active investments</p>
             </div>
             <button
@@ -160,13 +124,9 @@ export default function HomePage({ ctx }) {
           <div className="rounded-2xl border-2 border-slate-200 bg-white p-6">
             <p className="text-sm font-semibold text-slate-600">Total Invested</p>
             <p className="mt-3 text-3xl font-bold text-slate-950">
-<<<<<<< HEAD
-              ${formatSafeFixed(myActiveInvestmentsList
+              ${(Number(myActiveInvestmentsList
                 .filter((i) => i.currency === 'USD')
-                .reduce((sum, i) => sum + i.amount, 0))}
-=======
-              ${formatSafeFixed(totalUsdInvested)}
->>>>>>> ad935ea6c179c5e59c69707cd00c697dbeca4bbe
+                .reduce((sum, i) => sum + (i.amount || 0), 0))).toFixed(2)}
             </p>
           </div>
         </div>
