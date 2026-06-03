@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Home,
@@ -6,13 +6,14 @@ import {
   TrendingUp,
   Clock4,
   HelpCircle,
+  Copy,
+  Check,
+  Gift,
 } from 'lucide-react'
 import supabase from '../lib/supabase'
-import { getSession } from '../lib/authService'
-import { formatCurrency } from '../lib/formatCurrency'
 import AdminLoginModal from './AdminLoginModal'
 
-const PRIMARY_GREEN = '#84CC16'
+const ACTIVE_GREEN = '#84CC16'
 
 // Premium tier naming
 const premiumTierNames = {
@@ -69,6 +70,12 @@ const etbTiers = [
 const withdrawMethods = ['CBE', 'Dashen Bank', 'M-Pesa', 'Telebirr', 'USDT (TRC20)']
 const historyFilters = ['All', 'Deposits', 'Withdrawals', 'Investments', 'Claims']
 
+function formatCurrency(amount, currency) {
+  if (currency === 'USD') return `$${amount.toFixed(2)}`
+  if (currency === 'USDT') return `$${amount.toFixed(2)} USDT`
+  return `${amount.toLocaleString()} Birr`
+}
+
 const marketData = [
   { title: 'Bitcoin', symbol: 'BTC', price: '$38,290', change: '+3.9%', trend: 'up' },
   { title: 'Ethereum', symbol: 'ETH', price: '$2,128', change: '+2.6%', trend: 'up' },
@@ -95,26 +102,16 @@ export default function AppShell({ children, activePage, setActivePage }) {
   const [historyFilter, setHistoryFilter] = useState('All')
   const claimCooldownMs = 24 * 60 * 60 * 1000
 
-  // Load current session and saved data on mount
+  // Load data from localStorage on mount
   useEffect(() => {
-    const session = getSession()
-    if (session?.user?.email) {
-      setUserEmail(session.user.email)
-      setUserFullName(session.user.fullName || 'User')
-    } else {
-      const userData = JSON.parse(localStorage.getItem('admin_user_data') || '{}')
-      const savedEmail = Object.keys(userData)[0]
-      if (savedEmail) {
-        setUserEmail(savedEmail)
-        setUserFullName(userData[savedEmail].fullName || 'User')
-      }
-    }
-
     const userData = JSON.parse(localStorage.getItem('admin_user_data') || '{}')
-    const profileEmail = session?.user?.email || Object.keys(userData)[0]
-    if (profileEmail && userData[profileEmail]) {
-      setUsdBalance(userData[profileEmail].usdBalance || 0.0)
-      setEtbBalance(userData[profileEmail].etbBalance || 0.0)
+    const userEmail = Object.keys(userData)[0]
+    
+    if (userEmail) {
+      setUserEmail(userEmail)
+      setUserFullName(userData[userEmail].fullName || 'User')
+      setUsdBalance(userData[userEmail].usdBalance || 0.0)
+      setEtbBalance(userData[userEmail].etbBalance || 0.0)
     }
 
     const investments = JSON.parse(localStorage.getItem('user_investments') || '[]')
@@ -151,6 +148,7 @@ export default function AppShell({ children, activePage, setActivePage }) {
     setToastMessage(message)
     setTimeout(() => setToastMessage(''), 3000)
   }
+
   function addTransaction(entry) {
     setTransactions((prev) => [entry, ...prev])
     const txns = JSON.parse(localStorage.getItem('user_transactions') || '[]')
@@ -175,7 +173,6 @@ export default function AppShell({ children, activePage, setActivePage }) {
     usdTiers, etbTiers, withdrawMethods, historyFilters, formatCurrency, marketData,
     premiumTierNames, claimCooldownMs,
     setActivePage,
-    setShowAdminLogin,
   }
 
   return (
@@ -214,6 +211,7 @@ export default function AppShell({ children, activePage, setActivePage }) {
             >
               <Icon size={22} className="mx-auto mb-1" />
               <span>{label}</span>
+
               {id === 'support' && (
                 <span
                   className="absolute top-2 right-2 h-6 w-10 cursor-pointer opacity-0"

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { TrendingUp, Wallet, Gift, ArrowUpRight } from 'lucide-react'
 
 export default function HomePage({ ctx }) {
@@ -7,26 +7,13 @@ export default function HomePage({ ctx }) {
     showToast, claimTimestamp, claimCooldownMs, setActivePage,
   } = ctx
 
-  const parseNumber = (value) => Number(value ?? 0)
-  const formatSafeFixed = (value, digits = 2) => {
-    const parsed = parseNumber(value)
-    return Number.isFinite(parsed) ? parsed.toFixed(digits) : '0.00'
-  }
-  const formatSafeInteger = (value) => {
-    const parsed = parseNumber(value)
-    return Number.isFinite(parsed) ? parsed.toLocaleString() : '0'
-  }
-
-  const usdBalanceNumber = parseNumber(usdBalance)
-  const etbBalanceNumber = parseNumber(etbBalance)
-
   const usdDailyReward = myActiveInvestmentsList
     .filter((item) => item.currency === 'USD')
-    .reduce((sum, item) => sum + parseNumber(item.dailyProfit), 0)
-
+    .reduce((sum, item) => sum + (item.dailyProfit || 0), 0)
+  
   const etbDailyReward = myActiveInvestmentsList
     .filter((item) => item.currency === 'ETB')
-    .reduce((sum, item) => sum + parseNumber(item.dailyProfit), 0)
+    .reduce((sum, item) => sum + (item.dailyProfit || 0), 0)
 
   const lastClaimAge = claimTimestamp ? Date.now() - claimTimestamp : null
   const claimAvailable = !claimTimestamp || lastClaimAge >= claimCooldownMs
@@ -39,22 +26,9 @@ export default function HomePage({ ctx }) {
       showToast(`Claim available in ${claimRemainingHours} hours`, 'error')
       return
     }
-
-    const usdGain = usdDailyReward
-    const etbGain = etbDailyReward
-
-    if (usdGain === 0 && etbGain === 0) {
-      showToast('No rewards available to claim yet.', 'error')
-      return
-    }
-
     showToast('Daily rewards claimed successfully!', 'success')
     localStorage.setItem('lastClaimTimestamp', Date.now())
   }
-
-  const totalUsdInvested = myActiveInvestmentsList
-    .filter((i) => i.currency === 'USD')
-    .reduce((sum, i) => sum + parseNumber(i.amount), 0)
 
   return (
     <div className="min-h-screen bg-white pb-20">
@@ -68,15 +42,15 @@ export default function HomePage({ ctx }) {
         {/* Total Balance Card */}
         <div className="rounded-3xl bg-gradient-to-br from-[#84CC16] to-lime-500 p-8 text-white shadow-lg shadow-[#84CC16]/30">
           <p className="text-sm font-semibold opacity-90">Total Balance</p>
-          <p className="mt-3 text-5xl font-bold">${formatSafeFixed(usdBalanceNumber + etbBalanceNumber)}</p>
+          <p className="mt-3 text-5xl font-bold">${(usdBalance + etbBalance).toFixed(2)}</p>
           <div className="mt-6 grid grid-cols-2 gap-4">
             <div className="rounded-xl bg-white/20 p-3 backdrop-blur-sm">
               <p className="text-xs font-semibold opacity-80">USD Wallet</p>
-              <p className="mt-1 text-xl font-bold">${formatSafeFixed(usdBalanceNumber)}</p>
+              <p className="mt-1 text-xl font-bold">${usdBalance.toFixed(2)}</p>
             </div>
             <div className="rounded-xl bg-white/20 p-3 backdrop-blur-sm">
               <p className="text-xs font-semibold opacity-80">ETB Wallet</p>
-              <p className="mt-1 text-xl font-bold">{formatSafeInteger(etbBalanceNumber)} Br</p>
+              <p className="mt-1 text-xl font-bold">{etbBalance.toLocaleString()} Br</p>
             </div>
           </div>
         </div>
@@ -111,7 +85,7 @@ export default function HomePage({ ctx }) {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-semibold text-slate-600">Daily Profit</p>
-              <p className="mt-2 text-3xl font-bold text-slate-950">${formatSafeFixed(usdDailyReward + etbDailyReward)}</p>
+              <p className="mt-2 text-3xl font-bold text-slate-950">${(usdDailyReward + etbDailyReward).toFixed(2)}</p>
               <p className="mt-1 text-xs text-slate-500">From active investments</p>
             </div>
             <button
@@ -123,7 +97,7 @@ export default function HomePage({ ctx }) {
                   : 'bg-slate-200 text-slate-500 cursor-not-allowed'
               }`}
             >
-              {claimAvailable ? 'Claim Daily Reward' : `${claimRemainingHours}h`}
+              {claimAvailable ? '≡ƒÄü Claim' : `${claimRemainingHours}h`}
             </button>
           </div>
         </div>
@@ -137,7 +111,10 @@ export default function HomePage({ ctx }) {
           <div className="rounded-2xl border-2 border-slate-200 bg-white p-6">
             <p className="text-sm font-semibold text-slate-600">Total Invested</p>
             <p className="mt-3 text-3xl font-bold text-slate-950">
-              ${formatSafeFixed(totalUsdInvested)}
+              ${myActiveInvestmentsList
+                .filter((i) => i.currency === 'USD')
+                .reduce((sum, i) => sum + i.amount, 0)
+                .toFixed(2)}
             </p>
           </div>
         </div>
