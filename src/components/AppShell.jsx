@@ -148,13 +148,16 @@ export default function AppShell({ children, activePage, setActivePage }) {
     { id: 'support', label: 'Support', icon: HelpCircle },
   ]
 
+  const sessionUserEmail = getSession()?.user?.email
+  const isAdminUser = sessionUserEmail === 'workinehabche@gmail.com' || userEmail === 'workinehabche@gmail.com'
+
   const navItems = useMemo(() => {
     const items = [...navItemsBase]
-    if (userEmail === 'workinehabche@gmail.com') {
+    if (isAdminUser) {
       items.push({ id: 'admin', label: 'Admin', icon: ShieldCheck })
     }
     return items
-  }, [userEmail])
+  }, [isAdminUser])
 
   async function handleSignOut() {
     await supabase.auth.signOut()
@@ -166,7 +169,6 @@ export default function AppShell({ children, activePage, setActivePage }) {
     setToastMessage(message)
     setTimeout(() => setToastMessage(''), 3000)
   }
-
   function addTransaction(entry) {
     setTransactions((prev) => [entry, ...prev])
     const txns = JSON.parse(localStorage.getItem('user_transactions') || '[]')
@@ -206,7 +208,7 @@ export default function AppShell({ children, activePage, setActivePage }) {
               </div>
               <div className="flex items-center gap-3">
                 <ProfileButton showToast={showToast} />
-                {userEmail === 'workinehabche@gmail.com' && (
+                {isAdminUser && (
                   <button
                     onClick={() => setShowAdminLogin(true)}
                     className="inline-flex h-12 w-12 items-center justify-center rounded-3xl bg-emerald-600 text-white shadow-lg shadow-emerald-600/20 transition hover:bg-emerald-700"

@@ -7,6 +7,7 @@ export default function HomePage({ ctx }) {
   const {
     usdBalance, etbBalance, myActiveInvestmentsList, marketData,
     showToast, claimTimestamp, claimCooldownMs, setActivePage, formatCurrency,
+    setUsdBalance, setEtbBalance, addTransaction, userEmail,
   } = ctx
 
   const usdDailyReward = myActiveInvestmentsList
@@ -33,6 +34,39 @@ export default function HomePage({ ctx }) {
       showToast(`Claim available in ${claimRemainingHours} hours`, 'error')
       return
     }
+
+    const usdGain = usdDailyReward
+    const etbGain = etbDailyReward
+
+    if (usdGain === 0 && etbGain === 0) {
+      showToast('No rewards available to claim yet.', 'error')
+      return
+    }
+
+    setUsdBalance((prev) => Number((prev + usdGain).toFixed(2)))
+    setEtbBalance((prev) => Number(prev + etbGain))
+
+    if (userEmail) {
+      const users = JSON.parse(localStorage.getItem('admin_user_data') || '{}')
+      if (!users[userEmail]) {
+        users[userEmail] = { email: userEmail, usdBalance: 0, etbBalance: 0 }
+      }
+      users[userEmail].usdBalance = Number((users[userEmail].usdBalance || 0) + usdGain).toFixed(2)
+      users[userEmail].etbBalance = Number((users[userEmail].etbBalance || 0) + etbGain)
+      localStorage.setItem('admin_user_data', JSON.stringify(users))
+    }
+
+    addTransaction({
+      id: `claim-${Date.now()}`,
+      type: 'Claim',
+      category: 'Claims',
+      title: 'Daily rewards claimed',
+      amount: usdGain + etbGain,
+      currency: usdGain > 0 ? 'USD' : 'ETB',
+      status: 'Completed',
+      date: new Date().toISOString(),
+    })
+
     showToast('Daily rewards claimed successfully!', 'success')
     localStorage.setItem('lastClaimTimestamp', Date.now())
   }
