@@ -11,11 +11,11 @@ import {
   Copy,
   Check,
   Gift,
-  User,
   Zap,
 } from 'lucide-react'
 import supabase from '../lib/supabase'
 import AdminLoginModal from './AdminLoginModal'
+import ProfileButton from './ProfileButton'
 
 const PRIMARY_GREEN = '#84CC16'
 
@@ -100,7 +100,6 @@ export default function AppShell({ children, activePage, setActivePage }) {
   const [referralEarningsEtb, setReferralEarningsEtb] = useState(0.0)
   const [copied, setCopied] = useState(false)
   const [showAdminLogin, setShowAdminLogin] = useState(false)
-  const [showProfileDetails, setShowProfileDetails] = useState(false)
   const [toastMessage, setToastMessage] = useState('')
   const [toastType, setToastType] = useState('success')
   const [claimTimestamp, setClaimTimestamp] = useState(null)
@@ -189,16 +188,7 @@ export default function AppShell({ children, activePage, setActivePage }) {
           <h1 className="text-lg font-bold text-emerald-600">Welcome!</h1>
         </div>
         <div className="relative flex items-center gap-3">
-          <div className="relative">
-            {/* Standalone Profile button */}
-            <button
-              onClick={() => setActivePage('profile')}
-              className="h-12 w-12 rounded-full border border-slate-200 bg-slate-50 flex items-center justify-center text-slate-700 transition hover:border-slate-300"
-              aria-label="Open Profile"
-            >
-              <User size={20} />
-            </button>
-          </div>
+          <ProfileButton showToast={showToast} />
           {/* Only show admin access button when signed-in email matches admin address */}
           {userEmail === 'workinehabche@gmail.com' && (
             <button
