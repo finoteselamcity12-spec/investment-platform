@@ -52,21 +52,7 @@ export default function HomePage({ ctx }) {
           <h2 className="welcome-3d">WELCOME TO BLACKROCK</h2>
         </div>
 
-        {/* Total Balance Card */}
-        <div className="rounded-3xl bg-gradient-to-br from-[#84CC16] to-lime-500 p-8 text-white shadow-lg shadow-[#84CC16]/30">
-          <p className="text-sm font-semibold opacity-90">Total Balance</p>
-          <p className="mt-3 text-5xl font-bold">${(Number(usdBalance) + Number(etbBalance)).toFixed(2)}</p>
-          <div className="mt-6 grid grid-cols-2 gap-4">
-            <div className="rounded-xl bg-white/20 p-3 backdrop-blur-sm">
-              <p className="text-xs font-semibold opacity-80">USD Wallet</p>
-              <p className="mt-1 text-xl font-bold">${(Number(usdBalance)).toFixed(2)}</p>
-            </div>
-            <div className="rounded-xl bg-white/20 p-3 backdrop-blur-sm">
-              <p className="text-xs font-semibold opacity-80">ETB Wallet</p>
-              <p className="mt-1 text-xl font-bold">{(Number(etbBalance)).toLocaleString()} Br</p>
-            </div>
-          </div>
-        </div>
+        {/* Total Balance Card removed per request */}
 
         {/* Action Buttons */}
         <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
