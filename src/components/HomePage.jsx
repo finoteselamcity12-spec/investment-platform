@@ -156,6 +156,54 @@ export default function HomePage({ ctx }) {
             </div>
           </div>
         )}
+
+        {/* Active Investments Table */}
+        {myActiveInvestmentsList.length > 0 && (
+          <div>
+            <h2 className="mb-4 text-xl font-bold text-slate-950">Active Investments</h2>
+            <div className="overflow-x-auto rounded-2xl border-2 border-slate-200 bg-white">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b-2 border-slate-200 bg-slate-50">
+                    <th className="px-4 py-3 text-left font-bold text-slate-950">Investment</th>
+                    <th className="px-4 py-3 text-center font-bold text-slate-950">Days</th>
+                    <th className="px-4 py-3 text-right font-bold text-slate-950">Profit</th>
+                    <th className="px-4 py-3 text-right font-bold text-slate-950">Deposit</th>
+                    <th className="px-4 py-3 text-right font-bold text-slate-950">Bonus</th>
+                    <th className="px-4 py-3 text-right font-bold text-slate-950">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {myActiveInvestmentsList.map((inv) => {
+                    const profitAmount = inv.totalReturn || (inv.dailyProfit * inv.days) || 0
+                    const depositAmount = inv.amount || 0
+                    const bonusAmount = inv.bonus || 0
+                    const total = (Number(profitAmount) + Number(depositAmount) + Number(bonusAmount))
+                    
+                    return (
+                      <tr key={inv.id} className="border-b border-slate-200 hover:bg-slate-50">
+                        <td className="px-4 py-3 font-semibold text-slate-950">{inv.tierName}</td>
+                        <td className="px-4 py-3 text-center text-slate-700">{inv.days}</td>
+                        <td className="px-4 py-3 text-right text-slate-700">
+                          {inv.currency === 'USD' ? `$${(Number(profitAmount)).toFixed(2)}` : `${(Number(profitAmount)).toLocaleString()} Br`}
+                        </td>
+                        <td className="px-4 py-3 text-right font-semibold text-slate-950">
+                          {inv.currency === 'USD' ? `$${(Number(depositAmount)).toFixed(2)}` : `${(Number(depositAmount)).toLocaleString()} Br`}
+                        </td>
+                        <td className="px-4 py-3 text-right text-slate-700">
+                          {inv.currency === 'USD' ? `$${(Number(bonusAmount)).toFixed(2)}` : `${(Number(bonusAmount)).toLocaleString()} Br`}
+                        </td>
+                        <td className="px-4 py-3 text-right font-bold text-[#84CC16] text-base">
+                          {inv.currency === 'USD' ? `$${(Number(total)).toFixed(2)}` : `${(Number(total)).toLocaleString()} Br`}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
