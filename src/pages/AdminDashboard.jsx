@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Check, Eye, LogOut, ShieldCheck, Image, Hash, Database, X } from 'lucide-react'
+import { Check, LogOut, ShieldCheck, Hash, Database, X } from 'lucide-react'
 import { Navigate } from 'react-router-dom'
 import { getSession } from '../lib/authService'
 
