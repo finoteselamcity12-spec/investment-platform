@@ -449,6 +449,7 @@ export default function AdminDashboard() {
                     ))}
                     {Object.keys(withdrawalBreakdown[status]).length === 0 && (
                       <p className="text-sm text-slate-400">No {status} withdrawals.</p>
+                    )}
                   </div>
                 </div>
               ))}
