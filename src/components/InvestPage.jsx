@@ -52,11 +52,13 @@ export default function InvestPage({ ctx = {} }) {
   function renderUsdTable() {
     return (
       <div>
-        <h2 className="mb-4 text-xl font-bold text-slate-950">USD Plans</h2>
-        <div className="overflow-x-auto rounded-2xl border-2 border-slate-200 bg-white">
+        <div className="px-6 py-4 border-b border-slate-200 bg-slate-50">
+          <h2 className="text-lg font-bold text-slate-950">USD Investment Plans</h2>
+        </div>
+        <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b-2 border-slate-200 bg-slate-50">
+              <tr className="bg-slate-50 border-b border-slate-200">
                 <th className="px-4 py-3 text-left font-bold text-slate-950">Amount</th>
                 <th className="px-4 py-3 text-center font-bold text-slate-950">Days</th>
                 <th className="px-4 py-3 text-right font-bold text-slate-950">Profit</th>
@@ -72,7 +74,7 @@ export default function InvestPage({ ctx = {} }) {
                 const bonus = Number(p.bonus) || 0
                 const total = Number(profit) + Number(deposit) + Number(bonus)
                 return (
-                  <tr key={idx} className="border-b border-slate-200 hover:bg-slate-50">
+                  <tr key={idx} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
                     <td className="px-4 py-3 font-semibold text-slate-950">${(Number(p.amount)).toFixed(2)}</td>
                     <td className="px-4 py-3 text-center text-slate-700">{p.days}</td>
                     <td className="px-4 py-3 text-right text-slate-700">${(Number(profit)).toFixed(2)}</td>
@@ -92,11 +94,13 @@ export default function InvestPage({ ctx = {} }) {
   function renderEtbTable() {
     return (
       <div>
-        <h2 className="mb-4 text-xl font-bold text-slate-950">ETB Plans</h2>
-        <div className="overflow-x-auto rounded-2xl border-2 border-slate-200 bg-white">
+        <div className="px-6 py-4 border-b border-slate-200 bg-slate-50">
+          <h2 className="text-lg font-bold text-slate-950">ETB Investment Plans</h2>
+        </div>
+        <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b-2 border-slate-200 bg-slate-50">
+              <tr className="bg-slate-50 border-b border-slate-200">
                 <th className="px-4 py-3 text-left font-bold text-slate-950">Amount</th>
                 <th className="px-4 py-3 text-center font-bold text-slate-950">Days</th>
                 <th className="px-4 py-3 text-right font-bold text-slate-950">Profit</th>
@@ -112,7 +116,7 @@ export default function InvestPage({ ctx = {} }) {
                 const bonus = Number(p.bonus) || 0
                 const total = Number(profit) + Number(deposit) + Number(bonus)
                 return (
-                  <tr key={idx} className="border-b border-slate-200 hover:bg-slate-50">
+                  <tr key={idx} className="border-b border-slate-100 hover:bg-slate-50 transition-colors">
                     <td className="px-4 py-3 font-semibold text-slate-950">{(Number(p.amount)).toLocaleString()} Br</td>
                     <td className="px-4 py-3 text-center text-slate-700">{p.days}</td>
                     <td className="px-4 py-3 text-right text-slate-700">{(Number(profit)).toLocaleString()} Br</td>
@@ -130,17 +134,34 @@ export default function InvestPage({ ctx = {} }) {
   }
 
   return (
-    <div className="min-h-screen bg-white text-slate-950 pb-20">
-      <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold">Investment Plans</h1>
-          <div className="space-x-2">
-            <button onClick={() => setCurrency('USD')} className={`px-3 py-1 rounded-full ${currency === 'USD' ? 'bg-[#84CC16] text-white' : 'bg-slate-100 text-slate-700'}`}>USD</button>
-            <button onClick={() => setCurrency('ETB')} className={`px-3 py-1 rounded-full ${currency === 'ETB' ? 'bg-[#84CC16] text-white' : 'bg-slate-100 text-slate-700'}`}>ETB</button>
-          </div>
+    <div className="min-h-screen bg-slate-50 pb-24">
+      <div className="mx-auto max-w-2xl px-4 py-6 sm:px-6">
+        {/* Header */}
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-slate-950">Investment Plans</h1>
+          <p className="text-sm text-slate-600 mt-1">Select your investment tier</p>
         </div>
 
-        {currency === 'USD' ? renderUsdTable() : renderEtbTable()}
+        {/* Currency Toggle */}
+        <div className="flex gap-2 mb-6">
+          <button 
+            onClick={() => setCurrency('USD')} 
+            className={`flex-1 px-4 py-2 rounded-xl font-semibold transition-all ${currency === 'USD' ? 'bg-[#84CC16] text-white shadow-lg shadow-[#84CC16]/30' : 'bg-white text-slate-700 border border-slate-200'}`}
+          >
+            USD ($)
+          </button>
+          <button 
+            onClick={() => setCurrency('ETB')} 
+            className={`flex-1 px-4 py-2 rounded-xl font-semibold transition-all ${currency === 'ETB' ? 'bg-[#84CC16] text-white shadow-lg shadow-[#84CC16]/30' : 'bg-white text-slate-700 border border-slate-200'}`}
+          >
+            ETB (Br)
+          </button>
+        </div>
+
+        {/* Table Card */}
+        <div className="bg-white rounded-3xl shadow-lg overflow-hidden">
+          {currency === 'USD' ? renderUsdTable() : renderEtbTable()}
+        </div>
       </div>
     </div>
   )
