@@ -68,12 +68,18 @@ export default function HomePage({ ctx }) {
           </div>
         </div>
 
-        <div className="w-full flex justify-center">
+        <div className="w-full flex flex-col sm:flex-row items-center justify-center gap-4">
           <button
             onClick={() => setActivePage?.('withdraw')}
             className="w-full sm:w-auto rounded-2xl border-2 border-[#84CC16] bg-white px-4 py-3 font-bold text-[#84CC16] transition-all hover:bg-[#84CC16] hover:text-white"
           >
             Withdrawal
+          </button>
+          <button
+            onClick={() => setActivePage?.('history')}
+            className="w-full sm:w-auto rounded-2xl border-2 border-[#84CC16] bg-white px-4 py-3 font-bold text-[#84CC16] transition-all hover:bg-[#84CC16] hover:text-white"
+          >
+            History
           </button>
         </div>
 
