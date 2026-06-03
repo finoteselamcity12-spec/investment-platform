@@ -24,7 +24,14 @@ text-rendering: optimizeLegibility;
 }
 
 html, body, #root {
-min-height: 100%;
+	min-height: 100vh;
+}
+
+/* Ensure the root fills the viewport and stacks content vertically on mobile */
+#root {
+	display: flex;
+	flex-direction: column;
+	min-height: 100vh;
 }
 
 body {
