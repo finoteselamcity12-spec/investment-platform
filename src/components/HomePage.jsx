@@ -29,6 +29,10 @@ export default function HomePage({ ctx }) {
   const usdInvestmentsTotal = usdInvestments.reduce((sum, item) => sum + (item.total || 0), 0)
   const etbInvestmentsTotal = etbInvestments.reduce((sum, item) => sum + (item.total || 0), 0)
 
+  const formatSafeFixed = (value, digits = 2) => {
+    return typeof value === 'number' ? value.toFixed(digits) : '0.00'
+  }
+
   const handleClaimRewards = () => {
     if (!claimAvailable) {
       showToast(`Claim available in ${claimRemainingHours} hours`, 'error')
@@ -82,7 +86,7 @@ export default function HomePage({ ctx }) {
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.22em] text-emerald-100/90">Total Balance</p>
-            <p className="mt-4 text-4xl font-extrabold tracking-tight">${Number(Number(usdBalance) + Number(etbBalance)).toFixed(2)}</p>
+            <p className="mt-4 text-4xl font-extrabold tracking-tight">${formatSafeFixed(Number(usdBalance) + Number(etbBalance))}</p>
             <p className="mt-2 text-sm text-emerald-100/80">Portfolio value across your account</p>
           </div>
           <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-white/10 text-white shadow-inner shadow-black/10">
@@ -93,11 +97,11 @@ export default function HomePage({ ctx }) {
         <div className="mt-6 grid grid-cols-2 gap-3">
           <div className="rounded-[1.75rem] bg-white/10 p-4 backdrop-blur-sm ring-1 ring-white/10">
             <p className="text-xs uppercase tracking-[0.18em] text-emerald-100/80">USD Balance</p>
-            <p className="mt-3 text-2xl font-semibold">${Number(usdBalance).toFixed(2)}</p>
+            <p className="mt-3 text-2xl font-semibold">${formatSafeFixed(usdBalance)}</p>
           </div>
           <div className="rounded-[1.75rem] bg-white/10 p-4 backdrop-blur-sm ring-1 ring-white/10">
             <p className="text-xs uppercase tracking-[0.18em] text-emerald-100/80">ETB Balance</p>
-            <p className="mt-3 text-2xl font-semibold">{Number(etbBalance).toFixed(2)} Br</p>
+            <p className="mt-3 text-2xl font-semibold">{typeof etbBalance === 'number' ? etbBalance.toFixed(2) : '0.00'} Br</p>
           </div>
         </div>
       </section>
@@ -137,7 +141,7 @@ export default function HomePage({ ctx }) {
         <div className="flex items-center justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Daily Profit</p>
-            <p className="mt-3 text-3xl font-bold text-slate-950">${Number(Number(usdDailyReward) + Number(etbDailyReward)).toFixed(2)}</p>
+            <p className="mt-3 text-3xl font-bold text-slate-950">${formatSafeFixed(Number(usdDailyReward) + Number(etbDailyReward))}</p>
             <p className="mt-1 text-sm text-slate-500">Projected daily earnings</p>
           </div>
           <span className="rounded-full bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700">+2.4%</span>
@@ -175,7 +179,7 @@ export default function HomePage({ ctx }) {
             <h2 className="text-lg font-bold text-slate-950">USD and ETB Investment Summary</h2>
           </div>
             <div className="rounded-3xl bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700">
-            Total USD: ${Number(usdInvestmentsTotal).toFixed(2)}
+            Total USD: ${formatSafeFixed(usdInvestmentsTotal)}
           </div>
         </div>
 

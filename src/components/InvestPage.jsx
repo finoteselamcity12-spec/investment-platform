@@ -12,6 +12,10 @@ export default function InvestPage({ ctx }) {
 
   const [selectedCurrency, setSelectedCurrency] = useState('USD')
 
+  const formatSafeFixed = (value, digits = 2) => {
+    return typeof value === 'number' ? value.toFixed(digits) : '0.00'
+  }
+
   // Use the exact arrays provided and compute Total = profit + bonus
   const usdPlans = [
     { inv: 3, day: 10, profit: 1.2, bonus: 2 },
@@ -152,7 +156,7 @@ export default function InvestPage({ ctx }) {
         >
           <p className="text-sm font-semibold opacity-90">Available Balance</p>
             <p className="mt-2 text-4xl font-bold tracking-tight">
-            {selectedCurrency === 'USD' ? `$${Number(balance).toFixed(2)}` : `${Number(balance).toLocaleString()} Br`}
+            {selectedCurrency === 'USD' ? `$${formatSafeFixed(balance)}` : `${typeof balance === 'number' ? Math.round(balance) : 0} Br`}
           </p>
         </div>
 
@@ -194,7 +198,7 @@ export default function InvestPage({ ctx }) {
                     <Gift size={16} className="mx-auto mb-1" style={{ color: PRIMARY_GREEN }} />
                     <p className="text-xs text-slate-500 font-semibold">Profit</p>
                     <p className="font-bold text-sm text-slate-950">
-                      {selectedCurrency === 'USD' ? `$${Number(tier.profit).toFixed(2)}` : `${Math.round(Number(tier.profit))} Br`}
+                      {selectedCurrency === 'USD' ? `$${formatSafeFixed(tier.profit)}` : `${typeof tier.profit === 'number' ? Math.round(tier.profit) : 0} Br`}
                     </p>
                   </div>
 
@@ -202,7 +206,7 @@ export default function InvestPage({ ctx }) {
                     <Star size={16} className="mx-auto mb-1" style={{ color: PRIMARY_GREEN }} />
                     <p className="text-xs text-slate-500 font-semibold">Dep Bonus</p>
                     <p className="font-bold text-sm text-slate-950">
-                      {selectedCurrency === 'USD' ? `$${Number(tier.bonus).toFixed(2)}` : `${Math.round(Number(tier.bonus))} Br`}
+                      {selectedCurrency === 'USD' ? `$${formatSafeFixed(tier.bonus)}` : `${typeof tier.bonus === 'number' ? Math.round(tier.bonus) : 0} Br`}
                     </p>
                   </div>
 
@@ -210,8 +214,8 @@ export default function InvestPage({ ctx }) {
                     <p className="text-xs text-slate-500 font-semibold">Total</p>
                     <p className="font-bold text-sm text-slate-950">
                       {selectedCurrency === 'USD'
-                        ? `$${Number((Number(tier.profit) + Number(tier.bonus)).toFixed(2))}`
-                        : `${Math.round(Number(tier.profit) + Number(tier.bonus))} Br`}
+                        ? `$${formatSafeFixed(Number(tier.profit) + Number(tier.bonus))}`
+                        : `${typeof tier.profit === 'number' && typeof tier.bonus === 'number' ? Math.round(tier.profit + tier.bonus) : 0} Br`}
                     </p>
                   </div>
                 </div>
