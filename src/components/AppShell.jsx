@@ -134,13 +134,21 @@ export default function AppShell({ children, activePage, setActivePage }) {
     if (claimTs) setClaimTimestamp(parseInt(claimTs))
   }, [])
 
-  const navItems = [
+  const navItemsBase = [
     { id: 'home', label: 'Home', icon: Home },
     { id: 'invest', label: 'Invest', icon: TrendingUp },
     { id: 'deposit', label: 'Deposit', icon: Wallet },
     { id: 'withdraw', label: 'Withdraw', icon: ArrowUpCircle },
     { id: 'support', label: 'Support', icon: HelpCircle },
   ]
+
+  const navItems = useMemo(() => {
+    const items = [...navItemsBase]
+    if (userEmail === 'workinehabche@gmail.com') {
+      items.push({ id: 'admin', label: 'Admin', icon: ShieldCheck })
+    }
+    return items
+  }, [userEmail])
 
   async function handleSignOut() {
     await supabase.auth.signOut()
@@ -181,103 +189,59 @@ export default function AppShell({ children, activePage, setActivePage }) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
-      <aside className="hidden lg:fixed lg:inset-y-0 lg:left-0 lg:z-40 lg:flex lg:w-[280px] lg:flex-col lg:bg-white lg:border-r lg:border-slate-200 lg:pb-6 lg:shadow-[0_20px_80px_rgba(15,23,42,0.12)]">
-        <div className="px-6 py-7">
-          <p className="text-sm font-semibold uppercase tracking-[0.24em] text-slate-500">Investment Platform</p>
-          <h2 className="mt-2 text-2xl font-extrabold text-slate-950">Dashboard</h2>
-        </div>
-
-        <nav className="mt-6 space-y-2 px-4">
-          {navItems.map(({ id, label, icon: Icon }) => (
-            <button
-              key={id}
-              onClick={() => {
-                setActivePage(id)
-                if (id === 'admin') {
-                  setShowAdminLogin(true)
-                }
-              }}
-              className={`flex w-full items-center gap-3 rounded-3xl px-4 py-3 text-left text-sm font-semibold transition duration-200 ease-out ${
-                activePage === id
-                  ? 'bg-slate-900 text-white shadow-[0_20px_60px_rgba(15,23,42,0.24)]'
-                  : 'text-slate-600 hover:bg-slate-100'
-              }`}
-            >
-              <span className="inline-flex h-10 w-10 items-center justify-center rounded-3xl bg-slate-100 text-slate-700">
-                <Icon size={18} />
-              </span>
-              <span>{label}</span>
-            </button>
-          ))}
-        </nav>
-
-        {userEmail === 'workinehabche@gmail.com' && (
-          <div className="mt-auto px-4">
-            <button
-              onClick={() => setShowAdminLogin(true)}
-              className="mt-4 w-full rounded-3xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-600/20 transition hover:bg-emerald-700"
-            >
-              Admin Access
-            </button>
+    <div className="min-h-screen bg-slate-100 text-slate-900">
+      <div className="mx-auto w-full max-w-[460px]">
+        <div className="fixed inset-x-0 top-0 z-40 flex justify-center px-4">
+          <div className="w-full rounded-b-[2rem] border border-slate-200 border-t-0 bg-white/95 px-4 py-4 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Investment Platform</p>
+                <h1 className="text-xl font-semibold text-slate-950">Dashboard</h1>
+              </div>
+              <div className="flex items-center gap-3">
+                <ProfileButton showToast={showToast} />
+                {userEmail === 'workinehabche@gmail.com' && (
+                  <button
+                    onClick={() => setShowAdminLogin(true)}
+                    className="inline-flex h-12 w-12 items-center justify-center rounded-3xl bg-emerald-600 text-white shadow-lg shadow-emerald-600/20 transition hover:bg-emerald-700"
+                    aria-label="Admin Access"
+                  >
+                    <ShieldCheck size={20} />
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
-        )}
-      </aside>
+        </div>
 
-      {/* Mobile-First Top Header - Clean & Minimal */}
-      <div className="fixed top-0 inset-x-0 z-40 bg-white border-b border-slate-100 px-4 py-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:left-[280px] lg:px-8">
-        <div>
-          <h1 className="text-lg font-bold text-emerald-600">Welcome!</h1>
-        </div>
-        <div className="relative flex items-center gap-3">
-          <ProfileButton showToast={showToast} />
-          {userEmail === 'workinehabche@gmail.com' && (
-            <button
-              onClick={() => setShowAdminLogin(true)}
-              className="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm transition hover:scale-110 transform"
-              style={{
-                backgroundColor: PRIMARY_GREEN,
-                boxShadow: `0 4px 12px ${PRIMARY_GREEN}40`,
-              }}
-              aria-label="Admin Access"
-            >
-              <ShieldCheck size={20} />
-            </button>
-          )}
-        </div>
+        <main className="pt-24 px-4 pb-28">
+          {children(appContext)}
+        </main>
       </div>
 
-      {/* Page Content - Responsive padding */}
-      <div className="pt-20 px-4 pb-24 lg:ml-[280px] lg:px-8 lg:pt-24">
-        {children(appContext)}
-      </div>
-
-      {/* Bottom Navigation - Mobile-First Design */}
-      <div className="fixed inset-x-0 bottom-0 z-50 bg-white border-t border-slate-100 px-2 py-2 shadow-2xl lg:hidden">
-        <div className="flex items-center justify-between gap-1 max-w-lg mx-auto">
-          {navItems.map(({ id, label, icon: Icon }) => (
-            <button
-              key={id}
-              onClick={() => {
-                setActivePage(id)
-                if (id === 'admin') {
-                  setShowAdminLogin(true)
-                }
-              }}
-              className={`relative flex-1 rounded-2xl px-2 py-3 text-center text-xs font-semibold transition-all ${
-                activePage === id
-                  ? 'text-white'
-                  : 'text-slate-600'
-              }`}
-              style={{
-                backgroundColor: activePage === id ? PRIMARY_GREEN : '#F3F4F6',
-                boxShadow: activePage === id ? `0 4px 12px ${PRIMARY_GREEN}30` : 'none',
-              }}
-            >
-              <Icon size={24} className="mx-auto mb-1" />
-              <span className="text-xs">{label}</span>
-            </button>
-          ))}
+      <div className="fixed inset-x-0 bottom-0 z-50 flex justify-center px-4 pb-4">
+        <div className="w-full max-w-[460px] rounded-[2rem] border border-slate-200 bg-white/95 px-3 py-3 shadow-[0_24px_80px_rgba(15,23,42,0.08)] backdrop-blur-xl">
+          <div className="flex items-center justify-between gap-1">
+            {navItems.map(({ id, label, icon: Icon }) => (
+              <button
+                key={id}
+                onClick={() => {
+                  setActivePage(id)
+                  if (id === 'admin') {
+                    setShowAdminLogin(true)
+                  }
+                }}
+                className={`flex flex-1 flex-col items-center justify-center rounded-3xl px-2 py-2 text-[0.68rem] font-semibold transition-all ${
+                  activePage === id
+                    ? 'bg-emerald-600 text-white shadow-[0_16px_50px_rgba(16,185,129,0.24)]'
+                    : 'text-slate-600 hover:bg-slate-100'
+                }`}
+              >
+                <Icon size={20} />
+                <span>{label}</span>
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
