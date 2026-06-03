@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { ArrowUpCircle } from 'lucide-react'
+import { ArrowUpCircle, Wallet } from 'lucide-react'
 import supabase from '../lib/supabase'
 
 function formatCurrency(amount, currency) {
@@ -38,6 +38,17 @@ export default function Withdraw() {
     
     if (!accountName.trim() || !accountNumber.trim() || !value || value <= 0) {
       showToast('Complete every withdrawal field.', 'error')
+      return
+    }
+
+    // Enforce minimum withdrawal amounts
+    const currency = bank === 'USDT' ? 'USD' : 'ETB'
+    if (currency === 'ETB' && value < 300) {
+      showToast('Minimum withdrawal is 300 Birr.', 'error')
+      return
+    }
+    if (currency === 'USD' && value < 3) {
+      showToast('Minimum withdrawal is $3.', 'error')
       return
     }
 
@@ -103,8 +114,10 @@ export default function Withdraw() {
       <div className="mx-auto max-w-xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="rounded-[2rem] bg-white border border-slate-200 p-8 shadow-[0_30px_80px_-20px_rgba(15,23,42,0.16)]">
           <div className="mb-8 text-center">
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-600">Withdrawal</p>
-            <h1 className="mt-3 text-4xl font-bold text-slate-950">Request Your Payout</h1>
+            <div className="flex items-center justify-center gap-2">
+              <Wallet size={32} className="text-emerald-600" />
+              <h1 className="text-4xl font-bold text-slate-950">Withdraw</h1>
+            </div>
             <p className="mt-3 text-slate-500">Select your bank, enter account details, and submit a withdrawal request.</p>
           </div>
 

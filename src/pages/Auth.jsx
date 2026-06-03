@@ -1,8 +1,15 @@
 import { useMemo, useState, useEffect } from 'react'
+import { Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import supabase from '../lib/supabase'
+import { createSession, validators, sanitizeInput, updateUserProfile } from '../lib/authService'
 
 const initialForm = { fullName: '', email: '', password: '', confirmPassword: '' }
+const emailRegex = /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/
+
+function validateEmail(email) {
+  return emailRegex.test(String(email).trim())
+}
 
 export default function Auth() {
   const navigate = useNavigate()
@@ -11,7 +18,7 @@ export default function Auth() {
   const [form, setForm] = useState(initialForm)
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
-  const [showTerms, setShowTerms] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const [referrerId, setReferrerId] = useState('')
 
   const isRegister = !isLogin
@@ -19,12 +26,12 @@ export default function Auth() {
     if (isRegister) {
       return (
         form.fullName.trim().length > 1 &&
-        form.email.trim().length > 0 &&
+        validateEmail(form.email) &&
         form.password.length >= 8 &&
         form.password === form.confirmPassword
       )
     }
-    return form.email.trim().length > 0 && form.password.length >= 8
+    return validateEmail(form.email) && form.password.length >= 8
   }, [form, isRegister])
 
   useEffect(() => {
@@ -36,10 +43,31 @@ export default function Auth() {
     } catch (e) {
       // ignore
     }
-  }, [location.search])
+
+    // Keep the tab state in sync with the current route
+    if (location.pathname === '/register') {
+      setIsLogin(false)
+    } else if (location.pathname === '/login' || location.pathname === '/') {
+      setIsLogin(true)
+    }
+  }, [location.pathname, location.search])
 
   async function handleAuth(event) {
     event.preventDefault()
+    
+    // Server-side input validation
+    const emailValidation = validators.email(form.email)
+    if (!emailValidation.valid) {
+      setMessage(emailValidation.error)
+      return
+    }
+
+    const passwordValidation = validators.password(form.password)
+    if (!passwordValidation.valid) {
+      setMessage(passwordValidation.errors?.[0] || 'Password does not meet security requirements')
+      return
+    }
+
     if (!canSubmit) {
       return setMessage('Please complete all fields correctly.')
     }
@@ -49,16 +77,33 @@ export default function Auth() {
 
     try {
       if (isRegister) {
+        // Validate full name
+        const nameValidation = validators.fullName(form.fullName)
+        if (!nameValidation.valid) {
+          setMessage(nameValidation.error)
+          setLoading(false)
+          return
+        }
+
+        // Check password match
+        if (form.password !== form.confirmPassword) {
+          setMessage('Passwords do not match')
+          setLoading(false)
+          return
+        }
+
         // Generate a unique userId for referrals and internal mapping
         const userId = `user-${Date.now()}`
+        const sanitizedName = sanitizeInput(form.fullName.trim())
+        const sanitizedEmail = sanitizeInput(form.email.trim())
 
         let signupError = null
         try {
           const { error } = await supabase.auth.signUp({
-            email: form.email,
+            email: sanitizedEmail,
             password: form.password,
             options: {
-              data: { full_name: form.fullName },
+              data: { full_name: sanitizedName },
             },
           })
           if (error) signupError = error
@@ -66,12 +111,23 @@ export default function Auth() {
           signupError = e
         }
 
+        if (signupError) {
+          const errorMessage = String(signupError.message || signupError || '')
+          if (errorMessage.toLowerCase().includes('already')) {
+            setMessage('Account already exists')
+          } else {
+            setMessage(errorMessage || 'Registration failed, please try again.')
+          }
+          setLoading(false)
+          return
+        }
+
         // Persist registration in localStorage so the app records new users (always save locally)
         const users = JSON.parse(localStorage.getItem('platform_registered_users_data') || '{}')
-        users[form.email] = {
+        users[sanitizedEmail] = {
           userId,
-          fullName: form.fullName,
-          email: form.email,
+          fullName: sanitizedName,
+          email: sanitizedEmail,
           referredBy: referrerId || null,
           createdAt: new Date().toISOString(),
         }
@@ -79,50 +135,78 @@ export default function Auth() {
 
         // Also keep a simple list for counts used elsewhere (store emails)
         const registered = JSON.parse(localStorage.getItem('platform_registered_users') || '[]')
-        if (!registered.includes(form.email)) {
-          registered.push(form.email)
+        if (!registered.includes(sanitizedEmail)) {
+          registered.push(sanitizedEmail)
           localStorage.setItem('platform_registered_users', JSON.stringify(registered))
         }
 
         // Initialize user wallet record used by admin tools
         const userData = JSON.parse(localStorage.getItem('admin_user_data') || '{}')
-        if (!userData[form.email]) {
-          userData[form.email] = {
+        if (!userData[sanitizedEmail]) {
+          userData[sanitizedEmail] = {
             id: userId,
-            email: form.email,
-            fullName: form.fullName,
-            usdBalance: 0,
-            etbBalance: 0,
-            bonusEligible: false,
-            bonusClaimed: false,
+            email: sanitizedEmail,
+            fullName: sanitizedName,
+            // Registration bonus: 1.5 USD and 150 Birr
+            usdBalance: 1.5,
+            etbBalance: 150,
+            bonusEligible: true,
+            bonusClaimed: true,
+            totalDeposits: 0,
+            totalWithdrawals: 0,
+            activeInvestments: 0,
           }
           localStorage.setItem('admin_user_data', JSON.stringify(userData))
         } else {
-          // Ensure fullName and id are synced if missing
-          if (!userData[form.email].fullName) userData[form.email].fullName = form.fullName
-          if (!userData[form.email].id) userData[form.email].id = userId
+          if (!userData[sanitizedEmail].fullName) userData[sanitizedEmail].fullName = sanitizedName
+          if (!userData[sanitizedEmail].id) userData[sanitizedEmail].id = userId
           localStorage.setItem('admin_user_data', JSON.stringify(userData))
         }
 
-        // Redirect to login page after successful registration
-        if (signupError) {
-          setMessage(`Account saved locally, but sign-up returned an issue: ${signupError.message || signupError}. You can still login.`)
-        } else {
-          setMessage('Account created successfully. Redirecting to login...')
-        }
-        navigate('/login')
+        setMessage('Registration successful. Redirecting to login...')
+        setForm(initialForm)
+        setIsLogin(true)
+        setTimeout(() => navigate('/login'), 1500)
         return
       }
 
-      const { error } = await supabase.auth.signInWithPassword({
-        email: form.email,
+      // Login with enhanced validation
+      const sanitizedEmail = sanitizeInput(form.email.trim())
+      const { data: { user }, error } = await supabase.auth.signInWithPassword({
+        email: sanitizedEmail,
         password: form.password,
       })
+
       if (error) throw error
+
+      // Create secure session with JWT
+      const userData = JSON.parse(localStorage.getItem('admin_user_data') || '{}')
+      const userProfile = userData[sanitizedEmail] || { id: user?.id, fullName: user?.user_metadata?.full_name, email: sanitizedEmail }
+      
+      createSession({
+        id: user?.id || userProfile.id,
+        email: sanitizedEmail,
+        fullName: user?.user_metadata?.full_name || userProfile.fullName,
+        profileImage: null,
+      })
+
+      // Update last login
+      userData[sanitizedEmail] = {
+        ...userData[sanitizedEmail],
+        lastLogin: new Date().toISOString(),
+      }
+      localStorage.setItem('admin_user_data', JSON.stringify(userData))
+
       navigate('/dashboard')
     } catch (error) {
-      // Show a clear error alert if registration fails
-      setMessage(error?.message || 'Registration failed, please try again.')
+      const errorMessage = String(error?.message || error || '')
+      if (errorMessage.toLowerCase().includes('invalid')) {
+        setMessage('Invalid email or password')
+      } else if (errorMessage.toLowerCase().includes('already')) {
+        setMessage('Account already exists')
+      } else {
+        setMessage(errorMessage || 'Authentication failed, please try again.')
+      }
     } finally {
       setLoading(false)
     }
@@ -133,19 +217,7 @@ export default function Auth() {
       {/* Subtle animated background gradient overlay */}
       <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_20%_50%,rgba(255,255,255,0.8),transparent_50%),radial-gradient(circle_at_80%_80%,rgba(255,255,255,0.4),transparent_50%)]" />
 
-      <div className="text-center relative z-10">
-        <div className="mb-2 inline-block">
-          <div className="inline-block px-4 py-2 rounded-full bg-white/20 backdrop-blur-sm border border-white/30">
-            <span className="text-xs font-bold text-white tracking-widest uppercase">Premium Investment</span>
-          </div>
-        </div>
-        <h1 className="text-white font-black text-4xl md:text-5xl tracking-tight mb-2 drop-shadow-2xl">
-          Investment Platform
-        </h1>
-        <p className="text-white/90 text-sm md:text-base font-semibold mb-8 drop-shadow-lg">
-          Advanced wealth management at your fingertips
-        </p>
-      </div>
+      <h1 className="blackrock-3d-text" data-text="BLACKROCK">BLACKROCK</h1>
 
       <div className="auth-container w-full max-w-md bg-white rounded-3xl rounded-b-3xl p-8 md:p-10 shadow-2xl transition-all relative z-10" style={{
         boxShadow: '0 20px 60px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.8)'
@@ -153,7 +225,11 @@ export default function Auth() {
         <div className="mb-8 flex overflow-hidden rounded-full bg-gray-100 p-1 shadow-md border border-gray-200">
           <button
             type="button"
-            onClick={() => setIsLogin(true)}
+            onClick={() => {
+              setIsLogin(true)
+              setMessage('')
+              navigate('/login')
+            }}
             className={`flex-1 rounded-full px-5 py-3 text-sm font-bold transition-all duration-300 ${
               isLogin 
                 ? 'bg-gradient-to-r from-lime-400 to-lime-500 text-white shadow-lg' 
@@ -164,7 +240,11 @@ export default function Auth() {
           </button>
           <button
             type="button"
-            onClick={() => setIsLogin(false)}
+            onClick={() => {
+              setIsLogin(false)
+              setMessage('')
+              navigate('/register')
+            }}
             className={`flex-1 rounded-full px-5 py-3 text-sm font-bold transition-all duration-300 ${
               !isLogin 
                 ? 'bg-gradient-to-r from-lime-400 to-lime-500 text-white shadow-lg' 
@@ -190,7 +270,7 @@ export default function Auth() {
           )}
 
           <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">Email Address</label>
+            <label className="block text-sm font-bold text-gray-700 mb-2">Email</label>
             <input
               type="email"
               value={form.email}
@@ -200,15 +280,23 @@ export default function Auth() {
             />
           </div>
 
-          <div>
+          <div className="relative">
             <label className="block text-sm font-bold text-gray-700 mb-2">Password</label>
             <input
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               value={form.password}
               onChange={(event) => setForm({ ...form, password: event.target.value })}
               placeholder="Enter your password"
-              className="auth-input-field w-full rounded-xl border-2 border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 placeholder-gray-500 focus:outline-none focus:border-lime-400 focus:bg-white focus:ring-2 focus:ring-lime-400/30 transition-all"
+              className="auth-input-field w-full rounded-xl border-2 border-gray-200 bg-gray-50 px-4 py-3 pr-12 text-gray-900 placeholder-gray-500 focus:outline-none focus:border-lime-400 focus:bg-white focus:ring-2 focus:ring-lime-400/30 transition-all"
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword((prev) => !prev)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 transition hover:text-slate-700"
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
           </div>
 
           {isRegister && (
@@ -232,54 +320,22 @@ export default function Auth() {
             {loading ? 'Processing...' : isLogin ? 'LOGIN' : 'CREATE ACCOUNT'}
           </button>
 
+          {isLogin && (
+            <div className="mt-4 text-right">
+              <a href="/support" className="text-sm font-semibold text-slate-900 hover:text-slate-700">
+                Forgot password?
+              </a>
+            </div>
+          )}
+
           {message && (
-            <div className="rounded-xl border-l-4 border-lime-400 bg-lime-50 px-4 py-3 text-sm font-semibold text-gray-800 shadow-sm">
+            <div className="rounded-xl border-l-4 border-lime-400 bg-lime-50 px-4 py-3 text-sm font-semibold text-gray-800 shadow-sm mt-4">
               {message}
             </div>
           )}
         </form>
       </div>
 
-      <div className="mt-6 w-full max-w-md relative z-10">
-        <button
-          type="button"
-          onClick={() => setShowTerms((prev) => !prev)}
-          className="text-sm font-bold text-white underline transition hover:text-white/80 drop-shadow-lg"
-          aria-expanded={showTerms}
-        >
-          Terms & Conditions
-        </button>
-
-        {showTerms && (
-          <div className="mt-4 rounded-2xl bg-white/95 p-5 shadow-xl border border-white/50 backdrop-blur-sm">
-            <h2 className="text-base font-bold text-gray-900">Platform Rules & Regulations</h2>
-            <ol className="mt-4 space-y-3 text-sm text-gray-800">
-              <li>
-                <span className="font-semibold">1. Eligibility:</span> Users must be 18 years or older. Only one account is permitted per person; multiple registration fraud triggers an automatic wallet lock.
-              </li>
-              <li>
-                <span className="font-semibold">2. How to Deposit:</span>
-                <ol className="mt-2 list-decimal space-y-2 pl-5 text-sm text-gray-800">
-                  <li>Select your preferred network plan asset currency (USD or ETB/Birr).</li>
-                  <li>Transfer the exact amount to the displayed verified channel (Telebirr Merchant ID <span className="font-semibold">900675</span> for Amsal Aneley, Telebirr Personal <span className="font-semibold">0993855459</span> for Yohanis, or the verified USDT TRC20 address).</li>
-                  <li>Enter your unique transaction reference ID string and upload a legitimate transaction receipt screenshot. Fake or reused IDs will result in a permanent ban.</li>
-                </ol>
-              </li>
-              <li>
-                <span className="font-semibold">3. How to Withdraw:</span>
-                <ol className="mt-2 list-decimal space-y-2 pl-5 text-sm text-gray-800">
-                  <li>Access the Withdrawal panel and ensure your account balance meets the minimum payout threshold.</li>
-                  <li>Provide your precise destination mobile number or wallet address.</li>
-                  <li>Backend administrative processing executes shortly after verification.</li>
-                </ol>
-              </li>
-              <li>
-                <span className="font-semibold">4. Referral Commission Rule:</span> Commissions are only unlocked after the referred peer completes a successful verified deposit. Payouts are $3.00 USD for USD tiers and 93 Birr for ETB tiers.
-              </li>
-            </ol>
-          </div>
-        )}
-      </div>
     </div>
   )
 }

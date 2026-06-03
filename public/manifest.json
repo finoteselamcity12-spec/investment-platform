@@ -1,7 +1,7 @@
 {
-  "name": "Astra Wealth",
+  "name": "Investment Platform",
   "short_name": "Astra",
-  "description": "Astra Wealth investment platform for modern investors.",
+  "description": "Investment Platform investment platform for modern investors.",
   "start_url": ".",
   "scope": ".",
   "display": "standalone",

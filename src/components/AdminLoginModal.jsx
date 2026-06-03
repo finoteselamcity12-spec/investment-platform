@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Lock, User, X } from 'lucide-react'
+import { Eye, EyeOff, Lock, User, X } from 'lucide-react'
 
+const PRIMARY_GREEN = '#84CC16'
 const ADMIN_CREDENTIALS = {
   name: 'investment',
   password: '1q2w3e4r5t6y7@investment',
@@ -13,6 +14,7 @@ export default function AdminLoginModal({ isOpen, onClose }) {
   const [adminName, setAdminName] = useState('')
   const [adminPassword, setAdminPassword] = useState('')
   const [adminId, setAdminId] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
 
@@ -48,72 +50,88 @@ export default function AdminLoginModal({ isOpen, onClose }) {
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 px-4 py-8">
-      <div className="w-full max-w-md rounded-[2rem] bg-white p-8 shadow-2xl shadow-slate-900/10">
-        <div className="mb-6 flex items-center justify-between">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/40 px-4 py-4 sm:items-center">
+      <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl animation-slide-up">
+        <div className="flex items-center justify-between mb-6">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-600">Admin Access</p>
-            <h2 className="mt-2 text-2xl font-bold text-slate-950">Secure Operator Login</h2>
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-500">Admin Access</p>
+            <h2 className="mt-1 text-xl font-bold text-slate-950">Operator Login</h2>
           </div>
           <button
             onClick={onClose}
-            className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-950 transition hover:bg-slate-200"
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-950 transition active:scale-95"
           >
-            <X className="h-5 w-5" />
+            <X size={20} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-semibold text-slate-900">Admin Name</label>
+            <label className="block text-sm font-bold text-slate-900">Name</label>
             <div className="relative mt-2">
-              <User className="absolute left-3 top-3 h-5 w-5 text-emerald-600" />
+              <User size={18} className="absolute left-4 top-3.5 text-slate-400" />
               <input
                 type="text"
                 value={adminName}
                 onChange={(e) => setAdminName(e.target.value)}
-                placeholder="investment"
-                className="w-full rounded-3xl border border-slate-300 bg-slate-50 px-12 py-3 text-slate-950 outline-none focus:border-[#84CC16] focus:ring-2 focus:ring-[#84CC16]/20"
+                placeholder="Admin name"
+                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 pl-12 text-base text-slate-950 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-slate-900">Admin ID</label>
+            <label className="block text-sm font-bold text-slate-900">Admin ID</label>
             <div className="relative mt-2">
-              <Lock className="absolute left-3 top-3 h-5 w-5 text-emerald-600" />
+              <Lock size={18} className="absolute left-4 top-3.5 text-slate-400" />
               <input
                 type="text"
                 value={adminId}
                 onChange={(e) => setAdminId(e.target.value)}
-                placeholder="15610010"
-                className="w-full rounded-3xl border border-slate-300 bg-slate-50 px-12 py-3 text-slate-950 outline-none focus:border-[#84CC16] focus:ring-2 focus:ring-[#84CC16]/20"
+                placeholder="Admin ID"
+                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 pl-12 text-base text-slate-950 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-slate-900">Password</label>
+            <label className="block text-sm font-bold text-slate-900">Password</label>
             <div className="relative mt-2">
-              <Lock className="absolute left-3 top-3 h-5 w-5 text-emerald-600" />
+              <Lock size={18} className="absolute left-4 top-3.5 text-slate-400" />
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 value={adminPassword}
                 onChange={(e) => setAdminPassword(e.target.value)}
-                placeholder="1q2w3e4r5t6y7@investment"
-                className="w-full rounded-3xl border border-slate-300 bg-slate-50 px-12 py-3 text-slate-950 outline-none focus:border-[#84CC16] focus:ring-2 focus:ring-[#84CC16]/20"
+                placeholder="Enter password"
+                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 pl-12 pr-12 text-base text-slate-950 outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 transition hover:text-slate-700"
+                aria-label="Toggle password visibility"
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
             </div>
           </div>
 
-          {error && <div className="rounded-3xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">{error}</div>}
+          {error && (
+            <div className="rounded-2xl bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
+              {error}
+            </div>
+          )}
 
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full rounded-3xl bg-[#84CC16] px-4 py-3 text-sm font-bold text-white shadow-lg shadow-[#84CC16]/20 transition hover:bg-lime-500 disabled:opacity-50"
+            className="w-full rounded-2xl px-4 py-4 text-base font-bold text-white transition active:scale-95 disabled:opacity-60"
+            style={{
+              backgroundColor: PRIMARY_GREEN,
+              boxShadow: `0 4px 12px ${PRIMARY_GREEN}30`,
+            }}
           >
-            {isLoading ? 'Verifying...' : 'Login as Admin'}
+            {isLoading ? 'Verifying...' : 'Login'}
           </button>
         </form>
 
