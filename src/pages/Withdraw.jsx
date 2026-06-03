@@ -180,7 +180,7 @@ export default function Withdraw() {
             <button
               type="submit"
               disabled={loading || !accountName.trim() || !accountNumber.trim() || !amount || Number(amount) <= 0}
-              className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:shadow-lg hover:shadow-green-500/50 disabled:opacity-50 disabled:cursor-not-allowed text-white py-4 rounded-lg font-bold transition-all flex items-center justify-center gap-2"
+              className="w-full rounded-2xl bg-[#84CC16] px-4 py-4 font-bold text-white shadow-lg shadow-[#84CC16]/30 transition-all hover:bg-lime-500 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               <ArrowUpCircle size={20} />
               {loading ? 'Processing...' : 'Submit Withdrawal'}
