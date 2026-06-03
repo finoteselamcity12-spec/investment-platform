@@ -43,16 +43,16 @@ export default function HomePage({ ctx }) {
       return
     }
 
-    setUsdBalance((prev) => Number((prev + usdGain).toFixed(2)))
-    setEtbBalance((prev) => Number(prev + etbGain))
+    setUsdBalance((prev) => Number((Number(prev) + Number(usdGain)).toFixed(2)))
+    setEtbBalance((prev) => Number((Number(prev) + Number(etbGain)).toFixed(2)))
 
     if (userEmail) {
       const users = JSON.parse(localStorage.getItem('admin_user_data') || '{}')
       if (!users[userEmail]) {
         users[userEmail] = { email: userEmail, usdBalance: 0, etbBalance: 0 }
       }
-      users[userEmail].usdBalance = Number((users[userEmail].usdBalance || 0) + usdGain).toFixed(2)
-      users[userEmail].etbBalance = Number((users[userEmail].etbBalance || 0) + etbGain)
+      users[userEmail].usdBalance = Number((Number(users[userEmail].usdBalance || 0) + Number(usdGain)).toFixed(2))
+      users[userEmail].etbBalance = Number((Number(users[userEmail].etbBalance || 0) + Number(etbGain)).toFixed(2))
       localStorage.setItem('admin_user_data', JSON.stringify(users))
     }
 
@@ -82,7 +82,7 @@ export default function HomePage({ ctx }) {
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.22em] text-emerald-100/90">Total Balance</p>
-            <p className="mt-4 text-4xl font-extrabold tracking-tight">${(usdBalance + etbBalance).toFixed(2)}</p>
+            <p className="mt-4 text-4xl font-extrabold tracking-tight">${Number(Number(usdBalance) + Number(etbBalance)).toFixed(2)}</p>
             <p className="mt-2 text-sm text-emerald-100/80">Portfolio value across your account</p>
           </div>
           <div className="flex h-14 w-14 items-center justify-center rounded-3xl bg-white/10 text-white shadow-inner shadow-black/10">
@@ -93,11 +93,11 @@ export default function HomePage({ ctx }) {
         <div className="mt-6 grid grid-cols-2 gap-3">
           <div className="rounded-[1.75rem] bg-white/10 p-4 backdrop-blur-sm ring-1 ring-white/10">
             <p className="text-xs uppercase tracking-[0.18em] text-emerald-100/80">USD Balance</p>
-            <p className="mt-3 text-2xl font-semibold">${usdBalance.toFixed(2)}</p>
+            <p className="mt-3 text-2xl font-semibold">${Number(usdBalance).toFixed(2)}</p>
           </div>
           <div className="rounded-[1.75rem] bg-white/10 p-4 backdrop-blur-sm ring-1 ring-white/10">
             <p className="text-xs uppercase tracking-[0.18em] text-emerald-100/80">ETB Balance</p>
-            <p className="mt-3 text-2xl font-semibold">{etbBalance.toFixed(2)} Br</p>
+            <p className="mt-3 text-2xl font-semibold">{Number(etbBalance).toFixed(2)} Br</p>
           </div>
         </div>
       </section>
@@ -137,7 +137,7 @@ export default function HomePage({ ctx }) {
         <div className="flex items-center justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Daily Profit</p>
-            <p className="mt-3 text-3xl font-bold text-slate-950">${(usdDailyReward + etbDailyReward).toFixed(2)}</p>
+            <p className="mt-3 text-3xl font-bold text-slate-950">${Number(Number(usdDailyReward) + Number(etbDailyReward)).toFixed(2)}</p>
             <p className="mt-1 text-sm text-slate-500">Projected daily earnings</p>
           </div>
           <span className="rounded-full bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700">+2.4%</span>
@@ -158,11 +158,12 @@ export default function HomePage({ ctx }) {
         </div>
         <div className="rounded-[2rem] border border-slate-200 bg-white p-4 shadow-sm">
           <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Total Invested</p>
-          <p className="mt-3 text-3xl font-bold text-slate-950">
-            ${myActiveInvestmentsList
-              .filter((i) => i.currency === 'USD')
-              .reduce((sum, i) => sum + i.amount, 0)
-              .toFixed(2)}
+            <p className="mt-3 text-3xl font-bold text-slate-950">
+            ${Number(
+              myActiveInvestmentsList
+                .filter((i) => i.currency === 'USD')
+                .reduce((sum, i) => Number(sum) + Number(i.amount), 0)
+            ).toFixed(2)}
           </p>
         </div>
       </div>
@@ -173,8 +174,8 @@ export default function HomePage({ ctx }) {
             <p className="text-xs uppercase tracking-[0.18em] text-slate-500">Investment Tables</p>
             <h2 className="text-lg font-bold text-slate-950">USD and ETB Investment Summary</h2>
           </div>
-          <div className="rounded-3xl bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700">
-            Total USD: ${usdInvestmentsTotal.toFixed(2)}
+            <div className="rounded-3xl bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-700">
+            Total USD: ${Number(usdInvestmentsTotal).toFixed(2)}
           </div>
         </div>
 

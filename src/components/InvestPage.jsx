@@ -34,7 +34,7 @@ export default function InvestPage({ ctx }) {
     { inv: 500, day: 57, profit: 74, bonus: 79 },
     { inv: 1000, day: 69, profit: 155, bonus: 210 },
     { inv: 5000, day: 72, profit: 360, bonus: 407 },
-  ].map(p => ({ ...p, total: Number((p.profit + p.bonus).toFixed(3)) }))
+  ].map(p => ({ ...p, total: Number((Number(p.profit) + Number(p.bonus)).toFixed(3)) }))
 
   const birrPlans = [
     { inv: 350, day: 15, profit: 101, bonus: 63 },
@@ -52,7 +52,7 @@ export default function InvestPage({ ctx }) {
     { inv: 40000, day: 75, profit: 3999, bonus: 3600 },
     { inv: 45000, day: 80, profit: 4750, bonus: 4000 },
     { inv: 50000, day: 90, profit: 5000, bonus: 5500 },
-  ].map(p => ({ ...p, total: p.profit + p.bonus }))
+  ].map(p => ({ ...p, total: Number((Number(p.profit) + Number(p.bonus)).toFixed(3)) }))
 
   const tiers = selectedCurrency === 'USD' ? usdPlans : birrPlans
   const balance = selectedCurrency === 'USD' ? usdBalance : etbBalance
@@ -71,7 +71,7 @@ export default function InvestPage({ ctx }) {
       days: tier.day,
       profit: tier.profit,
       depBonus: tier.bonus,
-      total: Number((tier.profit + tier.bonus).toFixed(3)),
+      total: Number((Number(tier.profit) + Number(tier.bonus)).toFixed(3)),
       startDate: new Date().toISOString(),
       endDate: new Date(Date.now() + tier.day * 24 * 60 * 60 * 1000).toISOString(),
       tierName: `${tier.inv} ${selectedCurrency}`,
@@ -79,9 +79,9 @@ export default function InvestPage({ ctx }) {
 
     // Update balance
     if (selectedCurrency === 'USD') {
-      ctx.setUsdBalance((prev) => Number((prev - tier.inv).toFixed(2)))
+      ctx.setUsdBalance((prev) => Number((Number(prev) - Number(tier.inv)).toFixed(2)))
     } else {
-      ctx.setEtbBalance((prev) => Number((prev - tier.inv).toFixed(0)))
+      ctx.setEtbBalance((prev) => Number((Number(prev) - Number(tier.inv)).toFixed(0)))
     }
 
     // Add to investments
@@ -151,8 +151,8 @@ export default function InvestPage({ ctx }) {
           }}
         >
           <p className="text-sm font-semibold opacity-90">Available Balance</p>
-          <p className="mt-2 text-4xl font-bold tracking-tight">
-            {selectedCurrency === 'USD' ? `$${balance.toFixed(2)}` : `${balance.toLocaleString()} Br`}
+            <p className="mt-2 text-4xl font-bold tracking-tight">
+            {selectedCurrency === 'USD' ? `$${Number(balance).toFixed(2)}` : `${Number(balance).toLocaleString()} Br`}
           </p>
         </div>
 
@@ -194,7 +194,7 @@ export default function InvestPage({ ctx }) {
                     <Gift size={16} className="mx-auto mb-1" style={{ color: PRIMARY_GREEN }} />
                     <p className="text-xs text-slate-500 font-semibold">Profit</p>
                     <p className="font-bold text-sm text-slate-950">
-                      {selectedCurrency === 'USD' ? `$${Number(tier.profit).toFixed(2)}` : `${Math.round(tier.profit)} Br`}
+                      {selectedCurrency === 'USD' ? `$${Number(tier.profit).toFixed(2)}` : `${Math.round(Number(tier.profit))} Br`}
                     </p>
                   </div>
 
@@ -202,7 +202,7 @@ export default function InvestPage({ ctx }) {
                     <Star size={16} className="mx-auto mb-1" style={{ color: PRIMARY_GREEN }} />
                     <p className="text-xs text-slate-500 font-semibold">Dep Bonus</p>
                     <p className="font-bold text-sm text-slate-950">
-                      {selectedCurrency === 'USD' ? `$${Number(tier.bonus).toFixed(2)}` : `${Math.round(tier.bonus)} Br`}
+                      {selectedCurrency === 'USD' ? `$${Number(tier.bonus).toFixed(2)}` : `${Math.round(Number(tier.bonus))} Br`}
                     </p>
                   </div>
 
@@ -210,8 +210,8 @@ export default function InvestPage({ ctx }) {
                     <p className="text-xs text-slate-500 font-semibold">Total</p>
                     <p className="font-bold text-sm text-slate-950">
                       {selectedCurrency === 'USD'
-                        ? `$${Number((tier.profit + tier.bonus)).toFixed(2)}`
-                        : `${Math.round(tier.profit + tier.bonus)} Br`}
+                        ? `$${Number((Number(tier.profit) + Number(tier.bonus)).toFixed(2))}`
+                        : `${Math.round(Number(tier.profit) + Number(tier.bonus))} Br`}
                     </p>
                   </div>
                 </div>
