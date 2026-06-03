@@ -6,7 +6,7 @@ const PRIMARY_GREEN = '#84CC16'
 export default function HomePage({ ctx }) {
   const {
     usdBalance, etbBalance, myActiveInvestmentsList, marketData,
-    showToast, claimTimestamp, claimCooldownMs, setActivePage,
+    showToast, claimTimestamp, claimCooldownMs, setActivePage, formatCurrency,
   } = ctx
 
   const usdDailyReward = myActiveInvestmentsList

@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import supabase from '../lib/supabase'
 import { getSession } from '../lib/authService'
+import { formatCurrency } from '../lib/formatCurrency'
 import AdminLoginModal from './AdminLoginModal'
 import ProfileButton from './ProfileButton'
 
@@ -74,12 +75,6 @@ const etbTiers = [
 
 const withdrawMethods = ['CBE', 'Dashen Bank', 'M-Pesa', 'Telebirr', 'USDT (TRC20)']
 const historyFilters = ['All', 'Deposits', 'Withdrawals', 'Investments', 'Claims']
-
-function formatCurrency(amount, currency) {
-  if (currency === 'USD') return `$${amount.toFixed(2)}`
-  if (currency === 'USDT') return `$${amount.toFixed(2)} USDT`
-  return `${amount.toLocaleString()} Birr`
-}
 
 const marketData = [
   { title: 'Bitcoin', symbol: 'BTC', price: '$38,290', change: '+3.9%', trend: 'up' },
