@@ -11,19 +11,18 @@ root.render(
   </StrictMode>,
 )
 
-if ('serviceWorker' in navigator && import.meta.env.PROD) {
+/** Remove legacy service workers so mobile browsers fetch the latest app shell */
+if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
     try {
       const registrations = await navigator.serviceWorker.getRegistrations()
       await Promise.all(registrations.map((reg) => reg.unregister()))
-
-      const buildStamp = import.meta.env.VITE_BUILD_STAMP || 'dev'
-      await navigator.serviceWorker.register(
-        `/service-worker.js?build=${encodeURIComponent(buildStamp)}`,
-        { updateViaCache: 'none' }
-      )
+      if ('caches' in window) {
+        const keys = await caches.keys()
+        await Promise.all(keys.map((key) => caches.delete(key)))
+      }
     } catch (error) {
-      console.warn('Service worker skipped:', error)
+      console.warn('Service worker cleanup skipped:', error)
     }
   })
 }
