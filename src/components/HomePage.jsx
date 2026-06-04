@@ -61,8 +61,8 @@ export default function HomePage({ ctx }) {
   ]
 
   return (
-    <div className="home-page min-h-0 w-full max-w-full overflow-x-hidden bg-white">
-      <div className="home-dashboard-stack mx-auto w-full max-w-lg">
+    <div className="home-page box-border min-h-0 w-full max-w-full overflow-x-hidden bg-white px-4">
+      <div className="home-dashboard-stack mx-auto flex w-full max-w-lg flex-col gap-5 sm:gap-6">
         <header className="text-center">
           <h1 className="welcome-3d">Welcome to Blackrock</h1>
         </header>
@@ -72,11 +72,11 @@ export default function HomePage({ ctx }) {
           <p className="home-balance-total">${totalBalance.toFixed(2)}</p>
           <div className="home-wallet-grid">
             <div className="home-wallet-card">
-              <p className="home-wallet-label">USD Wallet</p>
+              <p className="home-wallet-label text-[0.7rem] sm:text-xs">USD Wallet</p>
               <p className="home-wallet-value">${Number(usdBalance).toFixed(2)}</p>
             </div>
             <div className="home-wallet-card">
-              <p className="home-wallet-label">ETB Wallet</p>
+              <p className="home-wallet-label text-[0.7rem] sm:text-xs">ETB Wallet</p>
               <p className="home-wallet-value">
                 {Number(etbBalance).toLocaleString()} Br
               </p>
@@ -84,13 +84,13 @@ export default function HomePage({ ctx }) {
           </div>
           <div className="home-referral-grid">
             <div className="home-referral-card">
-              <p className="home-referral-label">USD Referral Bonus</p>
+              <p className="home-referral-label text-[0.7rem] sm:text-xs">USD Referral Bonus</p>
               <p className="home-referral-value">
                 ${Number(referralEarningsUsd).toFixed(2)}
               </p>
             </div>
             <div className="home-referral-card">
-              <p className="home-referral-label">ETB Referral Bonus</p>
+              <p className="home-referral-label text-[0.7rem] sm:text-xs">ETB Referral Bonus</p>
               <p className="home-referral-value">
                 {Number(referralEarningsEtb).toLocaleString()} Br
               </p>
@@ -98,25 +98,25 @@ export default function HomePage({ ctx }) {
           </div>
         </div>
 
-        <div className="home-action-grid">
+        <div className="home-action-grid gap-3 sm:gap-4">
           {actionButtons.map(({ label, page, icon: Icon }) => (
             <button
               key={page}
               type="button"
               onClick={() => setActivePage?.(page)}
-              className="home-action-btn flex flex-col items-center justify-center gap-1"
+              className="home-action-btn flex w-full min-h-[52px] flex-col items-center justify-center gap-2 py-4 text-sm font-bold sm:min-h-[56px] sm:text-base"
             >
-              <Icon size={20} />
+              <Icon size={22} strokeWidth={2.25} />
               <span>{label}</span>
             </button>
           ))}
         </div>
 
-        <div className="home-metrics-grid">
+        <div className="home-metrics-grid gap-3 sm:gap-4">
           {statCards.map(({ label, value }) => (
             <div key={label} className="home-metric-card">
-              <p className="home-metric-label">{label}</p>
-              <p className="home-metric-value">{value}</p>
+              <p className="home-metric-label text-[0.7rem] leading-snug sm:text-xs">{label}</p>
+              <p className="home-metric-value text-base font-extrabold sm:text-lg">{value}</p>
             </div>
           ))}
         </div>

@@ -290,7 +290,7 @@ export default function AppShell({ children, activePage, setActivePage }) {
       </div>
 
       {/* Page Content */}
-      <div className="app-main-content mx-auto max-w-7xl px-4 pb-36 pt-24">
+      <div className="app-main-content mx-auto w-full max-w-7xl box-border px-4 pb-36 pt-24">
         {children(appContext)}
       </div>
 
