@@ -6,41 +6,61 @@ export default function HomePage({ ctx }) {
     setActivePage,
   } = ctx
 
-  const activeInvestmentsCount = myActiveInvestmentsList.length
-  const usdDailyReward = myActiveInvestmentsList
+  const dailyProfitUsd = myActiveInvestmentsList
     .filter((item) => item.currency === 'USD')
     .reduce((sum, item) => sum + (Number(item.dailyProfit) || 0), 0)
-  const etbDailyReward = myActiveInvestmentsList
+
+  const dailyProfitEtb = myActiveInvestmentsList
     .filter((item) => item.currency === 'ETB')
     .reduce((sum, item) => sum + (Number(item.dailyProfit) || 0), 0)
 
-  const totalUsdInvested = myActiveInvestmentsList
+  const activeInvestmentUsd = myActiveInvestmentsList
     .filter((item) => item.currency === 'USD')
     .reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
-  const totalEtbInvested = myActiveInvestmentsList
+
+  const activeInvestmentEtb = myActiveInvestmentsList
     .filter((item) => item.currency === 'ETB')
     .reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
+
+  const totalBalance = Number(usdBalance) + Number(etbBalance)
 
   const actionButtons = [
-    { label: 'Withdrawal', page: 'withdraw' },
-    { label: 'History', page: 'history' },
     { label: 'Deposit', page: 'deposit' },
     { label: 'Invest', page: 'invest' },
+    { label: 'Withdraw', page: 'withdraw' },
+    { label: 'History', page: 'history' },
+  ]
+
+  const metrics = [
+    {
+      label: 'Daily Profit ETB',
+      value: `${dailyProfitEtb.toFixed(2)} Br`,
+    },
+    {
+      label: 'Daily Profit USD',
+      value: `$${dailyProfitUsd.toFixed(2)}`,
+    },
+    {
+      label: 'Active Investment ETB',
+      value: `${activeInvestmentEtb.toLocaleString()} Br`,
+    },
+    {
+      label: 'Active Investment USD',
+      value: `$${activeInvestmentUsd.toFixed(2)}`,
+    },
   ]
 
   return (
-    <div className="home-page min-h-screen overflow-x-hidden bg-slate-50 pb-20">
+    <div className="home-page min-h-screen overflow-x-hidden bg-white pb-20">
       <div className="mx-auto max-w-5xl space-y-6 px-4 py-6">
         <header className="text-center">
           <h1 className="welcome-3d">Welcome to Blackrock</h1>
-          <p className="text-sm text-slate-500">Your dashboard is ready for action.</p>
+          <p className="home-subtitle">Your dashboard is ready for action.</p>
         </header>
 
         <div className="home-balance-card rounded-3xl px-5 py-5 text-white">
           <p className="home-balance-title">Total Balance</p>
-          <p className="home-balance-total">
-            ${(Number(usdBalance) + Number(etbBalance)).toFixed(2)}
-          </p>
+          <p className="home-balance-total">${totalBalance.toFixed(2)}</p>
           <div className="home-wallet-grid">
             <div className="home-wallet-card">
               <p className="home-wallet-label">USD Wallet</p>
@@ -68,29 +88,13 @@ export default function HomePage({ ctx }) {
           ))}
         </div>
 
-        <div className="w-full space-y-[10px]">
-          <div className="home-action-grid">
-            <div className="min-w-0 w-full rounded-[15px] border border-slate-200 bg-white p-4 shadow-[0_8px_24px_rgba(15,23,42,0.08)] sm:p-5">
-              <p className="text-sm font-semibold text-slate-500">Daily Profit</p>
-              <p className="mt-3 text-lg font-semibold text-[#1a1a1a] sm:mt-4 sm:text-2xl">
-                USD {usdDailyReward.toFixed(2)} / ETB {etbDailyReward.toFixed(2)}
-              </p>
+        <div className="home-metrics-grid">
+          {metrics.map(({ label, value }) => (
+            <div key={label} className="home-metric-card">
+              <p className="home-metric-label">{label}</p>
+              <p className="home-metric-value">{value}</p>
             </div>
-
-            <div className="min-w-0 w-full rounded-[15px] border border-slate-200 bg-white p-4 shadow-[0_8px_24px_rgba(15,23,42,0.08)] sm:p-5">
-              <p className="text-sm font-semibold text-slate-500">Active Investments</p>
-              <p className="mt-3 text-lg font-semibold text-[#1a1a1a] sm:mt-4 sm:text-2xl">
-                {activeInvestmentsCount}
-              </p>
-            </div>
-          </div>
-
-          <div className="w-full rounded-[15px] border border-slate-200 bg-white p-4 shadow-[0_8px_24px_rgba(15,23,42,0.08)] sm:p-5">
-            <p className="text-sm font-semibold text-slate-500">Total Invested</p>
-            <p className="mt-3 text-lg font-semibold text-[#1a1a1a] sm:mt-4 sm:text-2xl">
-              USD ${totalUsdInvested.toFixed(2)} / ETB {totalEtbInvested.toFixed(2)}
-            </p>
-          </div>
+          ))}
         </div>
       </div>
     </div>
