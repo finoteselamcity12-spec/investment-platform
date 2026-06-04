@@ -1,7 +1,7 @@
 import { REFERRAL_BONUS_ETB, REFERRAL_BONUS_USD } from '../../lib/platformConfig'
 import { findProfileIdByEmail } from '../../lib/supabaseData'
 import { loadReferralStats, updateReferralStats } from '../../lib/referralUtils'
-import { approveDepositInSupabase, rejectDepositInSupabase } from './adminSupabase'
+import { approveDepositInSupabase, rejectDepositInSupabase, deleteUserInSupabase } from './adminSupabase'
 
 export const ADMIN_EMAIL = 'workinehabche@gmail.com'
 
@@ -243,7 +243,18 @@ export function rejectWithdrawal(withdrawalId, snapshot) {
   return loadAdminSnapshot()
 }
 
-export function deleteUser(userId, snapshot) {
+export async function deleteUser(userId, snapshot) {
+  const target = snapshot.users.find(
+    (u) => u.id === userId || u.email === userId || u.user_id === userId
+  )
+  const dbId = target?.id || target?.user_id
+  if (dbId && /^[0-9a-f-]{36}$/i.test(dbId)) {
+    const result = await deleteUserInSupabase(dbId)
+    if (!result.ok) {
+      throw new Error(result.error || 'Failed to delete user from database')
+    }
+  }
+
   const usersData = { ...snapshot.usersByKey }
   delete usersData[userId]
   Object.keys(usersData).forEach((key) => {

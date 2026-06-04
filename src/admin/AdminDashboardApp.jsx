@@ -184,12 +184,18 @@ export default function AdminDashboardApp() {
   )
 
   const handleDeleteUser = useCallback(
-    (id) => {
-      if (!window.confirm('Delete this user record?')) return
-      setSnapshot(deleteUser(id, snapshot))
-      showToast('User removed.', 'success')
+    async (id) => {
+      if (!window.confirm('Delete this user from the database? This cannot be undone.')) return
+      try {
+        const next = await deleteUser(id, snapshot)
+        setSnapshot(next)
+        await refresh()
+        showToast('User deleted from database.', 'success')
+      } catch (e) {
+        showToast(e?.message || 'Delete failed', 'error')
+      }
     },
-    [snapshot, showToast]
+    [snapshot, showToast, refresh]
   )
 
   const handleSignOut = useCallback(() => {

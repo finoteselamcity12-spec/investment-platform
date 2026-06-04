@@ -1,7 +1,312 @@
--- Admin dashboard backend fix
--- In Supabase Dashboard → SQL Editor → New query:
--- Paste and run the FULL contents of:
---   supabase/migrations/005_admin_dashboard_backend.sql
---
--- Then create Auth user: workinehabche@gmail.com (same password as admin console)
--- Sign in at /admin-login so JWT allows admin RPCs.
+-- =============================================================================
+-- BLACKROCK ADMIN DASHBOARD — PASTE THIS ENTIRE FILE INTO SUPABASE SQL EDITOR
+-- Dashboard → SQL → New query → Paste → Run
+-- =============================================================================
+-- Prerequisites: migrations 001–004 already applied (profiles, balances, deposits)
+-- After run: create Auth user workinehabche@gmail.com, sign in at /admin-login
+-- =============================================================================
+
+-- Extend deposits for pending workflow + proof
+ALTER TABLE public.deposits
+  ADD COLUMN IF NOT EXISTS payment_method TEXT,
+  ADD COLUMN IF NOT EXISTS transaction_id TEXT,
+  ADD COLUMN IF NOT EXISTS proof_url TEXT,
+  ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+
+UPDATE public.deposits
+SET status = 'approved'
+WHERE status IS NULL OR status NOT IN ('pending', 'approved', 'rejected');
+
+ALTER TABLE public.deposits DROP CONSTRAINT IF EXISTS deposits_status_check;
+ALTER TABLE public.deposits
+  ADD CONSTRAINT deposits_status_check
+  CHECK (status IN ('pending', 'approved', 'rejected'));
+
+DROP TRIGGER IF EXISTS on_deposit_referral_bonus_update ON public.deposits;
+CREATE TRIGGER on_deposit_referral_bonus_update
+  AFTER UPDATE OF status ON public.deposits
+  FOR EACH ROW
+  WHEN (NEW.status = 'approved' AND OLD.status IS DISTINCT FROM 'approved')
+  EXECUTE FUNCTION public.handle_referral_bonus();
+
+CREATE OR REPLACE FUNCTION public.is_admin()
+RETURNS BOOLEAN
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT COALESCE(
+    lower(trim(auth.jwt() ->> 'email')) = lower('workinehabche@gmail.com'),
+    FALSE
+  );
+$$;
+
+CREATE OR REPLACE FUNCTION public.admin_get_dashboard_stats()
+RETURNS JSON
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  result JSON;
+BEGIN
+  IF NOT public.is_admin() THEN
+    RAISE EXCEPTION 'not_admin: Admin Supabase session required (sign in as workinehabche@gmail.com)';
+  END IF;
+
+  SELECT json_build_object(
+    'total_users', (SELECT COUNT(*)::INTEGER FROM public.profiles),
+    'pending_deposits', (SELECT COUNT(*)::INTEGER FROM public.deposits WHERE status = 'pending'),
+    'approved_deposits', (SELECT COUNT(*)::INTEGER FROM public.deposits WHERE status = 'approved'),
+    'daily_transactions', (
+      SELECT COUNT(*)::INTEGER FROM public.deposits
+      WHERE created_at >= date_trunc('day', NOW() AT TIME ZONE 'UTC')
+    ),
+    'total_deposits', (SELECT COUNT(*)::INTEGER FROM public.deposits)
+  ) INTO result;
+
+  RETURN result;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.admin_list_pending_deposits()
+RETURNS TABLE (
+  id UUID,
+  user_id UUID,
+  user_email TEXT,
+  user_full_name TEXT,
+  currency TEXT,
+  amount NUMERIC,
+  payment_method TEXT,
+  transaction_id TEXT,
+  proof_url TEXT,
+  status TEXT,
+  created_at TIMESTAMPTZ
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF NOT public.is_admin() THEN
+    RAISE EXCEPTION 'not_admin: Admin Supabase session required';
+  END IF;
+
+  RETURN QUERY
+  SELECT
+    d.id,
+    d.user_id,
+    p.email AS user_email,
+    p.full_name AS user_full_name,
+    d.currency,
+    d.amount,
+    d.payment_method,
+    d.transaction_id,
+    d.proof_url,
+    d.status,
+    d.created_at
+  FROM public.deposits d
+  JOIN public.profiles p ON p.id = d.user_id
+  WHERE d.status = 'pending'
+  ORDER BY d.created_at DESC;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.admin_list_users()
+RETURNS TABLE (
+  user_id UUID,
+  email TEXT,
+  full_name TEXT,
+  etb_balance NUMERIC,
+  usd_balance NUMERIC,
+  created_at TIMESTAMPTZ
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF NOT public.is_admin() THEN
+    RAISE EXCEPTION 'not_admin: Admin Supabase session required';
+  END IF;
+
+  RETURN QUERY
+  SELECT
+    p.id AS user_id,
+    p.email,
+    p.full_name,
+    COALESCE(b.etb_balance, 0) AS etb_balance,
+    COALESCE(b.usd_balance, 0) AS usd_balance,
+    p.created_at
+  FROM public.profiles p
+  LEFT JOIN public.balances b ON b.user_id = p.id
+  ORDER BY p.created_at DESC;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.admin_approve_deposit(p_deposit_id UUID)
+RETURNS JSON
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  dep RECORD;
+BEGIN
+  IF NOT public.is_admin() THEN
+    RAISE EXCEPTION 'not_admin: Admin Supabase session required';
+  END IF;
+
+  SELECT * INTO dep
+  FROM public.deposits
+  WHERE id = p_deposit_id
+  FOR UPDATE;
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'deposit_not_found';
+  END IF;
+
+  IF dep.status = 'approved' THEN
+    RETURN json_build_object('ok', true, 'already_approved', true, 'deposit_id', p_deposit_id);
+  END IF;
+
+  IF dep.status = 'rejected' THEN
+    RAISE EXCEPTION 'deposit_already_rejected';
+  END IF;
+
+  IF dep.currency IN ('USD', 'USDT') THEN
+    UPDATE public.balances
+    SET usd_balance = usd_balance + dep.amount,
+        updated_at = NOW()
+    WHERE user_id = dep.user_id;
+  ELSIF dep.currency = 'ETB' THEN
+    UPDATE public.balances
+    SET etb_balance = etb_balance + dep.amount,
+        updated_at = NOW()
+    WHERE user_id = dep.user_id;
+  END IF;
+
+  UPDATE public.deposits
+  SET status = 'approved',
+      updated_at = NOW()
+  WHERE id = p_deposit_id;
+
+  RETURN json_build_object('ok', true, 'deposit_id', p_deposit_id, 'user_id', dep.user_id);
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.admin_approve_deposit_manual(
+  p_user_id UUID,
+  p_amount NUMERIC,
+  p_currency TEXT,
+  p_payment_method TEXT DEFAULT NULL,
+  p_transaction_id TEXT DEFAULT NULL,
+  p_proof_url TEXT DEFAULT NULL
+)
+RETURNS JSON
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  new_id UUID;
+  norm_currency TEXT;
+BEGIN
+  IF NOT public.is_admin() THEN
+    RAISE EXCEPTION 'not_admin: Admin Supabase session required';
+  END IF;
+
+  IF p_amount IS NULL OR p_amount <= 0 THEN
+    RAISE EXCEPTION 'invalid_amount';
+  END IF;
+
+  norm_currency := CASE
+    WHEN upper(p_currency) IN ('USD', 'USDT') THEN 'USD'
+    ELSE 'ETB'
+  END;
+
+  INSERT INTO public.deposits (
+    user_id, currency, amount, status,
+    payment_method, transaction_id, proof_url
+  )
+  VALUES (
+    p_user_id, norm_currency, p_amount, 'pending',
+    p_payment_method, p_transaction_id, p_proof_url
+  )
+  RETURNING id INTO new_id;
+
+  RETURN public.admin_approve_deposit(new_id);
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.admin_reject_deposit(p_deposit_id UUID)
+RETURNS JSON
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF NOT public.is_admin() THEN
+    RAISE EXCEPTION 'not_admin: Admin Supabase session required';
+  END IF;
+
+  UPDATE public.deposits
+  SET status = 'rejected',
+      updated_at = NOW()
+  WHERE id = p_deposit_id
+    AND status = 'pending';
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'deposit_not_found_or_not_pending';
+  END IF;
+
+  RETURN json_build_object('ok', true, 'deposit_id', p_deposit_id);
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.admin_delete_user(p_user_id UUID)
+RETURNS JSON
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, auth
+AS $$
+BEGIN
+  IF NOT public.is_admin() THEN
+    RAISE EXCEPTION 'not_admin: Admin Supabase session required';
+  END IF;
+
+  IF p_user_id IS NULL THEN
+    RAISE EXCEPTION 'invalid_user_id';
+  END IF;
+
+  DELETE FROM public.deposits WHERE user_id = p_user_id;
+  DELETE FROM public.balances WHERE user_id = p_user_id;
+  DELETE FROM public.profiles WHERE id = p_user_id;
+  DELETE FROM auth.users WHERE id = p_user_id;
+
+  RETURN json_build_object('ok', true, 'user_id', p_user_id);
+END;
+$$;
+
+DROP POLICY IF EXISTS "Users insert own pending deposit" ON public.deposits;
+CREATE POLICY "Users insert own pending deposit" ON public.deposits
+  FOR INSERT
+  WITH CHECK (
+    auth.uid() = user_id
+    AND status = 'pending'
+  );
+
+GRANT EXECUTE ON FUNCTION public.admin_get_dashboard_stats() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.admin_list_pending_deposits() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.admin_list_users() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.admin_approve_deposit(UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.admin_approve_deposit_manual(UUID, NUMERIC, TEXT, TEXT, TEXT, TEXT) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.admin_reject_deposit(UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.admin_delete_user(UUID) TO authenticated;
+
+-- Refresh API schema cache (fixes "function not found" in frontend)
+NOTIFY pgrst, 'reload schema';
+
+-- Done. Verify in SQL Editor:
+-- SELECT proname FROM pg_proc WHERE proname LIKE 'admin_%' AND pronamespace = 'public'::regnamespace;

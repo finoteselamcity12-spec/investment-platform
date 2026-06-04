@@ -294,7 +294,34 @@ CREATE POLICY "Users insert own pending deposit" ON public.deposits
   );
 
 -- ---------------------------------------------------------------------------
--- Grants
+-- Delete user (profile, balances, deposits + auth account)
+-- ---------------------------------------------------------------------------
+CREATE OR REPLACE FUNCTION public.admin_delete_user(p_user_id UUID)
+RETURNS JSON
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, auth
+AS $$
+BEGIN
+  IF NOT public.is_admin() THEN
+    RAISE EXCEPTION 'not_admin: Admin Supabase session required';
+  END IF;
+
+  IF p_user_id IS NULL THEN
+    RAISE EXCEPTION 'invalid_user_id';
+  END IF;
+
+  DELETE FROM public.deposits WHERE user_id = p_user_id;
+  DELETE FROM public.balances WHERE user_id = p_user_id;
+  DELETE FROM public.profiles WHERE id = p_user_id;
+  DELETE FROM auth.users WHERE id = p_user_id;
+
+  RETURN json_build_object('ok', true, 'user_id', p_user_id);
+END;
+$$;
+
+-- ---------------------------------------------------------------------------
+-- Grants (required for Supabase RPC from frontend)
 -- ---------------------------------------------------------------------------
 GRANT EXECUTE ON FUNCTION public.admin_get_dashboard_stats() TO authenticated;
 GRANT EXECUTE ON FUNCTION public.admin_list_pending_deposits() TO authenticated;
@@ -302,3 +329,7 @@ GRANT EXECUTE ON FUNCTION public.admin_list_users() TO authenticated;
 GRANT EXECUTE ON FUNCTION public.admin_approve_deposit(UUID) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.admin_approve_deposit_manual(UUID, NUMERIC, TEXT, TEXT, TEXT, TEXT) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.admin_reject_deposit(UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.admin_delete_user(UUID) TO authenticated;
+
+-- Reload PostgREST schema cache so new RPCs are visible immediately
+NOTIFY pgrst, 'reload schema';

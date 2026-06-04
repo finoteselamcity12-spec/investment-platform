@@ -226,6 +226,23 @@ export async function rejectDepositInSupabase(deposit) {
   return { ok: true }
 }
 
+export async function deleteUserInSupabase(userId) {
+  if (!userId || !UUID_REGEX.test(userId)) {
+    return { ok: false, error: 'Invalid user ID — only Supabase UUID users can be deleted from database.' }
+  }
+
+  const session = await supabase.auth.getSession()
+  if (session.data?.session?.user?.email?.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
+    return { ok: false, error: 'Admin Supabase session missing' }
+  }
+
+  const { error } = await supabase.rpc('admin_delete_user', { p_user_id: userId })
+  if (error) {
+    return { ok: false, error: logAdminError('admin_delete_user', error) }
+  }
+  return { ok: true }
+}
+
 /** Legacy count fallback when RPC not deployed */
 export async function fetchAdminSupabaseStats() {
   const dash = await fetchAdminDashboard()
