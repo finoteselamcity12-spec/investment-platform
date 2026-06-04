@@ -290,13 +290,13 @@ export default function AppShell({ children, activePage, setActivePage }) {
       </div>
 
       {/* Page Content */}
-      <div className="app-main-content mx-auto w-full max-w-7xl box-border px-4 pb-36 pt-24">
+      <div className="app-main-content mx-auto w-full max-w-7xl box-border px-4 pt-24">
         {children(appContext)}
       </div>
 
       {/* Bottom Navigation */}
-      <div className="app-bottom-nav fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white shadow-xl">
-        <div className="app-bottom-nav-inner mx-auto flex max-w-7xl items-stretch justify-between gap-1 px-1 py-2">
+      <nav className="app-bottom-nav" aria-label="Primary navigation">
+        <div className="app-bottom-nav-inner mx-auto max-w-7xl">
           {visibleNavItems.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
@@ -308,20 +308,15 @@ export default function AppShell({ children, activePage, setActivePage }) {
                 }
                 setActivePage(id)
               }}
-              className={`app-nav-btn relative min-w-0 flex-1 rounded-2xl border px-1 py-2 text-center transition-all ${
-                activePage === id
-                  ? 'border-[#84CC16] bg-[#84CC16] text-white shadow-md shadow-[#84CC16]/20'
-                  : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
-              }`}
+              className={`app-nav-btn${activePage === id ? ' app-nav-btn--active' : ''}`}
+              aria-current={activePage === id ? 'page' : undefined}
             >
-              <Icon size={18} className="mx-auto" />
-              <span className="app-nav-label mt-0.5 block truncate text-[10px] font-semibold leading-tight sm:text-xs">
-                {label}
-              </span>
+              <Icon size={28} strokeWidth={2.25} className="app-nav-icon" aria-hidden="true" />
+              <span className="app-nav-label">{label}</span>
             </button>
           ))}
         </div>
-      </div>
+      </nav>
 
       {/* Admin Login Modal */}
       {showAdminLogin && (
@@ -343,7 +338,7 @@ export default function AppShell({ children, activePage, setActivePage }) {
 
       {/* Toast Notification */}
       {toastMessage && (
-        <div className={`fixed bottom-36 left-4 right-4 z-40 px-4 py-3 rounded-3xl text-white text-sm font-medium ${
+        <div className={`app-toast fixed left-4 right-4 z-40 px-4 py-3 rounded-3xl text-white text-sm font-medium ${
           toastType === 'success'
             ? 'bg-green-600 shadow-lg shadow-green-600/40'
             : 'bg-red-600 shadow-lg shadow-red-600/40'
