@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Brand headers — orange-gold 3D (login + dashboard)
+   Brand headers — golden yellow #FFD700 (login + dashboard)
    ========================================================================== */
 
 .auth-page {
@@ -40,6 +40,7 @@
 
 .home-header-premium {
   width: 100%;
+  max-width: 100%;
   padding: 0.25rem 0 0.625rem;
 }
 
@@ -76,74 +77,51 @@
   stroke: #ffd700;
 }
 
-/* Pure yellow-gold #FFD700 with 3D depth */
+/* Golden yellow #FFD700 — shared login + dashboard */
 .brand-gold-3d {
   position: relative;
-  display: inline-block;
+  display: block;
+  width: 100%;
+  max-width: 100%;
   margin: 0;
   padding: 0 0.25rem;
-  max-width: 100%;
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  font-weight: 900;
-  line-height: 1.05;
+  font-weight: 800;
+  line-height: 1.08;
   text-transform: uppercase;
   text-align: center;
   overflow-wrap: break-word;
   word-break: break-word;
-  /* Bright pure gold face — stays readable on light green */
-  background: linear-gradient(
-    180deg,
-    #fff59d 0%,
-    #ffd700 20%,
-    #ffd700 55%,
-    #ffd700 80%,
-    #f0c800 100%
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: #ffd700;
-  -webkit-text-stroke: 1.5px rgba(0, 0, 0, 0.4);
-  paint-order: stroke fill;
-  text-shadow:
-    0 0 0 rgba(255, 255, 255, 0.25),
-    2px 2px 0 rgba(0, 0, 0, 0.35);
-  filter: drop-shadow(2px 2px 0 rgba(0, 0, 0, 0.45))
-    drop-shadow(4px 4px 8px rgba(0, 0, 0, 0.4));
-}
-
-/* Login: huge & bold (≈ text-6xl, 60px+) */
-.brand-gold-3d--login {
-  display: block;
-  width: 100%;
-  max-width: 100%;
-  font-size: clamp(3.75rem, 14vw, 4.5rem);
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  /* Strict pure gold #FFD700 — no brown/dark tint on fill */
   background: #ffd700;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   color: #ffd700;
-  -webkit-text-stroke: 2px rgba(0, 0, 0, 0.55);
+  -webkit-text-stroke: 1px #000;
+  paint-order: stroke fill;
   text-shadow:
-    0 1px 0 rgba(0, 0, 0, 0.5),
-    1px 2px 0 rgba(0, 0, 0, 0.5),
-    2px 3px 0 rgba(0, 0, 0, 0.45);
-  filter: drop-shadow(2px 2px 0 rgba(0, 0, 0, 0.55))
-    drop-shadow(3px 3px 0 rgba(0, 0, 0, 0.5))
-    drop-shadow(5px 6px 12px rgba(0, 0, 0, 0.45));
+    1px 1px 0 rgba(0, 0, 0, 0.5),
+    2px 2px 0 rgba(0, 0, 0, 0.4),
+    2px 4px 6px rgba(0, 0, 0, 0.35);
+  filter: drop-shadow(1px 1px 0 rgba(0, 0, 0, 0.55))
+    drop-shadow(2px 3px 8px rgba(0, 0, 0, 0.4));
 }
 
-.brand-gold-3d--login::after {
-  opacity: 0.25;
+/* Login BLACKROCK — text-6xl+ (60px–72px) */
+.brand-gold-3d--login {
+  font-size: clamp(3.75rem, 14vw, 4.5rem);
+  letter-spacing: 0.1em;
 }
 
+/* Dashboard WELCOME TO BLACKROCK — text-6xl (60px), scales on narrow screens */
 .brand-gold-3d--dashboard {
-  font-size: clamp(1.35rem, 6.5vw, 2rem);
-  letter-spacing: 0.04em;
-  line-height: 1.12;
+  font-size: clamp(2.75rem, 10vw, 3.75rem);
+  letter-spacing: 0.06em;
+  line-height: 1.1;
+}
+
+.brand-gold-3d::after {
+  opacity: 0.2;
 }
 
 /* 3D extrusion — dark shadow only (not brown fill) */
@@ -166,16 +144,15 @@
     4px 4px 8px rgba(0, 0, 0, 0.5);
 }
 
-.brand-gold-3d--login::before {
-  -webkit-text-stroke: 2px rgba(0, 0, 0, 0.6);
-  transform: translate(4px, 5px);
+.brand-gold-3d--login::before,
+.brand-gold-3d--dashboard::before {
+  transform: translate(3px, 4px);
   text-shadow:
-    1px 1px 0 rgba(0, 0, 0, 0.6),
-    2px 2px 0 rgba(0, 0, 0, 0.6),
-    3px 3px 0 rgba(0, 0, 0, 0.55),
-    4px 4px 0 rgba(0, 0, 0, 0.55),
-    5px 5px 0 rgba(0, 0, 0, 0.5),
-    5px 5px 10px rgba(0, 0, 0, 0.55);
+    1px 1px 0 rgba(0, 0, 0, 0.55),
+    2px 2px 0 rgba(0, 0, 0, 0.55),
+    3px 3px 0 rgba(0, 0, 0, 0.5),
+    4px 4px 0 rgba(0, 0, 0, 0.5),
+    4px 4px 10px rgba(0, 0, 0, 0.5);
 }
 
 /* Subtle top shine on gold */
@@ -771,7 +748,7 @@
   }
 
   .brand-gold-3d--dashboard {
-    font-size: 2rem;
+    font-size: 3.75rem;
   }
 }
 
@@ -843,8 +820,8 @@
   }
 
   .brand-gold-3d--dashboard {
-    font-size: clamp(1.2rem, 5.5vw, 1.75rem);
-    letter-spacing: 0.035em;
+    font-size: clamp(2.75rem, 10vw, 3.75rem);
+    letter-spacing: 0.06em;
   }
 
   .brand-gold-3d::before {
@@ -938,8 +915,8 @@
   }
 
   .brand-gold-3d--dashboard {
-    font-size: clamp(1.05rem, 4.8vw, 1.35rem);
-    letter-spacing: 0.03em;
+    font-size: clamp(2.5rem, 9vw, 3.25rem);
+    letter-spacing: 0.05em;
   }
 
   .brand-coin-icon {
