@@ -1,124 +1,43 @@
 /* ==========================================================================
-   Auth — Lucky Slot–style 3D welcome title (green + gold)
+   Auth — clean BLACKROCK brand title (login)
    ========================================================================== */
 
 .auth-page {
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
-.auth-welcome-hero {
+.auth-brand-header {
   position: relative;
   z-index: 2;
-  width: min(95%, 26rem);
-  margin: 0 auto clamp(1.35rem, 5.5vw, 2.25rem);
-  padding: 0.35rem 0.5rem 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 95%;
+  max-width: 24rem;
+  margin: 0 auto 1.5rem;
+  padding: 0 0.5rem;
   text-align: center;
 }
 
-/* Subtle depth plate (low opacity — avoids blending with lime bg) */
-.auth-welcome-hero::before {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 55%;
-  z-index: 0;
-  width: 90%;
-  height: 75%;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  background: radial-gradient(
-    ellipse at center,
-    rgba(0, 0, 0, 0.12) 0%,
-    transparent 70%
-  );
-  filter: blur(10px);
-  pointer-events: none;
-}
-
-.auth-welcome-title {
-  position: relative;
-  z-index: 1;
-  display: inline-block;
+.auth-brand-title {
   margin: 0;
-  padding: 0 0.2rem;
   max-width: 100%;
-  font-family: 'Plus Jakarta Sans', 'Bebas Neue', system-ui, sans-serif;
-  font-size: clamp(1.65rem, 7.5vw, 2.65rem);
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-size: clamp(2rem, 10vw, 3rem);
   font-weight: 900;
-  line-height: 1.05;
-  letter-spacing: 0.05em;
-  text-align: center;
+  line-height: 1.1;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
+  color: #0f3d22;
   overflow-wrap: break-word;
   word-break: break-word;
-  /* Dark forest green fill — sharp contrast on light lime bg */
-  background: linear-gradient(
-    180deg,
-    #2f6b38 0%,
-    #1f5c2e 22%,
-    #164a26 48%,
-    #0f3d22 72%,
-    #0a2e1a 100%
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-  /* White outline so letters read clearly on any background */
-  -webkit-text-stroke: 2px rgba(255, 255, 255, 0.95);
-  paint-order: stroke fill;
   text-shadow:
-    0 0 0 rgba(255, 255, 255, 0.4),
-    4px 4px 8px rgba(0, 0, 0, 0.5);
-  filter: drop-shadow(4px 4px 8px rgba(0, 0, 0, 0.5))
-    drop-shadow(2px 2px 0 rgba(0, 0, 0, 0.4));
-}
-
-/* 3D extrusion — deep opaque shadow stack */
-.auth-welcome-title::before {
-  content: attr(data-text);
-  position: absolute;
-  left: 0;
-  top: 0;
-  z-index: -1;
-  width: 100%;
-  font-weight: 900;
-  -webkit-text-fill-color: #052a18;
-  color: #052a18;
-  background: none;
-  -webkit-background-clip: border-box;
-  background-clip: border-box;
-  transform: translate(4px, 5px);
-  text-shadow:
-    1px 1px 0 #041f14,
-    2px 2px 0 #031a10,
-    3px 3px 0 #02150c,
-    4px 4px 0 rgba(0, 0, 0, 0.65),
-    4px 4px 8px rgba(0, 0, 0, 0.5),
-    5px 6px 12px rgba(0, 0, 0, 0.45);
-}
-
-/* Light top sheen only (reduced so it does not wash out the text) */
-.auth-welcome-title::after {
-  content: attr(data-text);
-  position: absolute;
-  left: 0;
-  top: 0;
-  z-index: 2;
-  width: 100%;
-  font-weight: 900;
-  pointer-events: none;
-  -webkit-text-fill-color: transparent;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.55) 0%,
-    rgba(255, 255, 255, 0.15) 18%,
-    transparent 35%
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  mix-blend-mode: overlay;
-  opacity: 0.45;
+    0 1px 0 rgba(255, 255, 255, 0.9),
+    0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 /* BlackRock 3D Premium Branding Logo */
@@ -266,64 +185,103 @@
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 1.35rem;
+  gap: 1.25rem;
   width: 95%;
   max-width: 32rem;
   margin-inline: auto;
   box-sizing: border-box;
   padding-bottom: 0.5rem;
+  overflow-x: hidden;
 }
 
-/* —— Header —— */
+/* —— Dashboard header — metallic gold 3D —— */
 .home-header-premium {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 100%;
+  padding: 0.25rem 0 0.625rem;
   text-align: center;
-  padding: 0.25rem 0 0.5rem;
+  box-sizing: border-box;
 }
 
-.home-header-eyebrow {
-  margin: 0 0 0.35rem;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: #4a7c2a;
-}
-
-/* Green gradient + layered 3D text-shadow (crisp on mobile) */
-.welcome-premium {
+.dashboard-brand-3d {
+  position: relative;
   display: inline-block;
   margin: 0;
   padding: 0 0.25rem;
   max-width: 100%;
-  overflow-wrap: break-word;
-  word-break: break-word;
-  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: clamp(1.25rem, 6vw, 1.85rem);
-  font-weight: 800;
-  line-height: 1.2;
-  letter-spacing: clamp(0.03em, 0.3vw, 0.06em);
+  font-family: 'Plus Jakarta Sans', 'Bebas Neue', system-ui, sans-serif;
+  font-size: clamp(1.75rem, 8vw, 2.75rem);
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
   text-align: center;
-  /* Premium green gradient on the glyphs */
+  overflow-wrap: break-word;
+  word-break: break-word;
+  /* Orange-gold metallic fill (#FFD700 → #FF8C00) */
   background: linear-gradient(
-    180deg,
-    #c8f07a 0%,
-    #a8e063 18%,
-    #84cc16 45%,
-    #5a9e1a 72%,
-    #1a472a 100%
+    165deg,
+    #fff8dc 0%,
+    #ffd700 18%,
+    #ffb347 42%,
+    #ff8c00 68%,
+    #cc7000 100%
   );
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   color: transparent;
-  /* Layered pop-out depth (forest green + soft cast) */
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.85);
+  paint-order: stroke fill;
+  filter: drop-shadow(0 2px 0 rgba(180, 100, 0, 0.5))
+    drop-shadow(4px 4px 8px rgba(0, 0, 0, 0.35));
+}
+
+/* 3D depth layer */
+.dashboard-brand-3d::before {
+  content: attr(data-text);
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: -1;
+  width: 100%;
+  font-weight: 900;
+  -webkit-text-fill-color: #8b4513;
+  color: #8b4513;
+  transform: translate(3px, 4px);
   text-shadow:
-    0 1px 0 #6fad14,
-    1px 1px 0 #2d6b3f,
-    2px 2px 0 #1a472a,
-    3px 3px 0 #153d24,
-    4px 4px 0 rgba(0, 0, 0, 0.2);
+    1px 1px 0 #7a3d0f,
+    2px 2px 0 #6a350d,
+    3px 3px 0 #5a2d0b,
+    4px 4px 0 rgba(0, 0, 0, 0.45),
+    4px 4px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* Metallic highlight sheen */
+.dashboard-brand-3d::after {
+  content: attr(data-text);
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 1;
+  width: 100%;
+  font-weight: 900;
+  pointer-events: none;
+  -webkit-text-fill-color: transparent;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(255, 235, 150, 0.4) 20%,
+    transparent 45%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  mix-blend-mode: overlay;
+  opacity: 0.65;
 }
 
 /* —— Wallet panel (dark glass shell) —— */
@@ -737,8 +695,12 @@
 }
 
 @media (min-width: 1024px) {
-  .welcome-premium {
-    font-size: clamp(1.75rem, 4vw, 2.35rem);
+  .dashboard-brand-3d {
+    font-size: 2.75rem;
+  }
+
+  .auth-brand-title {
+    font-size: 3rem;
   }
 }
 
@@ -799,31 +761,28 @@
     word-break: break-word;
   }
 
-  .auth-welcome-hero {
+  .auth-brand-header {
     width: 95%;
+    margin-bottom: 1.25rem;
   }
 
-  .auth-welcome-title {
-    font-size: clamp(1.5rem, 7vw, 2.25rem);
-    font-weight: 900;
-    letter-spacing: 0.04em;
-    -webkit-text-stroke: 1.75px rgba(255, 255, 255, 0.95);
-    text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
-    filter: drop-shadow(3px 3px 6px rgba(0, 0, 0, 0.5));
+  .auth-brand-title {
+    font-size: clamp(1.75rem, 9vw, 2.5rem);
+    letter-spacing: 0.1em;
   }
 
-  .auth-welcome-title::before {
-    transform: translate(3px, 4px);
-    text-shadow:
-      1px 1px 0 #031a10,
-      2px 2px 0 #02150c,
-      3px 3px 0 rgba(0, 0, 0, 0.6),
-      4px 4px 8px rgba(0, 0, 0, 0.5);
+  .home-header-premium {
+    padding: 0.2rem 0 0.5rem;
   }
 
-  .welcome-premium {
-    font-size: clamp(1.2rem, 5.8vw, 1.65rem);
+  .dashboard-brand-3d {
+    font-size: clamp(1.5rem, 7.5vw, 2.25rem);
     letter-spacing: 0.06em;
+    -webkit-text-stroke: 0.75px rgba(255, 255, 255, 0.9);
+  }
+
+  .dashboard-brand-3d::before {
+    transform: translate(2px, 3px);
   }
 
   .home-wallets-panel {
@@ -903,8 +862,18 @@
 }
 
 @media (max-width: 375px) {
-  .welcome-premium {
-    font-size: 1.1rem;
+  .auth-brand-title {
+    font-size: 1.65rem;
+    letter-spacing: 0.08em;
+  }
+
+  .dashboard-brand-3d {
+    font-size: 1.4rem;
+    letter-spacing: 0.05em;
+  }
+
+  .home-dashboard-stack {
+    gap: 1rem;
   }
 
   .home-wallet-label,

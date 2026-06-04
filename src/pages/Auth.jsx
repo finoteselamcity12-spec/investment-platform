@@ -376,11 +376,9 @@ export default function Auth() {
     <div className="auth-page min-h-screen w-full max-w-full overflow-x-hidden bg-gradient-to-b from-lime-400 to-lime-500 flex flex-col items-center justify-center p-4 relative">
       <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_20%_50%,rgba(255,255,255,0.8),transparent_50%),radial-gradient(circle_at_80%_80%,rgba(255,255,255,0.4),transparent_50%)]" />
 
-      <div className="auth-welcome-hero">
-        <h1 className="auth-welcome-title" data-text="WELCOME TO BLACKROCK">
-          WELCOME TO BLACKROCK
-        </h1>
-      </div>
+      <header className="auth-brand-header">
+        <h1 className="auth-brand-title">BLACKROCK</h1>
+      </header>
 
       <div
         className="auth-container relative z-10 w-[95%] max-w-md rounded-3xl bg-white p-8 shadow-2xl md:p-10"
