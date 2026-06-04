@@ -37,15 +37,20 @@ export default function HomePage({ ctx }) {
         </header>
 
         <div className="home-balance-card rounded-3xl px-5 py-5 text-white">
-          <p className="text-sm font-semibold uppercase tracking-[0.2em]">Total Balance</p>
-          <div className="home-balance-rows">
-            <div className="home-balance-row">
-              <span className="home-balance-label">Balance ETB:</span>
-              <span className="home-balance-value">{Number(etbBalance).toFixed(2)}</span>
+          <p className="home-balance-title">Total Balance</p>
+          <p className="home-balance-total">
+            ${(Number(usdBalance) + Number(etbBalance)).toFixed(2)}
+          </p>
+          <div className="home-wallet-grid">
+            <div className="home-wallet-card">
+              <p className="home-wallet-label">USD Wallet</p>
+              <p className="home-wallet-value">${Number(usdBalance).toFixed(2)}</p>
             </div>
-            <div className="home-balance-row">
-              <span className="home-balance-label">Balance USD:</span>
-              <span className="home-balance-value">{Number(usdBalance).toFixed(2)}</span>
+            <div className="home-wallet-card">
+              <p className="home-wallet-label">ETB Wallet</p>
+              <p className="home-wallet-value">
+                {Number(etbBalance).toLocaleString()} Br
+              </p>
             </div>
           </div>
         </div>

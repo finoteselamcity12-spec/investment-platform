@@ -112,34 +112,46 @@
   box-shadow: 0 20px 40px rgba(132, 204, 22, 0.28);
 }
 
-.home-balance-rows {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 12px;
-  margin-top: 14px;
-}
-
-.home-balance-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  min-height: 28px;
-}
-
-.home-balance-label {
-  font-size: 0.95rem;
+.home-balance-title {
+  font-size: 0.875rem;
   font-weight: 600;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
+  letter-spacing: 0.04em;
+  opacity: 0.95;
 }
 
-.home-balance-value {
-  font-size: 1.25rem;
+.home-balance-total {
+  margin-top: 0.5rem;
+  font-size: clamp(2.25rem, 9vw, 3rem);
   font-weight: 800;
-  line-height: 1;
-  text-align: right;
+  line-height: 1.1;
+}
+
+.home-wallet-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 1.25rem;
+}
+
+.home-wallet-card {
+  min-width: 0;
+  border-radius: 12px;
+  background-color: rgba(0, 0, 0, 0.18);
+  padding: 12px 10px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+}
+
+.home-wallet-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  opacity: 0.88;
+}
+
+.home-wallet-value {
+  margin-top: 0.35rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+  line-height: 1.2;
 }
 
 .home-action-grid {
