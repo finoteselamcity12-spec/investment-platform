@@ -1,5 +1,4 @@
 import { TrendingUp, Wallet, ArrowDownRight, Users, Coins } from 'lucide-react'
-import { computeTotalBalanceUsd } from '../lib/platformConfig'
 
 const GOLD_COIN = '#FFD700'
 
@@ -12,8 +11,6 @@ export default function HomePage({ ctx }) {
     referralEarningsUsd = 0,
     referralEarningsEtb = 0,
   } = ctx
-
-  const totalBalance = computeTotalBalanceUsd(usdBalance, etbBalance)
 
   const usdDailyProfit = myActiveInvestmentsList
     .filter((item) => item.currency === 'USD')
@@ -65,8 +62,6 @@ export default function HomePage({ ctx }) {
         </header>
 
         <div className="home-balance-card rounded-3xl text-white">
-          <p className="home-balance-title">Total Balance</p>
-          <p className="home-balance-total">${totalBalance.toFixed(2)}</p>
           <div className="home-wallet-grid">
             <div className="home-wallet-card">
               <div className="home-wallet-header">
