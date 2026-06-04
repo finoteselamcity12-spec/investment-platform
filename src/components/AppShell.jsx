@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Home,
@@ -19,7 +19,10 @@ import {
   REFERRAL_BONUS_USD,
   REFERRAL_BONUS_ETB,
 } from '../lib/platformConfig'
-import { fetchUserBalances, testSupabaseConnection } from '../lib/supabaseData'
+import {
+  refreshUserBalancesFromAuth,
+  testSupabaseConnection,
+} from '../lib/supabaseData'
 import {
   handleLoginSignupBonusCheck,
   dedupeTransactions,
@@ -112,75 +115,76 @@ export default function AppShell({ children, activePage, setActivePage }) {
   const [toastType, setToastType] = useState('success')
   const [claimTimestamp, setClaimTimestamp] = useState(null)
   const [historyFilter, setHistoryFilter] = useState('All')
+  const [balancesLoading, setBalancesLoading] = useState(true)
   const claimCooldownMs = 24 * 60 * 60 * 1000
-  
-  // Load current session and saved data on mount
+
+  const refreshBalances = useCallback(async () => {
+    const session = getSession()
+    const profileEmail = session?.user?.email
+    const supabaseUserId = session?.user?.id
+    if (!profileEmail || !supabaseUserId) {
+      setBalancesLoading(false)
+      return null
+    }
+
+    setBalancesLoading(true)
+    try {
+      await handleLoginSignupBonusCheck(supabaseUserId, profileEmail)
+      const result = await refreshUserBalancesFromAuth(supabaseUserId, profileEmail)
+      if (result) {
+        setUsdBalance(result.usdBalance)
+        setEtbBalance(result.etbBalance)
+      }
+      return result
+    } finally {
+      setBalancesLoading(false)
+    }
+  }, [])
+
+  // Load session + fetch authoritative balances from Supabase (not stale cache)
   useEffect(() => {
     async function loadUserState() {
-    const session = getSession()
-    if (session?.user?.email) {
-      setUserEmail(session.user.email)
-      setUserFullName(session.user.fullName || 'User')
-      // try session user metadata for avatar
-      const possible = session.user.user_metadata || {}
-      if (possible.avatar_url || possible.avatar || possible.photoURL) {
-        setProfileImage(possible.avatar_url || possible.avatar || possible.photoURL)
-      }
-    } else {
+      const session = getSession()
       const userData = JSON.parse(localStorage.getItem('admin_user_data') || '{}')
-      const savedEmail = Object.keys(userData)[0]
-      if (savedEmail) {
-        setUserEmail(savedEmail)
-        setUserFullName(userData[savedEmail].fullName || 'User')
-        // load stored avatar if present
-        if (userData[savedEmail].profileImage || userData[savedEmail].avatar) {
-          setProfileImage(userData[savedEmail].profileImage || userData[savedEmail].avatar)
+      const profileEmail = session?.user?.email || Object.keys(userData)[0]
+
+      if (session?.user?.email) {
+        setUserEmail(session.user.email)
+        setUserFullName(session.user.fullName || 'User')
+        const possible = session.user.user_metadata || {}
+        if (possible.avatar_url || possible.avatar || possible.photoURL) {
+          setProfileImage(possible.avatar_url || possible.avatar || possible.photoURL)
+        }
+      } else if (profileEmail && userData[profileEmail]) {
+        setUserEmail(profileEmail)
+        setUserFullName(userData[profileEmail].fullName || 'User')
+        if (userData[profileEmail].profileImage || userData[profileEmail].avatar) {
+          setProfileImage(userData[profileEmail].profileImage || userData[profileEmail].avatar)
         }
       }
-    }
 
-    const userData = JSON.parse(localStorage.getItem('admin_user_data') || '{}')
-    const profileEmail = session?.user?.email || Object.keys(userData)[0]
-    if (profileEmail && userData[profileEmail]) {
-      setUsdBalance(userData[profileEmail].usdBalance || 0.0)
-      setEtbBalance(userData[profileEmail].etbBalance || 0.0)
-      if (!profileImage && (userData[profileEmail].profileImage || userData[profileEmail].avatar)) {
-        setProfileImage(userData[profileEmail].profileImage || userData[profileEmail].avatar)
+      const supabaseUserId = session?.user?.id
+      if (supabaseUserId && profileEmail) {
+        await refreshBalances()
+      } else {
+        setBalancesLoading(false)
       }
-    }
 
-    const supabaseUserId = session?.user?.id
-    if (supabaseUserId && profileEmail) {
-      await handleLoginSignupBonusCheck(supabaseUserId, profileEmail)
+      const investments = JSON.parse(localStorage.getItem('user_investments') || '[]')
+      setMyActiveInvestmentsList(investments)
+      setTransactions([])
 
-      const remoteBalances = await fetchUserBalances(supabaseUserId)
-      if (remoteBalances) {
-        setUsdBalance(remoteBalances.usdBalance)
-        setEtbBalance(remoteBalances.etbBalance)
-        if (userData[profileEmail]) {
-          userData[profileEmail].usdBalance = remoteBalances.usdBalance
-          userData[profileEmail].etbBalance = remoteBalances.etbBalance
-          localStorage.setItem('admin_user_data', JSON.stringify(userData))
-        }
+      const referralUserId = supabaseUserId || userData[profileEmail]?.id
+      if (referralUserId) {
+        const referralData = loadReferralStats(referralUserId)
+        setReferralLink(referralData.referralLink || '')
+        setReferralCount(referralData.referralCount || 0)
+        setReferralEarningsUsd(referralData.earningsUsd || 0.0)
+        setReferralEarningsEtb(referralData.earningsEtb || 0.0)
       }
-    }
 
-    const investments = JSON.parse(localStorage.getItem('user_investments') || '[]')
-    setMyActiveInvestmentsList(investments)
-
-    setTransactions([])
-
-    const referralUserId = supabaseUserId || userData[profileEmail]?.id
-    if (referralUserId) {
-      const referralData = loadReferralStats(referralUserId)
-      setReferralLink(referralData.referralLink || '')
-      setReferralCount(referralData.referralCount || 0)
-      setReferralEarningsUsd(referralData.earningsUsd || 0.0)
-      setReferralEarningsEtb(referralData.earningsEtb || 0.0)
-    }
-
-    const claimTs = localStorage.getItem('lastClaimTimestamp')
-    if (claimTs) setClaimTimestamp(parseInt(claimTs))
+      const claimTs = localStorage.getItem('lastClaimTimestamp')
+      if (claimTs) setClaimTimestamp(parseInt(claimTs))
     }
 
     loadUserState()
@@ -192,7 +196,26 @@ export default function AppShell({ children, activePage, setActivePage }) {
         console.warn('[Supabase] Connection issue:', result.message)
       }
     })
-  }, [])
+  }, [refreshBalances])
+
+  const prevActivePage = useRef(activePage)
+  useEffect(() => {
+    if (prevActivePage.current === activePage) return
+    prevActivePage.current = activePage
+    if (activePage === 'home' || activePage === 'deposit') {
+      refreshBalances()
+    }
+  }, [activePage, refreshBalances])
+
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') {
+        refreshBalances()
+      }
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => document.removeEventListener('visibilitychange', onVisible)
+  }, [refreshBalances])
 
   const navItems = [
     { id: 'home', label: 'Home', icon: Home },
@@ -229,6 +252,8 @@ export default function AppShell({ children, activePage, setActivePage }) {
   const appContext = {
     usdBalance, setUsdBalance,
     etbBalance, setEtbBalance,
+    balancesLoading,
+    refreshBalances,
     myActiveInvestmentsList, setMyActiveInvestmentsList,
     transactions, setTransactions,
     userFullName, userEmail,

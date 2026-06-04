@@ -14,7 +14,13 @@ export default function BrandGoldHeader({ title, variant = 'login', className = 
   ].join(' ')
 
   const coinSize = isLogin ? 28 : 24
-  const headerClass = `brand-header-block w-full ${className}`.trim()
+  const headerClass = [
+    'brand-header-block w-full text-center',
+    isLogin ? 'brand-header-block--login' : '',
+    className,
+  ]
+    .filter(Boolean)
+    .join(' ')
 
   return (
     <header className={headerClass}>

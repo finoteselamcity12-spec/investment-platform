@@ -32,10 +32,18 @@
   padding-right: 0.25rem;
 }
 
+.brand-header-block--login {
+  padding: 0.5rem 1rem;
+  box-sizing: border-box;
+}
+
 .auth-brand-header {
   max-width: 100%;
   width: 100%;
   margin-bottom: 1.5rem;
+  padding: 0.75rem 1rem;
+  box-sizing: border-box;
+  text-align: center;
 }
 
 .home-header-premium {
@@ -108,10 +116,27 @@
     drop-shadow(2px 3px 10px rgba(0, 0, 0, 0.45));
 }
 
-/* Login BLACKROCK — text-6xl+ (60px–72px) */
+/* Login BLACKROCK — golden glow, text-3xl / text-4xl */
 .brand-gold-3d--login {
-  font-size: clamp(3.75rem, 14vw, 4.5rem);
-  letter-spacing: 0.1em;
+  font-size: clamp(1.875rem, 7vw, 2.25rem);
+  letter-spacing: 0.08em;
+  color: #ffd700;
+  background: none;
+  -webkit-background-clip: unset;
+  background-clip: unset;
+  -webkit-text-fill-color: #ffd700;
+  -webkit-text-stroke: 1px rgba(0, 0, 0, 0.35);
+  paint-order: stroke fill;
+  text-shadow:
+    2px 2px 0 #b8860b,
+    4px 4px 5px rgba(0, 0, 0, 0.3);
+  filter: drop-shadow(0 0 12px rgba(255, 215, 0, 0.45));
+  padding: 0.25rem 0.5rem;
+}
+
+.brand-gold-3d--login::before,
+.brand-gold-3d--login::after {
+  display: none;
 }
 
 /* Dashboard WELCOME TO BLACKROCK — text-6xl (60px), scales on narrow screens */
@@ -145,7 +170,6 @@
     4px 4px 8px rgba(0, 0, 0, 0.5);
 }
 
-.brand-gold-3d--login::before,
 .brand-gold-3d--dashboard::before {
   transform: translate(3px, 4px);
   text-shadow:
@@ -745,7 +769,7 @@
 
 @media (min-width: 1024px) {
   .brand-gold-3d--login {
-    font-size: 4.5rem;
+    font-size: 2.25rem;
   }
 
   .brand-gold-3d--dashboard {
@@ -813,11 +837,12 @@
   .auth-brand-header {
     width: 100%;
     margin-bottom: 1.25rem;
+    padding: 0.625rem 0.75rem;
   }
 
   .brand-gold-3d--login {
-    font-size: clamp(3.5rem, 13vw, 4.25rem);
-    letter-spacing: 0.1em;
+    font-size: clamp(1.875rem, 7vw, 2.25rem);
+    letter-spacing: 0.07em;
   }
 
   .brand-gold-3d--dashboard {
@@ -911,8 +936,8 @@
 
 @media (max-width: 375px) {
   .brand-gold-3d--login {
-    font-size: clamp(3.25rem, 12vw, 3.75rem);
-    letter-spacing: 0.08em;
+    font-size: clamp(1.75rem, 6.5vw, 2rem);
+    letter-spacing: 0.06em;
   }
 
   .brand-gold-3d--dashboard {

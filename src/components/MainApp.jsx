@@ -19,8 +19,6 @@ export default function MainApp() {
   const [sessionWarningVisible, setSessionWarningVisible] = useState(false)
   const [userFullName, setUserFullName] = useState('')
   const [userEmail, setUserEmail] = useState('')
-  const [usdBalance, setUsdBalance] = useState(0)
-  const [etbBalance, setEtbBalance] = useState(0)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -73,12 +71,6 @@ export default function MainApp() {
       setUserEmail(session.user.email)
       setUserFullName(session.user.fullName)
 
-      const userData = JSON.parse(localStorage.getItem('admin_user_data') || '{}')
-      const userRecord = userData[session.user.email]
-      if (userRecord) {
-        setUsdBalance(userRecord.usdBalance || 0)
-        setEtbBalance(userRecord.etbBalance || 0)
-      }
     }
   }
 
@@ -91,8 +83,6 @@ export default function MainApp() {
   const ctx = {
     userFullName,
     userEmail,
-    usdBalance,
-    etbBalance,
     setActivePage,
     showToast,
   }

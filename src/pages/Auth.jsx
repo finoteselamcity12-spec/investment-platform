@@ -7,7 +7,11 @@ import {
   REGISTRATION_BONUS_ETB,
   REGISTRATION_BONUS_USD,
 } from '../lib/platformConfig'
-import { syncProfileAfterSignup, fetchUserBalances } from '../lib/supabaseData'
+import {
+  syncProfileAfterSignup,
+  refreshUserBalancesFromAuth,
+  persistUserBalances,
+} from '../lib/supabaseData'
 import { handleLoginSignupBonusCheck } from '../lib/bonusHistory'
 import TermsAndConditionsPanel from '../components/TermsAndConditionsPanel'
 import BrandGoldHeader from '../components/BrandGoldHeader'
@@ -315,41 +319,40 @@ export default function Auth() {
       if (error) throw error
 
       const userData = JSON.parse(localStorage.getItem('admin_user_data') || '{}')
-      const userProfile = userData[sanitizedEmail] || {
-        id: user?.id,
-        fullName: user?.user_metadata?.full_name,
-        email: sanitizedEmail,
-        usdBalance: 0,
-        etbBalance: 0,
-      }
+      const existingProfile = userData[sanitizedEmail] || {}
+
+      let usdBalance = 0
+      let etbBalance = 0
 
       if (user?.id) {
         const bonusCheck = await handleLoginSignupBonusCheck(user.id, sanitizedEmail)
         console.log('[Auth] signup bonus check:', bonusCheck)
 
-        const remoteBalances = await fetchUserBalances(user.id)
-        if (remoteBalances) {
-          userProfile.usdBalance = remoteBalances.usdBalance
-          userProfile.etbBalance = remoteBalances.etbBalance
+        const remote = await refreshUserBalancesFromAuth(user.id, sanitizedEmail)
+        if (remote?.fromDatabase) {
+          usdBalance = remote.usdBalance
+          etbBalance = remote.etbBalance
         }
       }
 
       createSession({
-        id: user?.id || userProfile.id,
+        id: user?.id || existingProfile.id,
         email: sanitizedEmail,
-        fullName: user?.user_metadata?.full_name || userProfile.fullName,
+        fullName: user?.user_metadata?.full_name || existingProfile.fullName,
         profileImage: null,
       })
 
       userData[sanitizedEmail] = {
-        ...userProfile,
-        ...userData[sanitizedEmail],
-        id: user?.id || userProfile.id,
-        usdBalance: userProfile.usdBalance ?? 0,
-        etbBalance: userProfile.etbBalance ?? 0,
+        ...existingProfile,
+        id: user?.id || existingProfile.id,
+        email: sanitizedEmail,
+        fullName: user?.user_metadata?.full_name || existingProfile.fullName || 'User',
+        usdBalance,
+        etbBalance,
         lastLogin: new Date().toISOString(),
       }
       localStorage.setItem('admin_user_data', JSON.stringify(userData))
+      persistUserBalances(sanitizedEmail, { usdBalance, etbBalance }, user?.id)
 
       navigate('/dashboard')
     } catch (error) {

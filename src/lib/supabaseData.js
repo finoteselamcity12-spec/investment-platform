@@ -69,21 +69,84 @@ export async function syncProfileAfterSignup({
   return { ok: true, referredBy }
 }
 
+/**
+ * Resolve the authenticated Supabase user id (RLS requires auth.uid()).
+ */
+export async function resolveAuthenticatedUserId(hintUserId) {
+  if (!isSupabaseConfigured()) return hintUserId || null
+
+  const { data: { user }, error } = await supabase.auth.getUser()
+  if (error) {
+    console.warn('[balances] auth.getUser failed:', error.message)
+  }
+  if (user?.id) {
+    if (hintUserId && hintUserId !== user.id) {
+      console.warn('[balances] Using Supabase session user id (hint mismatch)')
+    }
+    return user.id
+  }
+  return hintUserId || null
+}
+
 export async function fetchUserBalances(userId) {
-  if (!userId || !isSupabaseConfigured()) return null
+  if (!isSupabaseConfigured()) return null
+
+  const resolvedUserId = await resolveAuthenticatedUserId(userId)
+  if (!resolvedUserId) return null
 
   const { data, error } = await supabase
     .from('balances')
     .select('etb_balance, usd_balance')
-    .eq('user_id', userId)
+    .eq('user_id', resolvedUserId)
     .maybeSingle()
 
-  if (error || !data) return null
+  if (error) {
+    console.error('[balances] fetch failed:', error.message, { userId: resolvedUserId })
+    return null
+  }
+
+  if (!data) {
+    return { etbBalance: 0, usdBalance: 0, fromDatabase: true, empty: true }
+  }
 
   return {
     etbBalance: Number(data.etb_balance) || 0,
     usdBalance: Number(data.usd_balance) || 0,
+    fromDatabase: true,
+    empty: false,
   }
+}
+
+/** Persist authoritative DB balances to local profile cache (display only). */
+export function persistUserBalances(email, balances, userId) {
+  if (!email || !balances) return
+
+  const userData = JSON.parse(localStorage.getItem('admin_user_data') || '{}')
+  userData[email] = {
+    ...(userData[email] || {}),
+    id: userId || userData[email]?.id,
+    email,
+    usdBalance: balances.usdBalance,
+    etbBalance: balances.etbBalance,
+  }
+  localStorage.setItem('admin_user_data', JSON.stringify(userData))
+}
+
+/**
+ * Load balances from Supabase for the signed-in user (source of truth).
+ */
+export async function refreshUserBalancesFromAuth(hintUserId, email) {
+  const userId = await resolveAuthenticatedUserId(hintUserId)
+  if (!userId) return null
+
+  const balances = await fetchUserBalances(userId)
+  if (!balances?.fromDatabase) return null
+
+  if (email) {
+    persistUserBalances(email, balances, userId)
+  }
+
+  return { ...balances, userId }
 }
 
 export async function countApprovedDeposits(userId) {
