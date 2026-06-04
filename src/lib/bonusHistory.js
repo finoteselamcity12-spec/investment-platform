@@ -6,41 +6,53 @@ import {
   DEPOSIT_BONUS_RATE,
 } from './platformConfig'
 
+/** Supabase table for bonus audit (user-created public.history) */
+export const HISTORY_TABLE = 'history'
+
 const SIGNUP_BONUS_ETB_ID = 'signup-bonus-etb'
 const SIGNUP_BONUS_USD_ID = 'signup-bonus-usd'
 
-export async function hasBonusHistoryAction(userId, action, referenceId = null) {
-  if (!userId || !isSupabaseConfigured()) return false
+/**
+ * Equivalent to:
+ * SELECT count(*) FROM public.history WHERE user_id = ? AND action = ?
+ */
+export async function countHistoryByAction(userId, action, referenceId = null) {
+  if (!userId || !isSupabaseConfigured()) return 0
 
   let query = supabase
-    .from('bonus_history')
-    .select('id')
+    .from(HISTORY_TABLE)
+    .select('*', { count: 'exact', head: true })
     .eq('user_id', userId)
     .eq('action', action)
-    .limit(1)
 
   if (referenceId) {
     query = query.eq('reference_id', referenceId)
   }
 
-  const { data, error } = await query.maybeSingle()
+  const { count, error } = await query
   if (error) {
-    console.warn('[bonus_history] lookup failed:', error.message)
-    return false
+    console.warn(`[${HISTORY_TABLE}] count failed:`, error.message)
+    return 0
   }
-  return Boolean(data?.id)
+  return count ?? 0
+}
+
+export async function hasBonusHistoryAction(userId, action, referenceId = null) {
+  const total = await countHistoryByAction(userId, action, referenceId)
+  return total > 0
 }
 
 /**
- * Login/signup guard: never grant signup bonus if history row exists.
+ * Login guard: if signup_bonus count > 0, do not grant again.
  */
 export async function handleLoginSignupBonusCheck(userId, email) {
   if (!userId) return { skipped: true, reason: 'no_user_id' }
 
-  const historyExists = await hasBonusHistoryAction(userId, 'signup_bonus')
-  if (historyExists) {
+  const signupCount = await countHistoryByAction(userId, 'signup_bonus')
+  if (signupCount > 0) {
+    console.log('[Auth] signup_bonus history count:', signupCount, '— skipping grant')
     mirrorSignupBonusToLocalHistory(email, userId)
-    return { skipped: true, reason: 'history_exists' }
+    return { skipped: true, reason: 'history_exists', count: signupCount }
   }
 
   if (!isSupabaseConfigured()) {
@@ -62,6 +74,12 @@ export async function handleLoginSignupBonusCheck(userId, email) {
   }
 
   return { skipped, granted: !skipped, data }
+}
+
+export async function hasDepositBonusForDeposit(userId, depositId) {
+  if (!userId || !depositId) return false
+  const count = await countHistoryByAction(userId, 'deposit_bonus', depositId)
+  return count > 0
 }
 
 export function mirrorSignupBonusToLocalHistory(email, userId) {
@@ -164,13 +182,13 @@ export async function fetchBonusHistory(userId) {
   if (!userId || !isSupabaseConfigured()) return []
 
   const { data, error } = await supabase
-    .from('bonus_history')
+    .from(HISTORY_TABLE)
     .select('id, action, currency, amount, reference_id, metadata, created_at')
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
 
   if (error) {
-    console.warn('[bonus_history] fetch failed:', error.message)
+    console.warn(`[${HISTORY_TABLE}] fetch failed:`, error.message)
     return []
   }
   return data || []

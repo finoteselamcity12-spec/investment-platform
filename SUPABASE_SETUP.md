@@ -91,7 +91,7 @@ This adds admin RPC functions (`admin_get_dashboard_stats`, `admin_approve_depos
 
 **Bonus logic (signup once + 10% deposit bonus):**
 
-Run `supabase/RUN_FIX_BONUS_LOGIC.sql` — creates `bonus_history`, unique indexes, updates `admin_approve_deposit`, and `handle_new_user`.
+Run `supabase/RUN_ALIGN_HISTORY_TABLE.sql` (or `RUN_FIX_BONUS_LOGIC.sql`) — wires RPCs to `public.history`, unique indexes, `admin_approve_deposit` (10% bonus), and `handle_new_user`. Frontend checks `count(*) > 0` for `signup_bonus` before granting.
 
 **If approve/reject fails with `invalid input syntax for type json`:**
 

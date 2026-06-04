@@ -1,9 +1,7 @@
 -- =============================================================================
--- FIX: Signup bonus (once per user) + 10% deposit bonus (once per deposit)
--- Run entire script in Supabase SQL Editor
+-- Align bonus RPCs with public.history (run after you created public.history)
 -- =============================================================================
 
--- Uses public.history (not bonus_history)
 CREATE TABLE IF NOT EXISTS public.history (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
@@ -35,7 +33,20 @@ CREATE POLICY history_select_own ON public.history
 
 GRANT SELECT ON public.history TO authenticated;
 
--- ─── Signup bonus: idempotent grant (login / backfill) ───────────────────────
+-- Migrate rows from legacy bonus_history if that table exists
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.tables
+    WHERE table_schema = 'public' AND table_name = 'bonus_history'
+  ) THEN
+    INSERT INTO public.history (user_id, action, currency, amount, reference_id, metadata, created_at)
+    SELECT user_id, action, currency, amount, reference_id, metadata, created_at
+    FROM public.bonus_history
+    ON CONFLICT DO NOTHING;
+  END IF;
+END $$;
+
 CREATE OR REPLACE FUNCTION public.grant_signup_bonus_if_missing(p_user_id UUID)
 RETURNS JSON
 LANGUAGE plpgsql
@@ -87,7 +98,6 @@ BEGIN
 END;
 $$;
 
--- ─── handle_new_user: record signup_bonus in history ─────────────────────────
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -100,6 +110,7 @@ DECLARE
   ref_raw TEXT;
   ref_uuid UUID;
   v_referral_code TEXT;
+  v_signup_count INTEGER;
 BEGIN
   v_email := COALESCE(NULLIF(TRIM(NEW.email), ''), '');
   v_full_name := COALESCE(
@@ -136,15 +147,21 @@ BEGIN
   VALUES (NEW.id, 150.00, 1.70)
   ON CONFLICT (user_id) DO NOTHING;
 
-  INSERT INTO public.history (user_id, action, currency, amount, metadata)
-  VALUES (
-    NEW.id,
-    'signup_bonus',
-    'MIXED',
-    0,
-    jsonb_build_object('etb', 150.00, 'usd', 1.70)
-  )
-  ON CONFLICT DO NOTHING;
+  SELECT COUNT(*)::INTEGER INTO v_signup_count
+  FROM public.history
+  WHERE user_id = NEW.id AND action = 'signup_bonus';
+
+  IF v_signup_count = 0 THEN
+    INSERT INTO public.history (user_id, action, currency, amount, metadata)
+    VALUES (
+      NEW.id,
+      'signup_bonus',
+      'MIXED',
+      0,
+      jsonb_build_object('etb', 150.00, 'usd', 1.70)
+    )
+    ON CONFLICT DO NOTHING;
+  END IF;
 
   RETURN NEW;
 EXCEPTION WHEN OTHERS THEN
@@ -153,17 +170,15 @@ EXCEPTION WHEN OTHERS THEN
 END;
 $$;
 
--- Backfill signup_bonus history for users who already have balances
 INSERT INTO public.history (user_id, action, currency, amount, metadata)
 SELECT b.user_id, 'signup_bonus', 'MIXED', 0, jsonb_build_object('etb', 150.00, 'usd', 1.70)
 FROM public.balances b
-WHERE NOT EXISTS (
-  SELECT 1 FROM public.history h
+WHERE (
+  SELECT COUNT(*) FROM public.history h
   WHERE h.user_id = b.user_id AND h.action = 'signup_bonus'
-)
+) = 0
 ON CONFLICT DO NOTHING;
 
--- ─── Admin approve deposit: principal + 10% bonus (idempotent per deposit) ───
 CREATE OR REPLACE FUNCTION public.admin_approve_deposit(p_deposit_id UUID)
 RETURNS JSON
 LANGUAGE plpgsql
@@ -175,6 +190,7 @@ DECLARE
   bonus_amt NUMERIC(18, 4);
   norm_currency TEXT;
   bonus_row_id UUID;
+  v_deposit_bonus_count INTEGER;
 BEGIN
   IF NOT public.is_admin() THEN
     RAISE EXCEPTION 'not_admin';
@@ -211,17 +227,25 @@ BEGIN
     WHERE user_id = dep.user_id;
   END IF;
 
-  INSERT INTO public.history (user_id, action, currency, amount, reference_id, metadata)
-  VALUES (
-    dep.user_id,
-    'deposit_bonus',
-    norm_currency,
-    bonus_amt,
-    p_deposit_id,
-    jsonb_build_object('deposit_amount', dep.amount, 'rate', 0.10)
-  )
-  ON CONFLICT DO NOTHING
-  RETURNING id INTO bonus_row_id;
+  SELECT COUNT(*)::INTEGER INTO v_deposit_bonus_count
+  FROM public.history
+  WHERE user_id = dep.user_id
+    AND action = 'deposit_bonus'
+    AND reference_id = p_deposit_id;
+
+  IF v_deposit_bonus_count = 0 THEN
+    INSERT INTO public.history (user_id, action, currency, amount, reference_id, metadata)
+    VALUES (
+      dep.user_id,
+      'deposit_bonus',
+      norm_currency,
+      bonus_amt,
+      p_deposit_id,
+      jsonb_build_object('deposit_amount', dep.amount, 'rate', 0.10)
+    )
+    ON CONFLICT DO NOTHING
+    RETURNING id INTO bonus_row_id;
+  END IF;
 
   IF bonus_row_id IS NOT NULL AND bonus_amt > 0 THEN
     IF norm_currency = 'USD' THEN

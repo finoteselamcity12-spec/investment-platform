@@ -1,6 +1,6 @@
 import { useMemo, useEffect } from 'react'
 import { CheckCircle, Clock, AlertCircle } from 'lucide-react'
-import { hasBonusHistoryAction, mirrorSignupBonusToLocalHistory } from '../lib/bonusHistory'
+import { countHistoryByAction, mirrorSignupBonusToLocalHistory } from '../lib/bonusHistory'
 import { getSession } from '../lib/authService'
 
 const PRIMARY_GREEN = '#84CC16'
@@ -22,8 +22,8 @@ export default function HistoryPage({ ctx }) {
     async function syncHistoryDisplay() {
       const userId = getSession()?.user?.id
       if (userId) {
-        const historyExists = await hasBonusHistoryAction(userId, 'signup_bonus')
-        if (historyExists) {
+        const signupCount = await countHistoryByAction(userId, 'signup_bonus')
+        if (signupCount > 0) {
           mirrorSignupBonusToLocalHistory(userEmail, userId)
         }
       } else {

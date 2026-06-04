@@ -1,5 +1,5 @@
--- Deprecated: use public.history — see 012_history_table.sql
--- Kept for migration order; creates history if missing.
+-- Bonus audit: public.history (one row per signup_bonus per user; one deposit_bonus per deposit)
+-- Safe if you already created the table manually — adds indexes/policies only.
 
 CREATE TABLE IF NOT EXISTS public.history (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

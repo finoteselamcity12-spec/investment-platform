@@ -31,7 +31,7 @@ BEGIN
     RAISE EXCEPTION 'deposit_already_rejected';
   END IF;
 
-  -- For 10% deposit bonus + bonus_history, run RUN_FIX_BONUS_LOGIC.sql after this script.
+  -- For 10% deposit bonus + public.history logging, run RUN_ALIGN_HISTORY_TABLE.sql after this script.
   IF dep.currency IN ('USD', 'USDT') THEN
     UPDATE public.balances
     SET usd_balance = usd_balance + dep.amount, updated_at = NOW()
