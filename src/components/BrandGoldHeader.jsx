@@ -12,12 +12,14 @@ export default function BrandGoldHeader({ title, variant = 'login', className = 
       ? 'brand-gold-3d brand-gold-3d--dashboard'
       : 'brand-gold-3d brand-gold-3d--login'
 
+  const coinSize = variant === 'login' ? 28 : 24
+
   return (
     <header className={`brand-header-block ${className}`.trim()}>
       <div className="brand-coin-row" aria-hidden="true">
         {Array.from({ length: COIN_COUNT }, (_, i) => (
           <span key={i} className="brand-coin-icon">
-            <Coins size={22} strokeWidth={2.25} />
+            <Coins size={coinSize} strokeWidth={2.5} style={{ color: '#FFD700' }} />
           </span>
         ))}
       </div>
