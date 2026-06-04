@@ -30,10 +30,12 @@ export default function HomePage({ ctx }) {
           <p className="mt-2 text-sm text-slate-500">Your dashboard is ready for action.</p>
         </div>
 
-        <div className="rounded-3xl bg-slate-950 p-7 text-white shadow-2xl shadow-slate-900/20">
-          <p className="text-sm uppercase tracking-[0.2em] text-slate-400">Total Balance</p>
-          <p className="mt-4 text-5xl font-semibold">$0.00</p>
-          <p className="mt-3 text-sm text-slate-400">Displayed until your first deposit or investment.</p>
+        <div className="rounded-3xl bg-[#84CC16] p-8 text-white shadow-2xl shadow-[#84CC16]/30">
+          <p className="text-sm uppercase tracking-[0.2em] font-semibold">Total Balance</p>
+          <div className="mt-6 space-y-3">
+            <p className="text-lg font-semibold">TOTAL BALANCE ETB 0.00</p>
+            <p className="text-lg font-semibold">TOTAL BALANCE USD 0.00</p>
+          </div>
         </div>
 
         <div
@@ -42,13 +44,13 @@ export default function HomePage({ ctx }) {
         >
           <button
             onClick={() => setActivePage?.('withdraw')}
-            className="min-h-[96px] rounded-[15px] border border-slate-200 bg-white px-4 py-4 text-left text-sm font-semibold text-slate-900 shadow-[0_8px_24px_rgba(15,23,42,0.08)] transition hover:border-slate-300"
+            className="min-h-[96px] rounded-[15px] bg-[#84CC16] px-4 py-4 text-left text-sm font-semibold text-white shadow-lg shadow-[#84CC16]/30 transition hover:bg-lime-500"
           >
             Withdrawal
           </button>
           <button
             onClick={() => setActivePage?.('history')}
-            className="min-h-[96px] rounded-[15px] border border-slate-200 bg-white px-4 py-4 text-left text-sm font-semibold text-slate-900 shadow-[0_8px_24px_rgba(15,23,42,0.08)] transition hover:border-slate-300"
+            className="min-h-[96px] rounded-[15px] bg-[#84CC16] px-4 py-4 text-left text-sm font-semibold text-white shadow-lg shadow-[#84CC16]/30 transition hover:bg-lime-500"
           >
             History
           </button>
