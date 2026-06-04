@@ -52,13 +52,13 @@ export default function HomePage({ ctx }) {
 
   return (
     <div className="home-page min-h-screen overflow-x-hidden bg-white pb-20">
-      <div className="mx-auto max-w-5xl space-y-6 px-4 py-6">
+      <div className="home-dashboard-stack mx-auto max-w-5xl px-4 py-8">
         <header className="text-center">
           <h1 className="welcome-3d">Welcome to Blackrock</h1>
           <p className="home-subtitle">Your dashboard is ready for action.</p>
         </header>
 
-        <div className="home-balance-card rounded-3xl px-5 py-5 text-white">
+        <div className="home-balance-card rounded-3xl text-white">
           <p className="home-balance-title">Total Balance</p>
           <p className="home-balance-total">${totalBalance.toFixed(2)}</p>
           <div className="home-wallet-grid">

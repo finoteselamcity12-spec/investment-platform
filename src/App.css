@@ -114,26 +114,35 @@
   background-color: #ffffff;
 }
 
+.home-dashboard-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
 .home-subtitle {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   color: #64748b;
+  margin-top: 0.5rem;
 }
 
 .home-balance-card {
   background-color: #84CC16;
   box-shadow: 0 20px 40px rgba(132, 204, 22, 0.28);
+  padding: 1.75rem 1.5rem;
+  min-height: 200px;
 }
 
 .home-balance-title {
-  font-size: 0.875rem;
+  font-size: 1rem;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
   opacity: 0.95;
 }
 
 .home-balance-total {
-  margin-top: 0.5rem;
-  font-size: clamp(2.25rem, 9vw, 3rem);
+  margin-top: 0.75rem;
+  font-size: clamp(2.75rem, 11vw, 3.5rem);
   font-weight: 800;
   line-height: 1.1;
 }
@@ -141,27 +150,31 @@
 .home-wallet-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-top: 1.25rem;
+  gap: 14px;
+  margin-top: 1.75rem;
 }
 
 .home-wallet-card {
   min-width: 0;
-  border-radius: 12px;
+  min-height: 80px;
+  border-radius: 14px;
   background-color: rgba(0, 0, 0, 0.18);
-  padding: 12px 10px;
+  padding: 16px 14px;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .home-wallet-label {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   opacity: 0.88;
 }
 
 .home-wallet-value {
-  margin-top: 0.35rem;
-  font-size: 1.15rem;
+  margin-top: 0.5rem;
+  font-size: 1.35rem;
   font-weight: 700;
   line-height: 1.2;
 }
@@ -169,7 +182,7 @@
 .home-action-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 14px;
   width: 100%;
 }
 
@@ -179,17 +192,20 @@
   justify-content: flex-start;
   min-width: 0;
   width: 100%;
-  height: 72px;
-  padding: 12px 14px;
+  min-height: 96px;
+  height: auto;
+  padding: 20px 18px;
   border: none;
-  border-radius: 15px;
+  border-radius: 18px;
   background-color: #84CC16;
   color: #ffffff;
-  font-size: 0.875rem;
+  font-size: 1.0625rem;
   font-weight: 700;
   text-align: left;
-  box-shadow: 0 10px 24px rgba(132, 204, 22, 0.35);
+  box-shadow: 0 12px 28px rgba(132, 204, 22, 0.38);
   transition: background-color 0.2s ease, transform 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 .home-action-btn:hover {
@@ -203,30 +219,34 @@
 .home-metrics-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 14px;
   width: 100%;
 }
 
 .home-metric-card {
   min-width: 0;
   width: 100%;
-  border-radius: 15px;
+  min-height: 110px;
+  border-radius: 18px;
   border: 1px solid rgba(132, 204, 22, 0.25);
   background-color: #ffffff;
-  padding: 14px 12px;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+  padding: 20px 16px;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .home-metric-label {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: #64748b;
-  line-height: 1.3;
+  line-height: 1.35;
 }
 
 .home-metric-value {
-  margin-top: 0.5rem;
-  font-size: 1.125rem;
+  margin-top: 0.65rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: #1a472a;
   line-height: 1.2;
@@ -238,7 +258,7 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: clamp(0.5px, 0.35vw, 2px);
-  margin: 0.25rem 0 0.5rem;
+  margin: 0.5rem 0 0.75rem;
   font-size: clamp(1.75rem, 7vw, 3.25rem);
   line-height: 1.1;
   text-align: center;
@@ -253,8 +273,22 @@
     font-size: clamp(2.5rem, 5vw, 3.75rem);
   }
 
+  .home-action-btn {
+    min-height: 100px;
+  }
+
+  .home-metric-card {
+    min-height: 120px;
+    padding: 22px 18px;
+  }
+
   .home-metric-value {
-    font-size: 1.25rem;
+    font-size: 1.375rem;
+  }
+
+  .home-balance-card {
+    padding: 2rem 1.75rem;
+    min-height: 220px;
   }
 }
 
@@ -272,12 +306,33 @@
     padding: 0 0.25rem;
   }
 
+  .home-dashboard-stack {
+    gap: 1.75rem;
+  }
+
+  .home-action-btn {
+    min-height: 88px;
+    padding: 18px 16px;
+    font-size: 1rem;
+  }
+
   .home-metric-card {
-    padding: 12px 10px;
+    min-height: 105px;
+    padding: 18px 14px;
   }
 
   .home-metric-value {
-    font-size: 1rem;
+    font-size: 1.125rem;
+  }
+
+  .home-balance-card {
+    padding: 1.5rem 1.25rem;
+    min-height: 190px;
+  }
+
+  .home-wallet-card {
+    min-height: 76px;
+    padding: 14px 12px;
   }
 
   .grid.grid-cols-2 {
