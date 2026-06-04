@@ -55,7 +55,6 @@ export default function HomePage({ ctx }) {
       <div className="home-dashboard-stack w-full px-3 py-6">
         <header className="text-center">
           <h1 className="welcome-3d">Welcome to Blackrock</h1>
-          <p className="home-subtitle">Your dashboard is ready for action.</p>
         </header>
 
         <div className="home-balance-card rounded-3xl text-white">

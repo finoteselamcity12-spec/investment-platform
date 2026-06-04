@@ -165,10 +165,8 @@ export default function InvestPage({ ctx = {} }) {
   return (
     <div className="min-h-screen bg-slate-50 pb-24">
       <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
-        {/* Header */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-slate-950">Investment Plans</h1>
-          <p className="text-sm text-slate-600 mt-1">Select your investment tier and start earning daily returns</p>
+          <h1 className="text-3xl font-bold text-slate-950">Choose your plan</h1>
         </div>
 
         {/* Currency Toggle */}
