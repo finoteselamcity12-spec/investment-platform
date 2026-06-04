@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowUpCircle, Wallet } from 'lucide-react'
-import supabase from '../lib/supabase'
+import { getSession } from '../lib/authService'
 import { WITHDRAWAL_MIN_ETB, WITHDRAWAL_MIN_USD } from '../lib/platformConfig'
 
 function formatCurrency(amount, currency) {
@@ -9,8 +9,9 @@ function formatCurrency(amount, currency) {
   return `${Number(amount).toLocaleString()} Birr`
 }
 
-export default function Withdraw() {
+export default function Withdraw({ ctx = {}, embedded = false }) {
   const navigate = useNavigate()
+  const { setUsdBalance, setEtbBalance, showToast: ctxShowToast, userEmail: ctxEmail } = ctx
   const [amount, setAmount] = useState('')
   const [bank, setBank] = useState('CBE')
   const [accountName, setAccountName] = useState('')
@@ -23,11 +24,15 @@ export default function Withdraw() {
   const banks = ['CBE', 'Dashen Bank', 'Telebirr', 'M-Pesa', 'USDT']
 
   useEffect(() => {
-    const user = supabase.auth.user || { email: 'user@example.com' }
-    setUserEmail(user?.email || 'user@example.com')
-  }, [])
+    const session = getSession()
+    setUserEmail(ctxEmail || session?.user?.email || '')
+  }, [ctxEmail])
 
   function showToast(msg, type = 'success') {
+    if (typeof ctxShowToast === 'function') {
+      ctxShowToast(msg, type)
+      return
+    }
     setToastType(type)
     setToast(msg)
     setTimeout(() => setToast(''), 3000)
@@ -76,6 +81,8 @@ export default function Withdraw() {
         users[userEmail].etbBalance = Number((users[userEmail].etbBalance || 0) - value)
       }
       localStorage.setItem('admin_user_data', JSON.stringify(users))
+      setUsdBalance?.(users[userEmail].usdBalance)
+      setEtbBalance?.(users[userEmail].etbBalance)
 
       // Add to admin pending withdrawals
       const pendingWithdrawals = JSON.parse(localStorage.getItem('admin_pending_withdrawals') || '[]')
@@ -101,8 +108,11 @@ export default function Withdraw() {
       setAccountNumber('')
       setBank('CBE')
       
-      // Navigate back to dashboard after short delay
-      setTimeout(() => navigate('/dashboard'), 1500)
+      if (embedded) {
+        setTimeout(() => ctx.setActivePage?.('home'), 1200)
+      } else {
+        setTimeout(() => navigate('/dashboard'), 1500)
+      }
     } catch (error) {
       showToast('Error processing withdrawal. Please try again.', 'error')
     } finally {

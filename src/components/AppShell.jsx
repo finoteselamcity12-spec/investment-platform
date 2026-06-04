@@ -18,7 +18,8 @@ import {
   REFERRAL_BONUS_USD,
   REFERRAL_BONUS_ETB,
 } from '../lib/platformConfig'
-import { fetchUserBalances } from '../lib/supabaseData'
+import { fetchUserBalances, testSupabaseConnection } from '../lib/supabaseData'
+import { loadReferralStats } from '../lib/referralUtils'
 import AdminLoginModal from './AdminLoginModal'
 import ProfileModal from './ProfileModal'
 
@@ -162,17 +163,28 @@ export default function AppShell({ children, activePage, setActivePage }) {
     const txns = JSON.parse(localStorage.getItem('user_transactions') || '[]')
     setTransactions(txns)
 
-    const referralData = JSON.parse(localStorage.getItem('referral_data') || '{}')
-    setReferralLink(referralData.referralLink || '')
-    setReferralCount(referralData.referralCount || 0)
-    setReferralEarningsUsd(referralData.earningsUsd || 0.0)
-    setReferralEarningsEtb(referralData.earningsEtb || 0.0)
+    const referralUserId = supabaseUserId || userData[profileEmail]?.id
+    if (referralUserId) {
+      const referralData = loadReferralStats(referralUserId)
+      setReferralLink(referralData.referralLink || '')
+      setReferralCount(referralData.referralCount || 0)
+      setReferralEarningsUsd(referralData.earningsUsd || 0.0)
+      setReferralEarningsEtb(referralData.earningsEtb || 0.0)
+    }
 
     const claimTs = localStorage.getItem('lastClaimTimestamp')
     if (claimTs) setClaimTimestamp(parseInt(claimTs))
     }
 
     loadUserState()
+
+    testSupabaseConnection().then((result) => {
+      if (!result.configured) {
+        console.warn('[Supabase]', result.message)
+      } else if (!result.ok) {
+        console.warn('[Supabase] Connection issue:', result.message)
+      }
+    })
   }, [])
 
   const navItems = [

@@ -5,6 +5,7 @@ import {
   SUPPORT_EMAIL,
   GOAL_TEXT,
 } from '../lib/supportConfig'
+import TermsAndConditionsPanel from './TermsAndConditionsPanel'
 
 const PRIMARY_GREEN = '#84CC16'
 
@@ -79,6 +80,13 @@ export default function Support() {
           <p className="text-sm leading-[1.75] text-slate-700 sm:text-base">
             {GOAL_TEXT}
           </p>
+        </section>
+
+        <section className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm">
+          <h2 className="text-lg font-bold text-slate-950">Terms &amp; Conditions / User Guide</h2>
+          <div className="mt-4 max-h-[28rem] overflow-y-auto">
+            <TermsAndConditionsPanel />
+          </div>
         </section>
       </div>
     </div>

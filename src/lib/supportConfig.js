@@ -18,7 +18,7 @@ export const TERMS_SECTIONS = [
   {
     title: 'Registration',
     bullets: [
-      'Users must register using a valid Email Address and Phone Number (both are required).',
+      'Users must register using a valid Email Address and Password.',
       'New accounts receive an automatic sign-up bonus of 150 ETB and 1.7 USD.',
     ],
   },
@@ -52,7 +52,7 @@ export const TERMS_SECTIONS = [
     title: 'Invite (Referral)',
     bullets: [
       'Grow your network by sharing your unique referral link from the "Invite" section.',
-      `When your invitee makes an approved deposit, you earn ${REFERRAL_BONUS_USD} USD (USD/USDT deposits) or ${REFERRAL_BONUS_ETB} ETB (ETB deposits).`,
+      `When your invitee makes their first approved deposit, you earn ${REFERRAL_BONUS_USD} USD (USD/USDT) or ${REFERRAL_BONUS_ETB} ETB (ETB). Bonuses apply once per invited user.`,
     ],
   },
   {

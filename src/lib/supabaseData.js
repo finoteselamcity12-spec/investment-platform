@@ -31,7 +31,6 @@ export async function resolveReferrerId(referrerCode) {
 export async function syncProfileAfterSignup({
   userId,
   email,
-  phone,
   fullName,
   referrerCode,
 }) {
@@ -43,8 +42,7 @@ export async function syncProfileAfterSignup({
     {
       id: userId,
       email,
-      phone,
-      full_name: fullName,
+      full_name: fullName || null,
       referred_by: referredBy,
     },
     { onConflict: 'id' }
@@ -88,8 +86,30 @@ export async function fetchUserBalances(userId) {
   }
 }
 
+export async function countApprovedDeposits(userId) {
+  if (!userId || !isSupabaseConfigured()) return 0
+
+  const { count, error } = await supabase
+    .from('deposits')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .eq('status', 'approved')
+
+  if (error) {
+    console.error('Deposit count failed:', error)
+    return 0
+  }
+
+  return count || 0
+}
+
 export async function recordDepositForReferral({ userId, currency, amount }) {
   if (!userId || !isSupabaseConfigured()) return { ok: false }
+
+  const priorApproved = await countApprovedDeposits(userId)
+  if (priorApproved > 0) {
+    return { ok: true, skipped: true, reason: 'not_first_deposit' }
+  }
 
   const normalizedCurrency =
     currency === 'USDT' || currency === 'USD' ? 'USD' : 'ETB'
@@ -119,6 +139,22 @@ export async function findProfileIdByEmail(email) {
     .maybeSingle()
 
   return data?.id || null
+}
+
+export async function testSupabaseConnection() {
+  if (!isSupabaseConfigured()) {
+    return { ok: false, configured: false, message: 'Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY' }
+  }
+
+  try {
+    const { error } = await supabase.from('profiles').select('id').limit(1)
+    if (error) {
+      return { ok: false, configured: true, message: error.message }
+    }
+    return { ok: true, configured: true, message: 'Connected' }
+  } catch (err) {
+    return { ok: false, configured: true, message: String(err?.message || err) }
+  }
 }
 
 export { REFERRAL_BONUS_USD, REFERRAL_BONUS_ETB }

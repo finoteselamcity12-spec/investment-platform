@@ -10,13 +10,21 @@
 
 4. Click **Run**.
 
+If you already ran an older version of `001` that included a `phone` column, also run:
+
+`supabase/migrations/002_remove_phone_simplify_profile.sql`
+
+Then run (first-deposit referral rule):
+
+`supabase/migrations/003_first_deposit_referral_only.sql`
+
 This creates:
 
-- `profiles` (with `referred_by`, `phone`, `email`)
+- `profiles` (with `referred_by`, `email`)
 - `balances` (ETB + USD wallets)
 - `deposits` (triggers referral bonuses)
 - **Registration trigger**: 150 ETB + 1.7 USD on new `auth.users`
-- **Referral trigger**: +3 USD or +125 ETB to referrer on approved deposit
+- **Referral trigger**: +3 USD or +125 ETB to referrer on invitee's **first** approved deposit
 
 ## 2. Environment variables
 
@@ -38,7 +46,8 @@ VITE_SUPABASE_ANON_KEY=your_anon_key
 
 ## 4. Registration flow
 
-- Users must enter **Email** and **Phone** (with icons on `/register`).
+- Users register with **Email** and **Password** on `/register`.
+- Each user gets a share link: `/register?ref=<USER_UUID>`.
 - Optional `?ref=<referrer_uuid_or_email>` sets `profiles.referred_by`.
 - Frontend syncs profile via `syncProfileAfterSignup()` after Supabase Auth sign-up.
 

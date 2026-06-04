@@ -4,6 +4,7 @@ import { Navigate } from 'react-router-dom'
 import { getSession } from '../lib/authService'
 import { REFERRAL_BONUS_ETB, REFERRAL_BONUS_USD } from '../lib/platformConfig'
 import { recordDepositForReferral, findProfileIdByEmail } from '../lib/supabaseData'
+import { loadReferralStats, updateReferralStats } from '../lib/referralUtils'
 
 const ADMIN_CREDENTIALS = {
   name: 'Admin',
@@ -173,7 +174,7 @@ export default function AdminDashboard() {
     setUsers(Object.values(usersData))
     showToast('Deposit approved and user wallet updated.', 'success')
 
-    // Referral bonus: 3 USD or 125 ETB (local wallet + Supabase trigger via deposits table)
+    // Referral bonus on invitee's first approved deposit only
     try {
       const REFERRAL_USD = REFERRAL_BONUS_USD
       const REFERRAL_ETB = REFERRAL_BONUS_ETB
@@ -184,7 +185,12 @@ export default function AdminDashboard() {
         Object.values(registered).find((u) => u.userId === userId || u.email === depositorEmail)
       const referrerKey = depositorRecord?.referredBy
 
-      if (referrerKey) {
+      const priorApprovedCount = approvedDeposits.filter(
+        (d) => d.userEmail === depositorEmail || d.userId === userId
+      ).length
+      const isFirstDeposit = priorApprovedCount === 0 && !depositorRecord?.referralRewardPaid
+
+      if (referrerKey && isFirstDeposit) {
         const referrerRecord =
           usersData[referrerKey] ||
           usersData[registered[referrerKey]?.email] ||
@@ -195,25 +201,35 @@ export default function AdminDashboard() {
         if (referrerRecord) {
           const referrerStorageKey = referrerRecord.email || referrerKey
           const isUsdDeposit = deposit.currency === 'USDT' || deposit.currency === 'USD'
+          const referrerId = referrerRecord.id || referrerKey
 
           if (isUsdDeposit) {
             referrerRecord.usdBalance = Number((referrerRecord.usdBalance || 0) + REFERRAL_USD)
-            const referralData = JSON.parse(localStorage.getItem('referral_data') || '{}')
-            referralData.earningsUsd = (referralData.earningsUsd || 0) + REFERRAL_USD
-            referralData.referralCount = (referralData.referralCount || 0) + 1
-            localStorage.setItem('referral_data', JSON.stringify(referralData))
           } else {
             referrerRecord.etbBalance = Number((referrerRecord.etbBalance || 0) + REFERRAL_ETB)
-            const referralData = JSON.parse(localStorage.getItem('referral_data') || '{}')
-            referralData.earningsEtb = (referralData.earningsEtb || 0) + REFERRAL_ETB
-            referralData.referralCount = (referralData.referralCount || 0) + 1
-            localStorage.setItem('referral_data', JSON.stringify(referralData))
           }
+
+          const currentStats = loadReferralStats(referrerId)
+          updateReferralStats(referrerId, {
+            earningsUsd: isUsdDeposit
+              ? (currentStats.earningsUsd || 0) + REFERRAL_USD
+              : currentStats.earningsUsd || 0,
+            earningsEtb: !isUsdDeposit
+              ? (currentStats.earningsEtb || 0) + REFERRAL_ETB
+              : currentStats.earningsEtb || 0,
+            referralCount: (currentStats.referralCount || 0) + 1,
+          })
 
           usersData[referrerStorageKey] = referrerRecord
           saveStorage('admin_user_data', usersData)
           setUsers(Object.values(usersData))
-          showToast('Referrer rewarded for successful deposit.', 'success')
+          showToast('Referrer rewarded for first deposit.', 'success')
+        }
+
+        if (depositorRecord) {
+          depositorRecord.referralRewardPaid = true
+          registered[depositorEmail] = depositorRecord
+          localStorage.setItem('platform_registered_users_data', JSON.stringify(registered))
         }
 
         const depositorProfileId =

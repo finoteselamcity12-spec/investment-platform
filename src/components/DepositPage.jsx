@@ -97,6 +97,7 @@ export default function DepositPage({ ctx = {} }) {
       const pendingDeposit = {
         id: `deposit-${Date.now()}`,
         userId: activeUserEmail,
+        userEmail: activeUserEmail,
         amount: parseFloat(amount),
         currency: depositCurrency,
         paymentMethod: selectedPaymentData.label,

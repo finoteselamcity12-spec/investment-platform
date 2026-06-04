@@ -2,8 +2,79 @@ import { useState } from 'react'
 import { Clock, Gift, Star, TrendingUp } from 'lucide-react'
 
 export default function InvestPage({ ctx = {} }) {
-  const { usdBalance, etbBalance } = ctx
+  const {
+    usdBalance = 0,
+    etbBalance = 0,
+    setUsdBalance,
+    setEtbBalance,
+    setMyActiveInvestmentsList,
+    showToast,
+    addTransaction,
+    userEmail,
+  } = ctx
   const [currency, setCurrency] = useState('USD')
+  const [investingId, setInvestingId] = useState(null)
+
+  function persistWallet(email, nextUsd, nextEtb) {
+    if (!email) return
+    const userData = JSON.parse(localStorage.getItem('admin_user_data') || '{}')
+    userData[email] = { ...(userData[email] || {}), email, usdBalance: nextUsd, etbBalance: nextEtb }
+    localStorage.setItem('admin_user_data', JSON.stringify(userData))
+  }
+
+  function handleInvest(plan, planIndex) {
+    const isUSD = currency === 'USD'
+    const amount = Number(plan.amount)
+    const balance = isUSD ? Number(usdBalance) : Number(etbBalance)
+
+    if (balance < amount) {
+      showToast?.(
+        isUSD ? 'Insufficient USD balance. Deposit first.' : 'Insufficient ETB balance. Deposit first.',
+        'error'
+      )
+      return
+    }
+
+    const investId = `${currency}-${planIndex}-${Date.now()}`
+    setInvestingId(investId)
+
+    const dailyProfit = Number(plan.profit) || 0
+    const investment = {
+      id: investId,
+      currency: isUSD ? 'USD' : 'ETB',
+      amount,
+      days: plan.days,
+      dailyProfit,
+      bonus: plan.bonus,
+      startedAt: new Date().toISOString(),
+    }
+
+    const nextUsd = isUSD ? balance - amount : Number(usdBalance)
+    const nextEtb = !isUSD ? balance - amount : Number(etbBalance)
+
+    setUsdBalance?.(nextUsd)
+    setEtbBalance?.(nextEtb)
+    persistWallet(userEmail, nextUsd, nextEtb)
+
+    const investments = JSON.parse(localStorage.getItem('user_investments') || '[]')
+    investments.push(investment)
+    localStorage.setItem('user_investments', JSON.stringify(investments))
+    setMyActiveInvestmentsList?.(investments)
+
+    addTransaction?.({
+      id: `tx-inv-${Date.now()}`,
+      type: 'Investment',
+      category: 'Investments',
+      title: `Invested ${isUSD ? `$${amount}` : `${amount} Br`}`,
+      amount,
+      currency: isUSD ? 'USD' : 'ETB',
+      status: 'Active',
+      date: new Date().toISOString(),
+    })
+
+    showToast?.('Investment started successfully!', 'success')
+    setInvestingId(null)
+  }
 
   // Hardcoded USD plans (strict replacement)
   const usdPlans = [
@@ -148,8 +219,13 @@ export default function InvestPage({ ctx = {} }) {
 
               {/* Invest Button */}
               <div className="px-5 pb-5">
-                <button className="w-full py-3 bg-[#84CC16] hover:bg-lime-500 text-white font-bold rounded-xl transition-all shadow-lg shadow-[#84CC16]/30 flex items-center justify-center gap-2">
-                  <span>Invest Now</span>
+                <button
+                  type="button"
+                  disabled={!!investingId}
+                  onClick={() => handleInvest(plan, idx)}
+                  className="w-full py-3 bg-[#84CC16] hover:bg-lime-500 disabled:opacity-60 text-white font-bold rounded-xl transition-all shadow-lg shadow-[#84CC16]/30 flex items-center justify-center gap-2"
+                >
+                  <span>{investingId ? 'Processing…' : 'Invest Now'}</span>
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>

@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from 'react'
-import { Eye, EyeOff, Mail, Phone } from 'lucide-react'
+import { Eye, EyeOff, Mail } from 'lucide-react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import supabase from '../lib/supabase'
 import { createSession, validators, sanitizeInput } from '../lib/authService'
@@ -7,15 +7,18 @@ import {
   REGISTRATION_BONUS_ETB,
   REGISTRATION_BONUS_USD,
 } from '../lib/platformConfig'
-import { syncProfileAfterSignup } from '../lib/supabaseData'
+import { syncProfileAfterSignup, fetchUserBalances } from '../lib/supabaseData'
 import TermsAndConditionsPanel from '../components/TermsAndConditionsPanel'
 
 const initialForm = {
-  fullName: '',
   email: '',
-  phone: '',
   password: '',
   confirmPassword: '',
+}
+
+function displayNameFromEmail(email) {
+  const local = String(email).split('@')[0] || 'User'
+  return local.replace(/[._-]+/g, ' ').trim() || 'User'
 }
 const emailRegex = /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/
 const ADMIN_EMAIL = 'workinehabche@gmail.com'
@@ -24,11 +27,6 @@ const ADMIN_ID = '15610010'
 
 function validateEmail(email) {
   return emailRegex.test(String(email).trim())
-}
-
-function validatePhone(phone) {
-  const digits = String(phone).replace(/\D/g, '')
-  return digits.length >= 8 && digits.length <= 15
 }
 
 const PRIMARY_GREEN = '#84CC16'
@@ -73,20 +71,17 @@ export default function Auth() {
 
   const isRegister = !isLogin
   const isEmailValid = validateEmail(form.email)
-  const isPhoneValid = validatePhone(form.phone)
 
   const canSubmit = useMemo(() => {
     if (isRegister) {
-      const contactComplete = isEmailValid && isPhoneValid
       return (
-        contactComplete &&
-        form.fullName.trim().length > 1 &&
+        isEmailValid &&
         form.password.length >= 8 &&
         form.password === form.confirmPassword
       )
     }
     return isEmailValid && form.password.length >= 8
-  }, [form, isRegister, isEmailValid, isPhoneValid])
+  }, [form, isRegister, isEmailValid])
 
   useEffect(() => {
     try {
@@ -128,19 +123,6 @@ export default function Auth() {
 
     try {
       if (isRegister) {
-        const nameValidation = validators.fullName(form.fullName)
-        if (!nameValidation.valid) {
-          setMessage(nameValidation.error)
-          setLoading(false)
-          return
-        }
-
-        if (!validatePhone(form.phone)) {
-          setMessage('Please enter a valid phone number.')
-          setLoading(false)
-          return
-        }
-
         if (form.password !== form.confirmPassword) {
           setMessage('Passwords do not match')
           setLoading(false)
@@ -148,9 +130,8 @@ export default function Auth() {
         }
 
         const userId = `user-${Date.now()}`
-        const sanitizedName = sanitizeInput(form.fullName.trim())
         const sanitizedEmail = sanitizeInput(form.email.trim())
-        const sanitizedPhone = sanitizeInput(form.phone.trim())
+        const sanitizedName = displayNameFromEmail(sanitizedEmail)
 
         let signupError = null
         let authUserId = null
@@ -161,7 +142,6 @@ export default function Auth() {
             options: {
               data: {
                 full_name: sanitizedName,
-                phone: sanitizedPhone,
                 referred_by: referrerId || null,
               },
             },
@@ -187,7 +167,6 @@ export default function Auth() {
           await syncProfileAfterSignup({
             userId: authUserId,
             email: sanitizedEmail,
-            phone: sanitizedPhone,
             fullName: sanitizedName,
             referrerCode: referrerId,
           })
@@ -198,7 +177,6 @@ export default function Auth() {
           userId: authUserId || userId,
           fullName: sanitizedName,
           email: sanitizedEmail,
-          phone: sanitizedPhone,
           referredBy: referrerId || null,
           createdAt: new Date().toISOString(),
         }
@@ -216,7 +194,6 @@ export default function Auth() {
           userData[sanitizedEmail] = {
             id: authUserId || userId,
             email: sanitizedEmail,
-            phone: sanitizedPhone,
             fullName: sanitizedName,
             usdBalance: REGISTRATION_BONUS_USD,
             etbBalance: REGISTRATION_BONUS_ETB,
@@ -230,7 +207,6 @@ export default function Auth() {
         } else {
           if (!userData[sanitizedEmail].fullName) userData[sanitizedEmail].fullName = sanitizedName
           if (!userData[sanitizedEmail].id) userData[sanitizedEmail].id = userId
-          if (!userData[sanitizedEmail].phone) userData[sanitizedEmail].phone = sanitizedPhone
           localStorage.setItem('admin_user_data', JSON.stringify(userData))
         }
 
@@ -277,6 +253,16 @@ export default function Auth() {
         id: user?.id,
         fullName: user?.user_metadata?.full_name,
         email: sanitizedEmail,
+        usdBalance: REGISTRATION_BONUS_USD,
+        etbBalance: REGISTRATION_BONUS_ETB,
+      }
+
+      if (user?.id) {
+        const remoteBalances = await fetchUserBalances(user.id)
+        if (remoteBalances) {
+          userProfile.usdBalance = remoteBalances.usdBalance
+          userProfile.etbBalance = remoteBalances.etbBalance
+        }
       }
 
       createSession({
@@ -287,7 +273,11 @@ export default function Auth() {
       })
 
       userData[sanitizedEmail] = {
+        ...userProfile,
         ...userData[sanitizedEmail],
+        id: user?.id || userProfile.id,
+        usdBalance: userProfile.usdBalance ?? REGISTRATION_BONUS_USD,
+        etbBalance: userProfile.etbBalance ?? REGISTRATION_BONUS_ETB,
         lastLogin: new Date().toISOString(),
       }
       localStorage.setItem('admin_user_data', JSON.stringify(userData))
@@ -314,7 +304,9 @@ export default function Auth() {
       <h1 className="blackrock-3d-text" data-text="BLACKROCK">BLACKROCK</h1>
 
       <div
-        className="auth-container w-full max-w-md bg-white rounded-3xl rounded-b-3xl p-8 md:p-10 shadow-2xl transition-all relative z-10"
+        className={`auth-container w-full bg-white rounded-3xl rounded-b-3xl p-8 md:p-10 shadow-2xl transition-all relative z-10 ${
+          isRegister ? 'max-w-md' : 'max-w-md'
+        }`}
         style={{
           boxShadow: '0 20px 60px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.8)',
         }}
@@ -352,20 +344,16 @@ export default function Auth() {
           </button>
         </div>
 
-        <form onSubmit={handleAuth} className="space-y-5">
-          {isRegister && (
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">Full Name</label>
-              <input
-                type="text"
-                value={form.fullName}
-                onChange={(event) => setForm({ ...form, fullName: event.target.value })}
-                placeholder="Enter your full name"
-                className="auth-input-field w-full rounded-xl border-2 border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 placeholder-gray-500 focus:outline-none focus:border-lime-400 focus:bg-white focus:ring-2 focus:ring-lime-400/30 transition-all"
-              />
-            </div>
-          )}
+        {isRegister && referrerId && (
+          <p className="mb-4 rounded-xl border border-lime-200 bg-lime-50 px-4 py-2 text-center text-xs font-semibold text-lime-800">
+            You were invited by a friend. Your referral will be linked after sign-up.
+          </p>
+        )}
 
+        <form
+          onSubmit={handleAuth}
+          className={`space-y-5 ${isRegister ? 'mx-auto w-full max-w-sm' : ''}`}
+        >
           <AuthIconField
             label="Email Address"
             required={isRegister}
@@ -382,25 +370,6 @@ export default function Auth() {
               className={`${inputWithIconClass} ${isRegister && isEmailValid ? 'border-[#84CC16]/60' : ''}`}
             />
           </AuthIconField>
-
-          {isRegister && (
-            <AuthIconField
-              label="Phone Number"
-              required
-              icon={Phone}
-              valid={isPhoneValid}
-            >
-              <input
-                type="tel"
-                value={form.phone}
-                onChange={(event) => setForm({ ...form, phone: event.target.value })}
-                placeholder="+251 9XX XXX XXXX"
-                required
-                autoComplete="tel"
-                className={`${inputWithIconClass} ${isPhoneValid ? 'border-[#84CC16]/60' : ''}`}
-              />
-            </AuthIconField>
-          )}
 
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-2">Password</label>
@@ -444,9 +413,9 @@ export default function Auth() {
             {loading ? 'Processing...' : isLogin ? 'LOGIN' : 'CREATE ACCOUNT'}
           </button>
 
-          {isRegister && !canSubmit && (form.email || form.phone) && (
+          {isRegister && !canSubmit && form.email && (
             <p className="text-center text-xs text-gray-500">
-              Enter a valid email and phone number to enable registration.
+              Enter a valid email and matching passwords (8+ characters) to register.
             </p>
           )}
 

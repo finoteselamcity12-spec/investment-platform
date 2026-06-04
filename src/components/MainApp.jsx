@@ -6,6 +6,7 @@ import InvestPage from './InvestPage'
 import DepositPage from './DepositPage'
 import HistoryPage from './HistoryPage'
 import Support from './Support'
+import InvitePage from './InvitePage'
 import Profile from './Profile'
 import AdminPanel from './AdminPanel'
 import Withdraw from '../pages/Withdraw'
@@ -107,7 +108,9 @@ export default function MainApp() {
       case 'history':
         return <HistoryPage ctx={ctx} />
       case 'withdraw':
-        return <Withdraw />
+        return <Withdraw ctx={ctx} embedded />
+      case 'invite':
+        return <InvitePage ctx={ctx} />
       case 'support':
         return <Support ctx={ctx} />
       case 'profile':
