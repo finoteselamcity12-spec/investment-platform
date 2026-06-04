@@ -1,42 +1,127 @@
 /* ==========================================================================
-   Auth — login/register welcome title (forest green 3D)
+   Auth — Lucky Slot–style 3D welcome title (green + gold)
    ========================================================================== */
 
 .auth-page {
   box-sizing: border-box;
 }
 
+.auth-welcome-hero {
+  position: relative;
+  z-index: 2;
+  width: min(95%, 26rem);
+  margin: 0 auto clamp(1.35rem, 5.5vw, 2.25rem);
+  padding: 0.35rem 0.5rem 0.5rem;
+  text-align: center;
+}
+
+/* Soft outer glow plate behind title */
+.auth-welcome-hero::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 55%;
+  z-index: 0;
+  width: 88%;
+  height: 70%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 215, 0, 0.35) 0%,
+    rgba(132, 204, 22, 0.28) 45%,
+    transparent 72%
+  );
+  filter: blur(14px);
+  pointer-events: none;
+}
+
 .auth-welcome-title {
   position: relative;
   z-index: 1;
-  display: block;
-  width: min(95%, 22rem);
-  margin: 0 auto clamp(1.25rem, 5vw, 2rem);
-  padding: 0 0.5rem;
-  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  font-size: clamp(1.35rem, 6.5vw, 2.25rem);
-  font-weight: 800;
-  line-height: 1.15;
-  letter-spacing: clamp(0.04em, 0.35vw, 0.08em);
+  display: inline-block;
+  margin: 0;
+  padding: 0 0.15rem;
+  max-width: 100%;
+  font-family: 'Bebas Neue', 'Plus Jakarta Sans', system-ui, sans-serif;
+  font-size: clamp(2rem, 9vw, 3.25rem);
+  font-weight: 400;
+  line-height: 0.95;
+  letter-spacing: 0.04em;
   text-align: center;
   text-transform: uppercase;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  /* Premium green → gold face fill */
   background: linear-gradient(
-    180deg,
-    #b8f06a 0%,
-    #84cc16 35%,
-    #3d7a2a 70%,
-    #1a472a 100%
+    165deg,
+    #fffef5 0%,
+    #fef08a 6%,
+    #facc15 14%,
+    #bef264 28%,
+    #84cc16 42%,
+    #65a30d 58%,
+    #3f6212 78%,
+    #14532d 100%
   );
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   color: transparent;
+  -webkit-text-stroke: 1.5px rgba(20, 83, 45, 0.75);
+  paint-order: stroke fill;
+  filter:
+    drop-shadow(0 0 14px rgba(250, 204, 21, 0.65))
+    drop-shadow(0 0 32px rgba(132, 204, 22, 0.45))
+    drop-shadow(0 2px 0 rgba(255, 255, 255, 0.35));
+}
+
+/* 3D extrusion — stacked depth behind the face */
+.auth-welcome-title::before {
+  content: attr(data-text);
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: -1;
+  width: 100%;
+  -webkit-text-fill-color: #0a3d22;
+  color: #0a3d22;
+  background: none;
+  -webkit-background-clip: border-box;
+  background-clip: border-box;
+  transform: translate(3px, 5px);
   text-shadow:
-    0 1px 0 #6fad14,
-    1px 1px 0 #2d6b3f,
-    2px 2px 0 #1a472a,
-    3px 3px 0 #153d24,
-    4px 4px 0 rgba(0, 0, 0, 0.22);
+    0 1px 0 #0d4a28,
+    1px 1px 0 #0b4224,
+    2px 2px 0 #093a20,
+    3px 3px 0 #07331c,
+    4px 4px 0 #062b18,
+    5px 5px 0 #052414,
+    6px 6px 0 #041c10,
+    7px 7px 0 rgba(0, 0, 0, 0.55);
+}
+
+/* Top gloss + gold shimmer (inner highlight) */
+.auth-welcome-title::after {
+  content: attr(data-text);
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 2;
+  width: 100%;
+  pointer-events: none;
+  -webkit-text-fill-color: transparent;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.98) 0%,
+    rgba(255, 248, 210, 0.75) 12%,
+    rgba(254, 240, 138, 0.35) 28%,
+    transparent 48%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  mix-blend-mode: soft-light;
+  opacity: 0.92;
 }
 
 /* BlackRock 3D Premium Branding Logo */
@@ -717,9 +802,25 @@
     word-break: break-word;
   }
 
-  .auth-welcome-title {
-    font-size: clamp(1.15rem, 5.5vw, 1.65rem);
+  .auth-welcome-hero {
     width: 95%;
+  }
+
+  .auth-welcome-title {
+    font-size: clamp(1.85rem, 8.5vw, 2.65rem);
+    letter-spacing: 0.035em;
+    -webkit-text-stroke: 1px rgba(20, 83, 45, 0.8);
+  }
+
+  .auth-welcome-title::before {
+    transform: translate(2px, 4px);
+    text-shadow:
+      0 1px 0 #0d4a28,
+      1px 1px 0 #0b4224,
+      2px 2px 0 #093a20,
+      3px 3px 0 #07331c,
+      4px 4px 0 #062b18,
+      5px 5px 0 rgba(0, 0, 0, 0.5);
   }
 
   .welcome-premium {
