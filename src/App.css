@@ -106,20 +106,25 @@
   }
 }
 
-/* 3D welcome text for Home page */
+/* 3D welcome text for Home page — dark green, cohesive with #84CC16 theme */
 .welcome-3d {
-  color: #D4AF37;
+  color: #1a1a1a;
   font-weight: 900;
   text-transform: uppercase;
-  letter-spacing: 2px;
-  margin: 0.5rem 0;
-  font-size: clamp(2rem, 7vw, 4rem);
-  line-height: 1.05;
+  letter-spacing: clamp(0.5px, 0.35vw, 2px);
+  margin: 0.25rem 0 0.5rem;
+  font-size: clamp(1.35rem, 5.5vw, 2.75rem);
+  line-height: 1.15;
   text-align: center;
   text-shadow:
-    1px 1px 0px #CCCCCC,
-    2px 2px 0px #BBBBBB,
-    3px 3px 0px #999999;
+    0 1px 0 rgba(255, 255, 255, 0.45),
+    2px 2px 4px rgba(0, 0, 0, 0.3),
+    3px 3px 8px rgba(0, 0, 0, 0.12);
+}
+
+.home-balance-card {
+  background-color: #84CC16;
+  box-shadow: 0 20px 40px rgba(132, 204, 22, 0.28);
 }
 
 @media (min-width: 1024px) {
@@ -135,8 +140,9 @@
   }
 
   .welcome-3d {
-    font-size: clamp(1.75rem, 9vw, 2.75rem);
-    letter-spacing: 1.5px;
+    font-size: clamp(1.15rem, 6.5vw, 2rem);
+    letter-spacing: 0.5px;
+    padding: 0 0.25rem;
   }
 
   .grid.grid-cols-2 {

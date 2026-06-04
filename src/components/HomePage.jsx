@@ -1,3 +1,5 @@
+const PRIMARY_GREEN = '#84CC16'
+
 export default function HomePage({ ctx }) {
   const {
     myActiveInvestmentsList = [],
@@ -22,18 +24,19 @@ export default function HomePage({ ctx }) {
     .reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
 
   const buttonClass =
-    'h-[72px] w-full rounded-[15px] border-2 border-[#84CC16] bg-white px-4 py-3 text-left text-sm font-semibold text-[#84CC16] shadow-sm transition hover:bg-[#84CC16]/5'
+    'h-[72px] w-full min-w-0 rounded-[15px] border-2 bg-white px-3 py-3 text-left text-sm font-semibold shadow-sm transition hover:bg-[#84CC16]/5 sm:px-4'
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-20">
+    <div className="min-h-screen overflow-x-hidden bg-slate-50 pb-20">
       <div className="mx-auto max-w-5xl space-y-6 px-4 py-6">
-        <div className="text-center">
-          <p className="text-sm uppercase tracking-[0.36em] text-[#84CC16]">BLACKROCK</p>
-          <h1 className="mt-3 text-4xl font-bold text-[#84CC16] sm:text-5xl">Welcome back.</h1>
-          <p className="mt-2 text-sm text-slate-500">Your dashboard is ready for action.</p>
-        </div>
+        {/* Header — 3D styled */}
+        <header className="text-center">
+          <h1 className="welcome-3d">Welcome to Blackrock</h1>
+          <p className="text-sm text-slate-500">Your dashboard is ready for action.</p>
+        </header>
 
-        <div className="rounded-3xl bg-[#84CC16] px-5 py-4 text-white shadow-2xl shadow-[#84CC16]/30">
+        {/* Balance card — vibrant green #84CC16 */}
+        <div className="home-balance-card rounded-3xl px-5 py-4 text-white">
           <p className="text-sm font-semibold uppercase tracking-[0.2em]">Total Balance</p>
           <div className="mt-3 space-y-2">
             <p className="text-base">
@@ -47,6 +50,7 @@ export default function HomePage({ ctx }) {
           </div>
         </div>
 
+        {/* Action buttons — 2x2 grid, white + green border */}
         <div
           className="w-full"
           style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}
@@ -55,6 +59,7 @@ export default function HomePage({ ctx }) {
             type="button"
             onClick={() => setActivePage?.('withdraw')}
             className={buttonClass}
+            style={{ borderColor: PRIMARY_GREEN, color: PRIMARY_GREEN }}
           >
             Withdrawal
           </button>
@@ -62,6 +67,7 @@ export default function HomePage({ ctx }) {
             type="button"
             onClick={() => setActivePage?.('history')}
             className={buttonClass}
+            style={{ borderColor: PRIMARY_GREEN, color: PRIMARY_GREEN }}
           >
             History
           </button>
@@ -69,6 +75,7 @@ export default function HomePage({ ctx }) {
             type="button"
             onClick={() => setActivePage?.('deposit')}
             className={buttonClass}
+            style={{ borderColor: PRIMARY_GREEN, color: PRIMARY_GREEN }}
           >
             Deposit
           </button>
@@ -76,6 +83,7 @@ export default function HomePage({ ctx }) {
             type="button"
             onClick={() => setActivePage?.('invest')}
             className={buttonClass}
+            style={{ borderColor: PRIMARY_GREEN, color: PRIMARY_GREEN }}
           >
             Invest
           </button>
@@ -86,22 +94,24 @@ export default function HomePage({ ctx }) {
             className="w-full"
             style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}
           >
-            <div className="w-full rounded-[15px] border border-slate-200 bg-white p-5 shadow-[0_8px_24px_rgba(15,23,42,0.08)]">
+            <div className="min-w-0 w-full rounded-[15px] border border-slate-200 bg-white p-4 shadow-[0_8px_24px_rgba(15,23,42,0.08)] sm:p-5">
               <p className="text-sm font-semibold text-slate-500">Daily Profit</p>
-              <p className="mt-4 text-2xl font-semibold text-slate-950">
+              <p className="mt-3 text-lg font-semibold text-[#1a1a1a] sm:mt-4 sm:text-2xl">
                 USD {usdDailyReward.toFixed(2)} / ETB {etbDailyReward.toFixed(2)}
               </p>
             </div>
 
-            <div className="w-full rounded-[15px] border border-slate-200 bg-white p-5 shadow-[0_8px_24px_rgba(15,23,42,0.08)]">
+            <div className="min-w-0 w-full rounded-[15px] border border-slate-200 bg-white p-4 shadow-[0_8px_24px_rgba(15,23,42,0.08)] sm:p-5">
               <p className="text-sm font-semibold text-slate-500">Active Investments</p>
-              <p className="mt-4 text-2xl font-semibold text-slate-950">{activeInvestmentsCount}</p>
+              <p className="mt-3 text-lg font-semibold text-[#1a1a1a] sm:mt-4 sm:text-2xl">
+                {activeInvestmentsCount}
+              </p>
             </div>
           </div>
 
-          <div className="w-full rounded-[15px] border border-slate-200 bg-white p-5 shadow-[0_8px_24px_rgba(15,23,42,0.08)]">
+          <div className="w-full rounded-[15px] border border-slate-200 bg-white p-4 shadow-[0_8px_24px_rgba(15,23,42,0.08)] sm:p-5">
             <p className="text-sm font-semibold text-slate-500">Total Invested</p>
-            <p className="mt-4 text-2xl font-semibold text-slate-950">
+            <p className="mt-3 text-lg font-semibold text-[#1a1a1a] sm:mt-4 sm:text-2xl">
               USD ${totalUsdInvested.toFixed(2)} / ETB {totalEtbInvested.toFixed(2)}
             </p>
           </div>
