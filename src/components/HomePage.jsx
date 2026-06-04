@@ -1,4 +1,5 @@
 import { TrendingUp, Wallet, ArrowDownRight, Users, Coins } from 'lucide-react'
+import BrandGoldHeader from './BrandGoldHeader'
 
 const GOLD = '#FFD700'
 
@@ -45,11 +46,11 @@ export default function HomePage({ ctx }) {
   return (
     <div className="home-page home-page--premium box-border min-h-0 w-full max-w-full overflow-x-hidden">
       <div className="home-dashboard-stack mx-auto flex w-[95%] max-w-lg flex-col">
-        <header className="home-header-premium">
-          <h1 className="dashboard-brand-3d" data-text="BLACKROCK">
-            BLACKROCK
-          </h1>
-        </header>
+        <BrandGoldHeader
+          title="WELCOME TO BLACKROCK"
+          variant="dashboard"
+          className="home-header-premium"
+        />
 
         <section className="home-wallets-panel" aria-label="Wallet balances">
           <div className="home-wallet-grid">
