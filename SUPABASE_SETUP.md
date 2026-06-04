@@ -89,9 +89,16 @@ This adds admin RPC functions (`admin_get_dashboard_stats`, `admin_approve_depos
 
 **Admin must sign in with Supabase Auth** as `workinehabche@gmail.com` (create this user in Auth → Users with the same password as the admin console). Use `/admin-login`.
 
+**If approve/reject fails with `invalid input syntax for type json`:**
+
+1. Run `supabase/RUN_FIX_JSON_DEPOSITS.sql` (proof columns as TEXT, no base64 in RPC).
+2. Run `supabase/RUN_FIX_RPC_PARAMS.sql` so SQL args match the frontend: `p_deposit_id`, `p_withdrawal_id`, `p_user_id`.
+
+The admin UI logs the RPC payload in the browser console immediately before each `supabase.rpc` call.
+
 When an admin approves a deposit:
 
-1. `admin_approve_deposit` credits `balances` in Supabase (user dashboard reads this).
+1. `admin_approve_deposit(p_deposit_id)` credits `balances` in Supabase (user dashboard reads this).
 2. Referral bonus runs via the deposit status trigger.
 3. Local storage is still updated for backward compatibility.
 

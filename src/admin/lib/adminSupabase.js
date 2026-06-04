@@ -4,7 +4,7 @@ import { ADMIN_EMAIL, ADMIN_CREDENTIALS } from './adminStorage'
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
-/** RPC names must match SQL exactly (public schema) */
+/** RPC function names (public schema) */
 export const ADMIN_RPC = {
   debug: 'admin_debug_auth',
   stats: 'admin_get_dashboard_stats',
@@ -17,6 +17,26 @@ export const ADMIN_RPC = {
   approveWithdrawal: 'admin_approve_withdrawal',
   rejectWithdrawal: 'admin_reject_withdrawal',
   deleteUser: 'admin_delete_user',
+}
+
+/**
+ * Parameter keys MUST match PostgreSQL function argument names exactly.
+ * PostgREST maps: supabase.rpc('fn', { p_deposit_id: uuid }) → fn(p_deposit_id uuid)
+ */
+export const ADMIN_RPC_PARAMS = {
+  approveDeposit: ['p_deposit_id'],
+  rejectDeposit: ['p_deposit_id'],
+  approveDepositManual: [
+    'p_user_id',
+    'p_amount',
+    'p_currency',
+    'p_payment_method',
+    'p_transaction_id',
+    'p_proof_url',
+  ],
+  approveWithdrawal: ['p_withdrawal_id'],
+  rejectWithdrawal: ['p_withdrawal_id'],
+  deleteUser: ['p_user_id'],
 }
 
 function adminLog(step, payload) {
@@ -378,18 +398,29 @@ function normalizeRpcUuid(value, label) {
 }
 
 async function callAdminRpc(fnName, params = {}) {
+  if (typeof params === 'string') {
+    console.error('[Admin Supabase] INVALID RPC PAYLOAD — must be object, not string:', params)
+    throw new Error('RPC payload must be a plain object, not JSON.stringify() output')
+  }
+  if (Array.isArray(params)) {
+    console.error('[Admin Supabase] INVALID RPC PAYLOAD — must be object, not array:', params)
+    throw new Error('RPC payload must be a plain object, not an array')
+  }
+
   const cleanParams = {}
   Object.entries(params).forEach(([key, val]) => {
     if (val === undefined) return
     cleanParams[key] = val
   })
 
-  adminLog(`rpc_send:${fnName}`, {
-    params: cleanParams,
-    paramTypes: Object.fromEntries(
-      Object.entries(cleanParams).map(([k, v]) => [k, v === null ? 'null' : typeof v])
-    ),
-  })
+  console.log(`[Admin Supabase] >>> RPC CALL: ${fnName}`)
+  console.log('[Admin Supabase] PAYLOAD (plain object):', cleanParams)
+  console.log('[Admin Supabase] PAYLOAD (JSON.stringify):', JSON.stringify(cleanParams))
+  console.log('[Admin Supabase] PAYLOAD types:', Object.fromEntries(
+    Object.entries(cleanParams).map(([k, v]) => [k, v === null ? 'null' : typeof v])
+  ))
+
+  adminLog(`rpc_send:${fnName}`, { params: cleanParams })
 
   const result = await supabase.rpc(fnName, cleanParams)
 
@@ -416,12 +447,11 @@ export async function approveDepositInSupabase(deposit) {
   const sessionCheck = await requireAdminRpcSession()
   if (!sessionCheck.ok) return sessionCheck
 
-  const depositUuid = normalizeRpcUuid(deposit.supabaseId, 'deposit_id')
+  const depositUuid = normalizeRpcUuid(deposit.supabaseId, 'p_deposit_id')
 
   if (depositUuid) {
-    const { data, error } = await callAdminRpc(ADMIN_RPC.approveDeposit, {
-      deposit_id: depositUuid,
-    })
+    const approvePayload = { p_deposit_id: depositUuid }
+    const { data, error } = await callAdminRpc(ADMIN_RPC.approveDeposit, approvePayload)
     if (error) {
       return { ok: false, error: logAdminError(ADMIN_RPC.approveDeposit, error) }
     }
@@ -460,7 +490,7 @@ export async function approveDepositInSupabase(deposit) {
 }
 
 export async function rejectDepositInSupabase(deposit) {
-  const depositUuid = normalizeRpcUuid(deposit.supabaseId, 'deposit_id')
+  const depositUuid = normalizeRpcUuid(deposit.supabaseId, 'p_deposit_id')
   if (!depositUuid) {
     adminLog('reject_skipped', { reason: 'local_only_deposit', id: deposit.id })
     return { ok: true, skipped: true }
@@ -469,9 +499,8 @@ export async function rejectDepositInSupabase(deposit) {
   const sessionCheck = await requireAdminRpcSession()
   if (!sessionCheck.ok) return sessionCheck
 
-  const { error } = await callAdminRpc(ADMIN_RPC.rejectDeposit, {
-    deposit_id: depositUuid,
-  })
+  const rejectPayload = { p_deposit_id: depositUuid }
+  const { error } = await callAdminRpc(ADMIN_RPC.rejectDeposit, rejectPayload)
 
   if (error) {
     return { ok: false, error: logAdminError(ADMIN_RPC.rejectDeposit, error) }
@@ -487,7 +516,8 @@ export async function deleteUserInSupabase(userId) {
   const sessionCheck = await requireAdminRpcSession()
   if (!sessionCheck.ok) return sessionCheck
 
-  const { error } = await callAdminRpc(ADMIN_RPC.deleteUser, { user_id: userId })
+  const deletePayload = { p_user_id: userId }
+  const { error } = await callAdminRpc(ADMIN_RPC.deleteUser, deletePayload)
   if (error) {
     return { ok: false, error: logAdminError(ADMIN_RPC.deleteUser, error) }
   }
@@ -502,11 +532,11 @@ export async function approveWithdrawalInSupabase(withdrawal) {
   const sessionCheck = await requireAdminRpcSession()
   if (!sessionCheck.ok) return sessionCheck
 
-  const wid = normalizeRpcUuid(withdrawal.supabaseId, 'withdrawal_id')
+  const wid = normalizeRpcUuid(withdrawal.supabaseId, 'p_withdrawal_id')
   if (!wid) return { ok: true, skipped: true }
 
   const { error } = await callAdminRpc(ADMIN_RPC.approveWithdrawal, {
-    withdrawal_id: wid,
+    p_withdrawal_id: wid,
   })
   if (error) {
     return { ok: false, error: logAdminError(ADMIN_RPC.approveWithdrawal, error) }
@@ -522,11 +552,11 @@ export async function rejectWithdrawalInSupabase(withdrawal) {
   const sessionCheck = await requireAdminRpcSession()
   if (!sessionCheck.ok) return sessionCheck
 
-  const wid = normalizeRpcUuid(withdrawal.supabaseId, 'withdrawal_id')
+  const wid = normalizeRpcUuid(withdrawal.supabaseId, 'p_withdrawal_id')
   if (!wid) return { ok: true, skipped: true }
 
   const { error } = await callAdminRpc(ADMIN_RPC.rejectWithdrawal, {
-    withdrawal_id: wid,
+    p_withdrawal_id: wid,
   })
   if (error) {
     return { ok: false, error: logAdminError(ADMIN_RPC.rejectWithdrawal, error) }
