@@ -346,14 +346,21 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-slate-950 text-slate-100">
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
         <div className="mb-8 rounded-[2rem] bg-slate-900/90 border border-slate-700/70 p-6 shadow-2xl shadow-black/40 backdrop-blur-xl sm:flex sm:items-center sm:justify-between">
-          <div className="space-y-3">
-            <p className="text-sm font-semibold uppercase tracking-[0.2em] text-emerald-300">Admin Console</p>
-            <h1 className="text-3xl font-bold text-white">BLACKROCK Operator Dashboard</h1>
+          <div className="space-y-4">
+            <div>
+              <h1
+                className="text-4xl sm:text-5xl font-black text-white tracking-tight"
+                style={{ textShadow: '2px 2px 0 rgba(16, 185, 129, 0.22), 0 14px 35px rgba(0, 0, 0, 0.35)' }}
+              >
+                Welcome to Blackrock
+              </h1>
+              <p className="mt-3 text-sm uppercase tracking-[0.18em] text-emerald-300">Admin Console</p>
+            </div>
             <p className="max-w-2xl text-sm text-slate-400">Manage registrations, approvals, and wallet movements in a secure, enterprise-grade admin portal.</p>
           </div>
           <button
             onClick={handleSignOut}
-            className="mt-4 inline-flex items-center gap-2 rounded-full bg-green-500 px-5 py-3 text-sm font-semibold text-slate-950 shadow-2xl shadow-green-500/40 transition hover:bg-lime-400 sm:mt-0"
+            className="mt-4 inline-flex items-center gap-2 rounded-full bg-emerald-500 px-5 py-3 text-sm font-semibold text-slate-950 shadow-2xl shadow-emerald-500/40 transition hover:bg-emerald-400 sm:mt-0"
           >
             <LogOut className="h-4 w-4" />
             Sign Out
