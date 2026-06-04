@@ -89,8 +89,8 @@ export default function HomePage({ ctx }) {
   ]
 
   return (
-    <div className="home-page min-h-screen overflow-x-hidden bg-white pb-20">
-      <div className="home-dashboard-stack w-full px-3 py-6">
+    <div className="home-page min-h-screen w-full max-w-full overflow-x-hidden bg-white pb-20">
+      <div className="home-dashboard-stack mx-auto w-full max-w-lg px-4 py-5 sm:px-3 sm:py-6">
         <header className="text-center">
           <h1 className="welcome-3d">Welcome to Blackrock</h1>
         </header>
@@ -110,23 +110,23 @@ export default function HomePage({ ctx }) {
               </p>
             </div>
           </div>
-          <div className="mt-4 grid grid-cols-2 gap-3 border-t border-white/25 pt-4">
-            <div className="rounded-xl bg-white/15 px-3 py-2.5 backdrop-blur-sm">
-              <p className="text-xs font-semibold text-white/85">USD Referral Bonus</p>
-              <p className="mt-1 text-lg font-bold text-white">
+          <div className="home-referral-grid">
+            <div className="home-referral-card">
+              <p className="home-referral-label">USD Referral Bonus</p>
+              <p className="home-referral-value">
                 ${Number(referralEarningsUsd).toFixed(2)}
               </p>
             </div>
-            <div className="rounded-xl bg-white/15 px-3 py-2.5 backdrop-blur-sm">
-              <p className="text-xs font-semibold text-white/85">ETB Referral Bonus</p>
-              <p className="mt-1 text-lg font-bold text-white">
+            <div className="home-referral-card">
+              <p className="home-referral-label">ETB Referral Bonus</p>
+              <p className="home-referral-value">
                 {Number(referralEarningsEtb).toLocaleString()} Br
               </p>
             </div>
           </div>
         </div>
 
-        <div className="home-action-grid grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="home-action-grid">
           {actionButtons.map(({ label, page, icon: Icon }) => (
             <button
               key={page}
@@ -149,7 +149,7 @@ export default function HomePage({ ctx }) {
           ))}
         </div>
 
-        <div className="rounded-2xl border-2 border-slate-200 bg-white p-5 shadow-sm">
+        <div className="home-invite-card rounded-2xl border-2 border-slate-200 bg-white p-5 shadow-sm">
           <p className="text-sm font-bold text-slate-800">Your Invite Link</p>
           <p className="mt-1 text-xs text-slate-500">
             Share this link to invite friends and earn referral rewards.

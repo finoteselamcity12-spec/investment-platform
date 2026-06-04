@@ -118,8 +118,11 @@
 .home-dashboard-stack {
   display: flex;
   flex-direction: column;
+  align-items: stretch;
   gap: 1.5rem;
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .home-subtitle {
@@ -130,9 +133,47 @@
 
 .home-balance-card {
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
   background-color: #84CC16;
   box-shadow: 0 20px 40px rgba(132, 204, 22, 0.28);
   padding: 1.5rem 1.25rem;
+}
+
+.home-referral-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  width: 100%;
+  border-top: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.home-referral-card {
+  min-width: 0;
+  border-radius: 12px;
+  background-color: rgba(255, 255, 255, 0.15);
+  padding: 12px 10px;
+  backdrop-filter: blur(4px);
+}
+
+.home-referral-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 1.25;
+  color: rgba(255, 255, 255, 0.9);
+  word-wrap: break-word;
+}
+
+.home-referral-value {
+  margin-top: 0.35rem;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #ffffff;
+  word-break: break-word;
 }
 
 .home-balance-title {
@@ -243,6 +284,13 @@
   font-weight: 700;
   color: #1a472a;
   line-height: 1.2;
+  word-break: break-word;
+}
+
+.home-invite-card {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 /* 3D welcome header */
@@ -268,18 +316,100 @@
 }
 
 @media (max-width: 768px) {
+  .home-dashboard-stack {
+    gap: 1rem;
+    padding-left: 0;
+    padding-right: 0;
+  }
+
   .welcome-3d {
-    font-size: clamp(1.5rem, 7vw, 2.25rem);
+    font-size: clamp(1.35rem, 6.5vw, 2rem);
     letter-spacing: 0.5px;
-    padding: 0 0.25rem;
+    padding: 0 0.5rem;
+  }
+
+  .home-balance-card {
+    padding: 1rem 0.875rem;
+    border-radius: 1.25rem;
+  }
+
+  .home-balance-title {
+    font-size: 0.8rem;
+  }
+
+  .home-balance-total {
+    font-size: clamp(1.75rem, 8vw, 2.25rem);
+  }
+
+  .home-wallet-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .home-wallet-value {
+    font-size: 1rem;
+  }
+
+  .home-referral-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .home-referral-label {
+    font-size: 0.65rem;
+  }
+
+  .home-referral-value {
+    font-size: 0.95rem;
+  }
+
+  .home-action-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
   }
 
   .home-action-btn {
-    min-height: 100px;
+    min-height: 72px;
+    padding: 12px 10px;
+    font-size: 0.875rem;
+    justify-content: center;
+    text-align: center;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .home-metrics-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
   }
 
   .home-metric-card {
-    min-height: 100px;
-    padding: 18px 14px;
+    min-height: auto;
+    padding: 14px 12px;
+  }
+
+  .home-metric-label {
+    font-size: 0.7rem;
+  }
+
+  .home-metric-value {
+    font-size: 1rem;
+  }
+
+  .home-invite-card {
+    padding: 1rem !important;
+  }
+}
+
+@media (max-width: 380px) {
+  .home-action-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .home-action-btn {
+    min-height: 56px;
+    flex-direction: row;
+    justify-content: center;
+    gap: 0.5rem;
   }
 }

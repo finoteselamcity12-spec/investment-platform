@@ -1,4 +1,4 @@
-const CACHE_NAME = 'blackrock-cache-v2'
+const CACHE_NAME = 'blackrock-cache-v3-mobile'
 const ASSETS_TO_CACHE = ['/', '/index.html', '/manifest.json', '/favicon.svg']
 
 function shouldBypass(request) {

@@ -17,7 +17,11 @@ if ('serviceWorker' in navigator && import.meta.env.PROD) {
       const registrations = await navigator.serviceWorker.getRegistrations()
       await Promise.all(registrations.map((reg) => reg.unregister()))
 
-      await navigator.serviceWorker.register('/service-worker.js', { updateViaCache: 'none' })
+      const buildStamp = import.meta.env.VITE_BUILD_STAMP || 'dev'
+      await navigator.serviceWorker.register(
+        `/service-worker.js?build=${encodeURIComponent(buildStamp)}`,
+        { updateViaCache: 'none' }
+      )
     } catch (error) {
       console.warn('Service worker skipped:', error)
     }
