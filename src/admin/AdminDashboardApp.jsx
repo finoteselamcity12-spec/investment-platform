@@ -262,14 +262,17 @@ export default function AdminDashboardApp() {
             {d.transactionId || '—'}
           </td>
           <td>
-            {d.screenshot ? (
+            {d.screenshot &&
+            typeof d.screenshot === 'string' &&
+            d.screenshot.length > 0 &&
+            (d.screenshot.startsWith('data:') || d.screenshot.startsWith('http')) ? (
               <button
                 type="button"
                 className="admin-proof-thumb"
                 onClick={() => setReceiptDeposit(d)}
                 aria-label="View payment proof"
               >
-                <img src={d.screenshot} alt="Proof" />
+                <img src={d.screenshot} alt="Proof" onError={(e) => { e.currentTarget.style.display = 'none' }} />
               </button>
             ) : (
               <span style={{ color: '#64748b', fontSize: '0.75rem' }}>No image</span>

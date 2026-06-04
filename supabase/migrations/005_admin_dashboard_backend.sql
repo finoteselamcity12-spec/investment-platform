@@ -59,7 +59,14 @@ ALTER TABLE public.deposits
   ADD COLUMN IF NOT EXISTS payment_method TEXT,
   ADD COLUMN IF NOT EXISTS transaction_id TEXT,
   ADD COLUMN IF NOT EXISTS proof_url TEXT,
+  ADD COLUMN IF NOT EXISTS screenshot_url TEXT,
   ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+
+ALTER TABLE public.deposits
+  ALTER COLUMN screenshot_url DROP NOT NULL,
+  ALTER COLUMN proof_url DROP NOT NULL,
+  ALTER COLUMN payment_method DROP NOT NULL,
+  ALTER COLUMN transaction_id DROP NOT NULL;
 
 UPDATE public.deposits
 SET status = 'approved'
@@ -192,7 +199,7 @@ BEGIN
     d.amount,
     d.payment_method,
     d.transaction_id,
-    d.proof_url,
+    COALESCE(d.proof_url, d.screenshot_url) AS proof_url,
     d.status,
     d.created_at
   FROM public.deposits d
@@ -381,10 +388,14 @@ BEGIN
   END;
 
   INSERT INTO public.deposits (
-    user_id, currency, amount, status, payment_method, transaction_id, proof_url
+    user_id, currency, amount, status,
+    payment_method, transaction_id, proof_url, screenshot_url
   ) VALUES (
     p_user_id, norm_currency, p_amount, 'pending',
-    p_payment_method, p_transaction_id, p_proof_url
+    NULLIF(TRIM(p_payment_method), ''),
+    NULLIF(TRIM(p_transaction_id), ''),
+    NULLIF(TRIM(p_proof_url), ''),
+    NULLIF(TRIM(p_proof_url), '')
   ) RETURNING id INTO new_id;
 
   RETURN public.admin_approve_deposit(new_id);

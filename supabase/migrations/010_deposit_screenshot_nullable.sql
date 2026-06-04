@@ -1,0 +1,1 @@
+-- deposits.screenshot_url / proof_url nullable — see RUN_FIX_DEPOSIT_COLUMNS.sql for full script

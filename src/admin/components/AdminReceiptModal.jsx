@@ -30,8 +30,12 @@ export default function AdminReceiptModal({ deposit, onClose }) {
         <p style={{ fontSize: '0.8125rem', wordBreak: 'break-all' }}>
           <strong>Transaction ID:</strong> {deposit.transactionId || '—'}
         </p>
-        {deposit.screenshot && typeof deposit.screenshot === 'string' && deposit.screenshot.startsWith('data:') && (
+        {deposit.screenshot &&
+        typeof deposit.screenshot === 'string' &&
+        (deposit.screenshot.startsWith('data:') || deposit.screenshot.startsWith('http')) ? (
           <img src={deposit.screenshot} alt="Payment receipt" />
+        ) : (
+          <p style={{ marginTop: '0.75rem', fontSize: '0.8125rem', color: '#94a3b8' }}>No image uploaded</p>
         )}
       </div>
     </div>

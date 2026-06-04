@@ -249,7 +249,7 @@ export async function fetchAdminDashboard() {
     currency: pick(row, 'currency'),
     paymentMethod: pick(row, 'payment_method', 'paymentMethod'),
     transactionId: pick(row, 'transaction_id', 'transactionId'),
-    screenshot: pick(row, 'proof_url', 'proofUrl'),
+    screenshot: pick(row, 'proof_url', 'proofUrl', 'screenshot_url', 'screenshotUrl') || null,
     status: pick(row, 'status'),
     createdAt: pick(row, 'created_at', 'createdAt'),
     source: 'supabase',
@@ -376,13 +376,15 @@ export async function approveDepositInSupabase(deposit) {
   const currency =
     deposit.currency === 'USDT' || deposit.currency === 'USD' ? 'USD' : 'ETB'
 
+  const proofPayload = truncateProof(deposit.screenshot) || null
+
   const { data, error } = await supabase.rpc(ADMIN_RPC.approveDepositManual, {
     p_user_id: userId,
     p_amount: Number(deposit.amount),
     p_currency: currency,
     p_payment_method: deposit.paymentMethod || null,
     p_transaction_id: deposit.transactionId || null,
-    p_proof_url: truncateProof(deposit.screenshot),
+    p_proof_url: proofPayload,
   })
 
   if (error) {
