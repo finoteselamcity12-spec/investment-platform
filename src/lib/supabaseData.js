@@ -59,7 +59,7 @@ export async function syncProfileAfterSignup({
       etb_balance: REGISTRATION_BONUS_ETB,
       usd_balance: REGISTRATION_BONUS_USD,
     },
-    { onConflict: 'user_id' }
+    { onConflict: 'user_id', ignoreDuplicates: true }
   )
 
   if (balanceError) {

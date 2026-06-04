@@ -1,4 +1,5 @@
-import { REFERRAL_BONUS_ETB, REFERRAL_BONUS_USD } from '../../lib/platformConfig'
+import { REFERRAL_BONUS_ETB, REFERRAL_BONUS_USD, DEPOSIT_BONUS_RATE } from '../../lib/platformConfig'
+import { recordDepositBonusLocal } from '../../lib/bonusHistory'
 import { findProfileIdByEmail } from '../../lib/supabaseData'
 import { loadReferralStats, updateReferralStats } from '../../lib/referralUtils'
 import {
@@ -163,11 +164,28 @@ export async function approveDeposit(depositId, snapshot) {
   }
 
   const isUsd = deposit.currency === 'USDT' || deposit.currency === 'USD'
+  const depositAmount = Number(deposit.amount) || 0
+  const depositBonus = Math.round(depositAmount * DEPOSIT_BONUS_RATE * 100) / 100
+  const totalCredit = depositAmount + depositBonus
+
   usersData[userKey] = {
     ...existing,
-    usdBalance: isUsd ? Number(existing.usdBalance || 0) + Number(deposit.amount) : existing.usdBalance || 0,
-    etbBalance: !isUsd ? Number(existing.etbBalance || 0) + Number(deposit.amount) : existing.etbBalance || 0,
+    usdBalance: isUsd
+      ? Number(existing.usdBalance || 0) + totalCredit
+      : existing.usdBalance || 0,
+    etbBalance: !isUsd
+      ? Number(existing.etbBalance || 0) + totalCredit
+      : existing.etbBalance || 0,
   }
+
+  recordDepositBonusLocal({
+    userId: deposit.userId,
+    email: deposit.userEmail || userKey,
+    depositId: deposit.supabaseId || deposit.id,
+    depositAmount,
+    currency: deposit.currency,
+    bonusAmount: depositBonus,
+  })
 
   writeJson('admin_pending_deposits', pendingDeposits)
   writeJson('admin_approved_deposits', approvedDeposits)

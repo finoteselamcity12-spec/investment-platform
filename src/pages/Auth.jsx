@@ -8,7 +8,7 @@ import {
   REGISTRATION_BONUS_USD,
 } from '../lib/platformConfig'
 import { syncProfileAfterSignup, fetchUserBalances } from '../lib/supabaseData'
-import { ensureSignupBonusHistoryRecords } from '../lib/signupBonusHistory'
+import { handleLoginSignupBonusCheck } from '../lib/bonusHistory'
 import TermsAndConditionsPanel from '../components/TermsAndConditionsPanel'
 
 const initialForm = {
@@ -259,7 +259,9 @@ export default function Auth() {
           localStorage.setItem('admin_user_data', JSON.stringify(userData))
         }
 
-        ensureSignupBonusHistoryRecords(sanitizedEmail)
+        if (authUserId) {
+          await handleLoginSignupBonusCheck(authUserId, sanitizedEmail)
+        }
 
         setFeedback(
           `Welcome, ${sanitizedName}! Registration successful. Redirecting to login…`,
@@ -316,11 +318,14 @@ export default function Auth() {
         id: user?.id,
         fullName: user?.user_metadata?.full_name,
         email: sanitizedEmail,
-        usdBalance: REGISTRATION_BONUS_USD,
-        etbBalance: REGISTRATION_BONUS_ETB,
+        usdBalance: 0,
+        etbBalance: 0,
       }
 
       if (user?.id) {
+        const bonusCheck = await handleLoginSignupBonusCheck(user.id, sanitizedEmail)
+        console.log('[Auth] signup bonus check:', bonusCheck)
+
         const remoteBalances = await fetchUserBalances(user.id)
         if (remoteBalances) {
           userProfile.usdBalance = remoteBalances.usdBalance
@@ -339,8 +344,8 @@ export default function Auth() {
         ...userProfile,
         ...userData[sanitizedEmail],
         id: user?.id || userProfile.id,
-        usdBalance: userProfile.usdBalance ?? REGISTRATION_BONUS_USD,
-        etbBalance: userProfile.etbBalance ?? REGISTRATION_BONUS_ETB,
+        usdBalance: userProfile.usdBalance ?? 0,
+        etbBalance: userProfile.etbBalance ?? 0,
         lastLogin: new Date().toISOString(),
       }
       localStorage.setItem('admin_user_data', JSON.stringify(userData))

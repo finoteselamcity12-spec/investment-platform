@@ -1,6 +1,7 @@
 import { useMemo, useEffect } from 'react'
 import { CheckCircle, Clock, AlertCircle } from 'lucide-react'
-import { ensureSignupBonusHistoryRecords } from '../lib/signupBonusHistory'
+import { hasBonusHistoryAction, mirrorSignupBonusToLocalHistory } from '../lib/bonusHistory'
+import { getSession } from '../lib/authService'
 
 const PRIMARY_GREEN = '#84CC16'
 
@@ -17,11 +18,25 @@ export default function HistoryPage({ ctx }) {
 
   useEffect(() => {
     if (!userEmail) return
-    ensureSignupBonusHistoryRecords(userEmail)
-    const txns = JSON.parse(localStorage.getItem('user_transactions') || '[]')
-    if (setTransactions) {
-      setTransactions(txns)
+
+    async function syncHistoryDisplay() {
+      const userId = getSession()?.user?.id
+      if (userId) {
+        const historyExists = await hasBonusHistoryAction(userId, 'signup_bonus')
+        if (historyExists) {
+          mirrorSignupBonusToLocalHistory(userEmail, userId)
+        }
+      } else {
+        mirrorSignupBonusToLocalHistory(userEmail, userId)
+      }
+
+      const txns = JSON.parse(localStorage.getItem('user_transactions') || '[]')
+      if (setTransactions) {
+        setTransactions(txns)
+      }
     }
+
+    syncHistoryDisplay()
   }, [userEmail, setTransactions])
 
   const filteredHistory = useMemo(() => {

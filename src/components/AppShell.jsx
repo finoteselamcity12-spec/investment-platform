@@ -20,6 +20,7 @@ import {
   REFERRAL_BONUS_ETB,
 } from '../lib/platformConfig'
 import { fetchUserBalances, testSupabaseConnection } from '../lib/supabaseData'
+import { handleLoginSignupBonusCheck } from '../lib/bonusHistory'
 import { loadReferralStats } from '../lib/referralUtils'
 import AdminLoginModal from './AdminLoginModal'
 import ProfileModal from './ProfileModal'
@@ -145,12 +146,14 @@ export default function AppShell({ children, activePage, setActivePage }) {
     }
 
     const supabaseUserId = session?.user?.id
-    if (supabaseUserId) {
+    if (supabaseUserId && profileEmail) {
+      await handleLoginSignupBonusCheck(supabaseUserId, profileEmail)
+
       const remoteBalances = await fetchUserBalances(supabaseUserId)
       if (remoteBalances) {
         setUsdBalance(remoteBalances.usdBalance)
         setEtbBalance(remoteBalances.etbBalance)
-        if (profileEmail && userData[profileEmail]) {
+        if (userData[profileEmail]) {
           userData[profileEmail].usdBalance = remoteBalances.usdBalance
           userData[profileEmail].etbBalance = remoteBalances.etbBalance
           localStorage.setItem('admin_user_data', JSON.stringify(userData))

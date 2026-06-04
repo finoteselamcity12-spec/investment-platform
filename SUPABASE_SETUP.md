@@ -89,6 +89,10 @@ This adds admin RPC functions (`admin_get_dashboard_stats`, `admin_approve_depos
 
 **Admin must sign in with Supabase Auth** as `workinehabche@gmail.com` (create this user in Auth → Users with the same password as the admin console). Use `/admin-login`.
 
+**Bonus logic (signup once + 10% deposit bonus):**
+
+Run `supabase/RUN_FIX_BONUS_LOGIC.sql` — creates `bonus_history`, unique indexes, updates `admin_approve_deposit`, and `handle_new_user`.
+
 **If approve/reject fails with `invalid input syntax for type json`:**
 
 1. Run `supabase/RUN_FIX_JSON_DEPOSITS.sql` (proof columns as TEXT, no base64 in RPC).
