@@ -18,6 +18,10 @@ Then run (first-deposit referral rule):
 
 `supabase/migrations/003_first_deposit_referral_only.sql`
 
+**If registration returns HTTP 500**, run immediately:
+
+`supabase/migrations/004_fix_registration_trigger.sql`
+
 This creates:
 
 - `profiles` (with `referred_by`, `email`)

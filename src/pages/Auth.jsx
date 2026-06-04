@@ -186,8 +186,14 @@ export default function Auth() {
 
         if (signupError) {
           const errorMessage = String(signupError.message || signupError || '')
+          const status = signupError.status || signupError.code
           if (errorMessage.toLowerCase().includes('already')) {
             setFeedback('An account with this email already exists. Please sign in.', 'error')
+          } else if (status === 500 || errorMessage.includes('500')) {
+            setFeedback(
+              'Server error during sign-up. Run migration 004_fix_registration_trigger.sql in Supabase, then try again.',
+              'error'
+            )
           } else {
             setFeedback(errorMessage || 'Registration failed. Please try again.', 'error')
           }
@@ -195,16 +201,23 @@ export default function Auth() {
           return
         }
 
-        if (authUserId) {
-          const profileResult = await syncProfileAfterSignup({
-            userId: authUserId,
-            email: sanitizedEmail,
-            fullName: sanitizedName,
-            referrerCode: referrerId,
-          })
-          if (profileResult?.error) {
-            console.error('Profile sync warning:', profileResult.error)
-          }
+        if (!authUserId) {
+          setFeedback(
+            'Account may have been created. Check your email to confirm, then sign in.',
+            'success'
+          )
+          setLoading(false)
+          return
+        }
+
+        const profileResult = await syncProfileAfterSignup({
+          userId: authUserId,
+          email: sanitizedEmail,
+          fullName: sanitizedName,
+          referrerCode: referrerId,
+        })
+        if (profileResult?.error) {
+          console.error('Profile sync warning:', profileResult.error)
         }
 
         const users = JSON.parse(localStorage.getItem('platform_registered_users_data') || '{}')

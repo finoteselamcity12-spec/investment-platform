@@ -54,21 +54,29 @@ BEGIN
     END IF;
   END IF;
 
-  INSERT INTO public.profiles (id, email, full_name, referred_by)
-  VALUES (
-    NEW.id,
-    NEW.email,
-    COALESCE(NULLIF(TRIM(NEW.raw_user_meta_data->>'full_name'), ''), ''),
-    ref_uuid
-  )
-  ON CONFLICT (id) DO UPDATE SET
-    email = EXCLUDED.email,
-    full_name = COALESCE(NULLIF(EXCLUDED.full_name, ''), public.profiles.full_name),
-    referred_by = COALESCE(public.profiles.referred_by, EXCLUDED.referred_by);
+  BEGIN
+    INSERT INTO public.profiles (id, email, full_name, referred_by)
+    VALUES (
+      NEW.id,
+      NEW.email,
+      COALESCE(NULLIF(TRIM(NEW.raw_user_meta_data->>'full_name'), ''), ''),
+      ref_uuid
+    )
+    ON CONFLICT (id) DO UPDATE SET
+      email = EXCLUDED.email,
+      full_name = COALESCE(NULLIF(EXCLUDED.full_name, ''), public.profiles.full_name),
+      referred_by = COALESCE(public.profiles.referred_by, EXCLUDED.referred_by);
+  EXCEPTION WHEN OTHERS THEN
+    RAISE LOG 'handle_new_user profiles failed for %: %', NEW.id, SQLERRM;
+  END;
 
-  INSERT INTO public.balances (user_id, etb_balance, usd_balance)
-  VALUES (NEW.id, 150.00, 1.70)
-  ON CONFLICT (user_id) DO NOTHING;
+  BEGIN
+    INSERT INTO public.balances (user_id, etb_balance, usd_balance)
+    VALUES (NEW.id, 150.00, 1.70)
+    ON CONFLICT (user_id) DO NOTHING;
+  EXCEPTION WHEN OTHERS THEN
+    RAISE LOG 'handle_new_user balances failed for %: %', NEW.id, SQLERRM;
+  END;
 
   RETURN NEW;
 END;

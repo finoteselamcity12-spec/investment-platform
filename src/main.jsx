@@ -11,10 +11,15 @@ root.render(
   </StrictMode>,
 )
 
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker
-      .register('/service-worker.js')
-      .catch((error) => console.error('Service worker registration failed:', error))
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  window.addEventListener('load', async () => {
+    try {
+      const registrations = await navigator.serviceWorker.getRegistrations()
+      await Promise.all(registrations.map((reg) => reg.unregister()))
+
+      await navigator.serviceWorker.register('/service-worker.js', { updateViaCache: 'none' })
+    } catch (error) {
+      console.warn('Service worker skipped:', error)
+    }
   })
 }
