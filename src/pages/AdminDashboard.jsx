@@ -349,14 +349,14 @@ export default function AdminDashboard() {
           <div className="space-y-4">
             <div>
               <h1
-                className="text-4xl sm:text-5xl font-black text-white tracking-tight"
-                style={{ textShadow: '2px 2px 0 rgba(16, 185, 129, 0.22), 0 14px 35px rgba(0, 0, 0, 0.35)' }}
+                className="text-4xl sm:text-5xl font-black text-[#84CC16] tracking-tight"
+                style={{ textShadow: '2px 2px 0 rgba(16, 185, 129, 0.32), 0 14px 35px rgba(0, 0, 0, 0.35)' }}
               >
                 Welcome to Blackrock
               </h1>
-              <p className="mt-3 text-sm uppercase tracking-[0.18em] text-emerald-300">Admin Console</p>
+              <p className="mt-3 text-sm uppercase tracking-[0.18em] text-[#84CC16]">Admin Console</p>
             </div>
-            <p className="max-w-2xl text-sm text-slate-400">Manage registrations, approvals, and wallet movements in a secure, enterprise-grade admin portal.</p>
+            <p className="max-w-2xl text-sm text-slate-300">Manage registrations, approvals, and wallet movements in a secure, enterprise-grade admin portal.</p>
           </div>
           <button
             onClick={handleSignOut}

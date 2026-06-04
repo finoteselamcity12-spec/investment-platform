@@ -25,8 +25,8 @@ export default function HomePage({ ctx }) {
     <div className="min-h-screen bg-slate-50 pb-20">
       <div className="max-w-5xl mx-auto px-4 py-6 space-y-6">
         <div className="text-center">
-          <p className="text-sm uppercase tracking-[0.36em] text-slate-500">BLACKROCK</p>
-          <h1 className="mt-3 text-3xl font-semibold text-slate-950 sm:text-4xl">Welcome back.</h1>
+          <p className="text-sm uppercase tracking-[0.36em] text-[#84CC16]">BLACKROCK</p>
+          <h1 className="mt-3 text-3xl font-semibold text-[#84CC16] sm:text-4xl">Welcome back.</h1>
           <p className="mt-2 text-sm text-slate-500">Your dashboard is ready for action.</p>
         </div>
 
@@ -54,13 +54,13 @@ export default function HomePage({ ctx }) {
           </button>
           <button
             onClick={() => setActivePage?.('deposit')}
-            className="min-h-[96px] rounded-[15px] border border-slate-200 bg-white px-4 py-4 text-left text-sm font-semibold text-slate-900 shadow-[0_8px_24px_rgba(15,23,42,0.08)] transition hover:border-slate-300"
+            className="min-h-[96px] rounded-[15px] bg-[#84CC16] px-4 py-4 text-left text-sm font-semibold text-white shadow-lg shadow-[#84CC16]/30 transition hover:bg-lime-500"
           >
             Deposit
           </button>
           <button
             onClick={() => setActivePage?.('invest')}
-            className="min-h-[96px] rounded-[15px] border border-slate-200 bg-white px-4 py-4 text-left text-sm font-semibold text-slate-900 shadow-[0_8px_24px_rgba(15,23,42,0.08)] transition hover:border-slate-300"
+            className="min-h-[96px] rounded-[15px] bg-[#84CC16] px-4 py-4 text-left text-sm font-semibold text-white shadow-lg shadow-[#84CC16]/30 transition hover:bg-lime-500"
           >
             Invest
           </button>
