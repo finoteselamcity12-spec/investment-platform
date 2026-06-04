@@ -146,73 +146,42 @@
   font-weight: 700;
   letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: #8b7355;
+  color: #4a7c2a;
 }
 
+/* Green gradient + layered 3D text-shadow (crisp on mobile) */
 .welcome-premium {
-  position: relative;
   display: inline-block;
   margin: 0;
   padding: 0 0.25rem;
-  font-size: clamp(1.35rem, 6.5vw, 2rem);
+  max-width: 100%;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: clamp(1.25rem, 6vw, 1.85rem);
   font-weight: 800;
-  line-height: 1.15;
-  letter-spacing: clamp(0.04em, 0.35vw, 0.08em);
+  line-height: 1.2;
+  letter-spacing: clamp(0.03em, 0.3vw, 0.06em);
   text-transform: uppercase;
-  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  text-align: center;
+  /* Premium green gradient on the glyphs */
   background: linear-gradient(
-    135deg,
-    #1a1d24 0%,
-    #3d4454 35%,
-    #c9a227 65%,
-    #ffd700 85%,
-    #8b6914 100%
+    180deg,
+    #c8f07a 0%,
+    #a8e063 18%,
+    #84cc16 45%,
+    #5a9e1a 72%,
+    #1a472a 100%
   );
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 2px 4px rgba(26, 29, 36, 0.15));
+  color: transparent;
+  /* Layered pop-out depth (forest green + soft cast) */
   text-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.9),
-    0 2px 3px rgba(26, 29, 36, 0.2),
-    0 4px 8px rgba(26, 29, 36, 0.25),
-    0 8px 16px rgba(139, 105, 20, 0.2);
-}
-
-.welcome-premium::before {
-  content: attr(data-text);
-  position: absolute;
-  left: 0;
-  top: 0;
-  z-index: -1;
-  width: 100%;
-  transform: translate(2px, 3px);
-  background: linear-gradient(180deg, rgba(26, 29, 36, 0.35), rgba(26, 29, 36, 0.08));
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  opacity: 0.85;
-}
-
-.welcome-premium::after {
-  content: attr(data-text);
-  position: absolute;
-  left: 0;
-  top: 0;
-  z-index: 1;
-  pointer-events: none;
-  width: 100%;
-  background: radial-gradient(
-    circle at 28% 18%,
-    rgba(255, 255, 255, 0.95) 0%,
-    rgba(255, 248, 220, 0.4) 18%,
-    transparent 42%
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  mix-blend-mode: overlay;
-  opacity: 0.75;
+    0 1px 0 #6fad14,
+    1px 1px 0 #2d6b3f,
+    2px 2px 0 #1a472a,
+    3px 3px 0 #153d24,
+    4px 4px 0 rgba(0, 0, 0, 0.2);
 }
 
 /* —— Wallet panel (dark glass shell) —— */

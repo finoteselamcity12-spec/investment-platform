@@ -47,9 +47,7 @@ export default function HomePage({ ctx }) {
       <div className="home-dashboard-stack mx-auto flex w-full max-w-lg flex-col">
         <header className="home-header-premium">
           <p className="home-header-eyebrow">Your portfolio</p>
-          <h1 className="welcome-premium" data-text="WELCOME TO BLACKROCK">
-            Welcome to Blackrock
-          </h1>
+          <h1 className="welcome-premium">Welcome to Blackrock</h1>
         </header>
 
         <section className="home-wallets-panel" aria-label="Wallet balances">
