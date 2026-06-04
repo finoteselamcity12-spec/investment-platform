@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Brand headers — pure white #FFFFFF 3D (login + dashboard)
+   Brand headers — premium gold #FFD700 3D (login + dashboard)
    ========================================================================== */
 
 .auth-page {
@@ -32,7 +32,8 @@
   padding-right: 0.25rem;
 }
 
-.brand-header-block--login {
+.brand-header-block--login,
+.brand-header-block--dashboard {
   padding: 0.5rem 1rem;
   box-sizing: border-box;
 }
@@ -49,7 +50,9 @@
 .home-header-premium {
   width: 100%;
   max-width: 100%;
-  padding: 0.25rem 0 0.625rem;
+  padding: 0.5rem 1rem 0.625rem;
+  box-sizing: border-box;
+  text-align: center;
 }
 
 /* Golden coin row */
@@ -85,41 +88,21 @@
   stroke: #ffd700;
 }
 
-/* Pure white #FFFFFF — shared login + dashboard */
+/* Premium gold #FFD700 — shared login + dashboard */
 .brand-gold-3d {
   position: relative;
   display: block;
   width: 100%;
   max-width: 100%;
   margin: 0;
-  padding: 0 0.25rem;
+  padding: 0.25rem 0.5rem;
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   font-weight: 800;
-  line-height: 1.08;
+  line-height: 1.1;
   text-transform: uppercase;
   text-align: center;
   overflow-wrap: break-word;
   word-break: break-word;
-  background: #ffffff;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: #ffffff;
-  -webkit-text-stroke: 1px rgba(0, 0, 0, 0.5);
-  paint-order: stroke fill;
-  text-shadow:
-    0 1px 0 rgba(0, 0, 0, 0.45),
-    1px 2px 0 rgba(0, 0, 0, 0.4),
-    2px 3px 0 rgba(0, 0, 0, 0.35),
-    2px 4px 8px rgba(0, 0, 0, 0.4);
-  filter: drop-shadow(1px 1px 0 rgba(0, 0, 0, 0.5))
-    drop-shadow(2px 3px 10px rgba(0, 0, 0, 0.45));
-}
-
-/* Login BLACKROCK — golden glow, text-3xl / text-4xl */
-.brand-gold-3d--login {
-  font-size: clamp(1.875rem, 7vw, 2.25rem);
-  letter-spacing: 0.08em;
   color: #ffd700;
   background: none;
   -webkit-background-clip: unset;
@@ -131,76 +114,24 @@
     2px 2px 0 #b8860b,
     4px 4px 5px rgba(0, 0, 0, 0.3);
   filter: drop-shadow(0 0 12px rgba(255, 215, 0, 0.45));
-  padding: 0.25rem 0.5rem;
 }
 
-.brand-gold-3d--login::before,
-.brand-gold-3d--login::after {
+.brand-gold-3d::before,
+.brand-gold-3d::after {
   display: none;
 }
 
-/* Dashboard WELCOME TO BLACKROCK — text-6xl (60px), scales on narrow screens */
+/* Login BLACKROCK — text-3xl / text-4xl */
+.brand-gold-3d--login {
+  font-size: clamp(1.875rem, 7vw, 2.25rem);
+  letter-spacing: 0.08em;
+}
+
+/* Dashboard WELCOME TO BLACKROCK — same gold 3D, slightly smaller for long title */
 .brand-gold-3d--dashboard {
-  font-size: clamp(2.75rem, 10vw, 3.75rem);
-  letter-spacing: 0.06em;
-  line-height: 1.1;
-}
-
-.brand-gold-3d::after {
-  opacity: 0.35;
-}
-
-/* 3D extrusion — dark shadow only (not brown fill) */
-.brand-gold-3d::before {
-  content: attr(data-text);
-  position: absolute;
-  left: 0;
-  top: 0;
-  z-index: -1;
-  width: 100%;
-  font-weight: 900;
-  -webkit-text-fill-color: rgba(0, 0, 0, 0.75);
-  color: rgba(0, 0, 0, 0.75);
-  transform: translate(3px, 4px);
-  text-shadow:
-    1px 1px 0 rgba(0, 0, 0, 0.5),
-    2px 2px 0 rgba(0, 0, 0, 0.55),
-    3px 3px 0 rgba(0, 0, 0, 0.5),
-    4px 4px 0 rgba(0, 0, 0, 0.55),
-    4px 4px 8px rgba(0, 0, 0, 0.5);
-}
-
-.brand-gold-3d--dashboard::before {
-  transform: translate(3px, 4px);
-  text-shadow:
-    1px 1px 0 rgba(0, 0, 0, 0.55),
-    2px 2px 0 rgba(0, 0, 0, 0.55),
-    3px 3px 0 rgba(0, 0, 0, 0.5),
-    4px 4px 0 rgba(0, 0, 0, 0.5),
-    4px 4px 10px rgba(0, 0, 0, 0.5);
-}
-
-/* Subtle top highlight on white 3D face */
-.brand-gold-3d::after {
-  content: attr(data-text);
-  position: absolute;
-  left: 0;
-  top: 0;
-  z-index: 1;
-  width: 100%;
-  font-weight: 900;
-  pointer-events: none;
-  -webkit-text-fill-color: transparent;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 1) 0%,
-    rgba(255, 255, 255, 0.85) 20%,
-    rgba(255, 255, 255, 0.15) 45%,
-    transparent 55%
-  );
-  -webkit-background-clip: text;
-  background-clip: text;
-  mix-blend-mode: overlay;
+  font-size: clamp(1.5rem, 5.5vw, 2rem);
+  letter-spacing: 0.05em;
+  line-height: 1.12;
 }
 
 /* BlackRock 3D Premium Branding Logo */
@@ -773,7 +704,7 @@
   }
 
   .brand-gold-3d--dashboard {
-    font-size: 3.75rem;
+    font-size: 2rem;
   }
 }
 
@@ -846,12 +777,12 @@
   }
 
   .brand-gold-3d--dashboard {
-    font-size: clamp(2.75rem, 10vw, 3.75rem);
-    letter-spacing: 0.06em;
+    font-size: clamp(1.5rem, 5.5vw, 1.875rem);
+    letter-spacing: 0.045em;
   }
 
-  .brand-gold-3d::before {
-    transform: translate(2px, 3px);
+  .home-header-premium {
+    padding: 0.5rem 0.75rem 0.625rem;
   }
 
   .brand-coin-row {
@@ -941,8 +872,8 @@
   }
 
   .brand-gold-3d--dashboard {
-    font-size: clamp(2.5rem, 9vw, 3.25rem);
-    letter-spacing: 0.05em;
+    font-size: clamp(1.35rem, 5vw, 1.75rem);
+    letter-spacing: 0.04em;
   }
 
   .brand-coin-icon {

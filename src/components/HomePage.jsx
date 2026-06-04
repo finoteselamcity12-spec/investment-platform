@@ -7,11 +7,17 @@ export default function HomePage({ ctx }) {
   const {
     usdBalance = 0,
     etbBalance = 0,
+    balancesLoading = false,
     myActiveInvestmentsList = [],
     setActivePage,
     referralEarningsUsd = 0,
     referralEarningsEtb = 0,
   } = ctx
+
+  const formatUsd = (value) =>
+    balancesLoading ? '…' : `$${Number(value).toFixed(2)}`
+  const formatEtb = (value) =>
+    balancesLoading ? '…' : `${Number(value).toLocaleString()} Br`
 
   const usdDailyProfit = myActiveInvestmentsList
     .filter((item) => item.currency === 'USD')
@@ -61,7 +67,9 @@ export default function HomePage({ ctx }) {
                 </span>
                 <p className="home-wallet-label">USD Wallet</p>
               </div>
-              <p className="home-wallet-value">${Number(usdBalance).toFixed(2)}</p>
+              <p className="home-wallet-value" aria-busy={balancesLoading}>
+                {formatUsd(usdBalance)}
+              </p>
             </article>
             <article className="home-wallet-card home-glass-card">
               <div className="home-wallet-header">
@@ -70,7 +78,9 @@ export default function HomePage({ ctx }) {
                 </span>
                 <p className="home-wallet-label">ETB Wallet</p>
               </div>
-              <p className="home-wallet-value">{Number(etbBalance).toLocaleString()} Br</p>
+              <p className="home-wallet-value" aria-busy={balancesLoading}>
+                {formatEtb(etbBalance)}
+              </p>
             </article>
           </div>
           <div className="home-referral-grid">

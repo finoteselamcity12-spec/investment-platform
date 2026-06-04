@@ -3,7 +3,7 @@ import { Coins } from 'lucide-react'
 const COIN_COUNT = 5
 
 /**
- * White 3D brand header with coin row (login + dashboard).
+ * Premium gold 3D brand header with coin row (login + dashboard).
  * @param {'login' | 'dashboard'} variant — sizing for short vs long title
  */
 export default function BrandGoldHeader({ title, variant = 'login', className = '' }) {
@@ -16,7 +16,7 @@ export default function BrandGoldHeader({ title, variant = 'login', className = 
   const coinSize = isLogin ? 28 : 24
   const headerClass = [
     'brand-header-block w-full text-center',
-    isLogin ? 'brand-header-block--login' : '',
+    isLogin ? 'brand-header-block--login' : 'brand-header-block--dashboard',
     className,
   ]
     .filter(Boolean)

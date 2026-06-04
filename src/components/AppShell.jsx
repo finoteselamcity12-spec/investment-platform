@@ -131,9 +131,12 @@ export default function AppShell({ children, activePage, setActivePage }) {
     try {
       await handleLoginSignupBonusCheck(supabaseUserId, profileEmail)
       const result = await refreshUserBalancesFromAuth(supabaseUserId, profileEmail)
-      if (result) {
+      if (result?.fromDatabase) {
         setUsdBalance(result.usdBalance)
         setEtbBalance(result.etbBalance)
+      } else {
+        setUsdBalance(0)
+        setEtbBalance(0)
       }
       return result
     } finally {
