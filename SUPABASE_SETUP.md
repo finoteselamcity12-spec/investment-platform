@@ -18,9 +18,11 @@ Then run (first-deposit referral rule):
 
 `supabase/migrations/003_first_deposit_referral_only.sql`
 
-**If registration returns HTTP 500**, run immediately:
+**If registration returns HTTP 500**, run step-by-step in SQL Editor:
 
-`supabase/migrations/004_fix_registration_trigger.sql`
+`supabase/RUN_THIS_FIX_SIGNUP.sql`
+
+(Or use `supabase/migrations/004_fix_registration_trigger.sql` for a one-shot fix.)
 
 This creates:
 
