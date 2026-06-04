@@ -1,5 +1,4 @@
-import { useState } from 'react'
-import { TrendingUp, Wallet, ArrowDownRight, Users, Copy, Check } from 'lucide-react'
+import { TrendingUp, Wallet, ArrowDownRight, Users } from 'lucide-react'
 import {
   REGISTRATION_BONUS_USD,
   REGISTRATION_BONUS_ETB,
@@ -11,19 +10,13 @@ export default function HomePage({ ctx }) {
     etbBalance = 0,
     myActiveInvestmentsList = [],
     setActivePage,
-    referralLink = '',
     referralEarningsUsd = 0,
     referralEarningsEtb = 0,
-    showToast,
-    copied,
-    setCopied,
   } = ctx
 
   const spendableUsd = Math.max(0, Number(usdBalance) - REGISTRATION_BONUS_USD)
   const spendableEtb = Math.max(0, Number(etbBalance) - REGISTRATION_BONUS_ETB)
   const totalBalance = spendableUsd + spendableEtb
-
-  const [linkCopied, setLinkCopied] = useState(false)
 
   const usdDailyProfit = myActiveInvestmentsList
     .filter((item) => item.currency === 'USD')
@@ -47,27 +40,6 @@ export default function HomePage({ ctx }) {
     { label: 'Withdraw', page: 'withdraw', icon: ArrowDownRight },
     { label: 'Invite', page: 'invite', icon: Users },
   ]
-
-  async function handleCopyInviteLink() {
-    if (!referralLink) {
-      showToast?.('Invite link is loading. Please try again.', 'error')
-      return
-    }
-    try {
-      await navigator.clipboard.writeText(referralLink)
-      setCopied?.(true)
-      setLinkCopied(true)
-      showToast?.('Invite link copied!', 'success')
-      setTimeout(() => {
-        setCopied?.(false)
-        setLinkCopied(false)
-      }, 2000)
-    } catch {
-      showToast?.('Could not copy. Please copy the link manually.', 'error')
-    }
-  }
-
-  const isCopied = copied || linkCopied
 
   const statCards = [
     {
@@ -147,23 +119,6 @@ export default function HomePage({ ctx }) {
               <p className="home-metric-value">{value}</p>
             </div>
           ))}
-        </div>
-
-        <div className="home-invite-card rounded-2xl border-2 border-slate-200 bg-white shadow-sm">
-          <p className="home-invite-title">Your Invite Link</p>
-          <p className="home-invite-desc">
-            Share this link to invite friends and earn referral rewards.
-          </p>
-          <p className="home-invite-url">{referralLink || 'Loading invite link…'}</p>
-          <button
-            type="button"
-            onClick={handleCopyInviteLink}
-            disabled={!referralLink}
-            className="home-invite-copy-btn flex w-full items-center justify-center gap-2 rounded-xl bg-[#84CC16] text-white shadow-md transition hover:bg-lime-500 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {isCopied ? <Check size={18} /> : <Copy size={18} />}
-            {isCopied ? 'Copied!' : 'Copy Link'}
-          </button>
         </div>
       </div>
     </div>
