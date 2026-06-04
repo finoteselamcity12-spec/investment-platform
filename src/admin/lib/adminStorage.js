@@ -127,8 +127,14 @@ export function mergePendingDeposits(localList, remoteList) {
 }
 
 export function mergeUsers(remoteUsers, localUsers) {
-  if (remoteUsers?.length) return remoteUsers
-  return localUsers || []
+  const remote = Array.isArray(remoteUsers) ? remoteUsers : []
+  const local = Array.isArray(localUsers) ? localUsers : []
+  if (remote.length > 0) return remote
+  if (local.length > 0) {
+    console.log('[Admin] Using local users fallback:', local.length)
+    return local
+  }
+  return []
 }
 
 export async function approveDeposit(depositId, snapshot) {

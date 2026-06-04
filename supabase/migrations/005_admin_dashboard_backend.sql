@@ -105,10 +105,15 @@ RETURNS BOOLEAN
 LANGUAGE sql
 STABLE
 SECURITY DEFINER
-SET search_path = public
+SET search_path = public, auth
 AS $$
   SELECT COALESCE(
-    lower(trim(auth.jwt() ->> 'email')) = lower('workinehabche@gmail.com'),
+    (
+      SELECT lower(trim(email)) = lower('workinehabche@gmail.com')
+      FROM auth.users
+      WHERE id = auth.uid()
+    ),
+    lower(trim(COALESCE(auth.jwt() ->> 'email', ''))) = lower('workinehabche@gmail.com'),
     FALSE
   );
 $$;

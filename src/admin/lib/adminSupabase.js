@@ -6,6 +6,7 @@ const UUID_REGEX =
 
 /** RPC names must match SQL exactly (public schema) */
 export const ADMIN_RPC = {
+  debug: 'admin_debug_auth',
   stats: 'admin_get_dashboard_stats',
   pendingDeposits: 'admin_list_pending_deposits',
   withdrawals: 'admin_list_withdrawals',
@@ -29,7 +30,16 @@ function logAdminError(label, error) {
 }
 
 export function isSupabaseConfigured() {
-  return Boolean(import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY)
+  const url = import.meta.env.VITE_SUPABASE_URL
+  const key = import.meta.env.VITE_SUPABASE_ANON_KEY
+  let urlHost = null
+  try {
+    urlHost = url ? new URL(url).host : null
+  } catch {
+    urlHost = 'invalid-url'
+  }
+  adminLog('env_check', { hasUrl: Boolean(url), hasKey: Boolean(key), urlHost })
+  return Boolean(url && key)
 }
 
 export async function ensureAdminSupabaseSession(password) {
@@ -37,11 +47,15 @@ export async function ensureAdminSupabaseSession(password) {
     return { ok: false, error: 'Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY in .env' }
   }
 
-  const { data: sessionData } = await supabase.auth.getSession()
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+  if (sessionError) {
+    adminLog('getSession_error', sessionError)
+  }
+
   const email = sessionData?.session?.user?.email
   if (email?.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
-    adminLog('auth', { status: 'existing_session', email })
-    return { ok: true, email }
+    adminLog('auth', { status: 'existing_session', email, userId: sessionData.session.user.id })
+    return { ok: true, email, userId: sessionData.session.user.id }
   }
 
   if (!password) {
@@ -65,99 +79,116 @@ export async function ensureAdminSupabaseSession(password) {
     }
   }
 
+  await supabase.auth.getSession()
+
   adminLog('auth', { status: 'signed_in', userId: data.user?.id, email: data.user?.email })
-  return { ok: true, user: data.user, email: data.user?.email }
+  return { ok: true, user: data.user, email: data.user?.email, userId: data.user?.id }
 }
 
-/** Restore Supabase JWT for admin console (required for all RPC calls) */
 export async function ensureSupabaseAdminAuth() {
   return ensureAdminSupabaseSession(ADMIN_CREDENTIALS.password)
 }
 
+/** Normalize RPC row keys (PostgREST may vary casing) */
+function pick(row, ...keys) {
+  if (!row || typeof row !== 'object') return undefined
+  for (const key of keys) {
+    if (row[key] !== undefined && row[key] !== null) return row[key]
+  }
+  return undefined
+}
+
 function parseStatsPayload(raw) {
-  if (!raw) return null
-  if (typeof raw === 'object') return raw
-  if (typeof raw === 'string') {
+  adminLog('stats_raw', { type: typeof raw, raw })
+
+  if (raw == null) return null
+
+  let obj = raw
+  if (Array.isArray(raw)) {
+    obj = raw[0] ?? null
+    adminLog('stats_unwrap_array', obj)
+  }
+  if (!obj) return null
+
+  if (typeof obj === 'string') {
     try {
-      return JSON.parse(raw)
+      obj = JSON.parse(obj)
     } catch {
-      adminLog('stats_parse', { warning: 'Could not parse stats JSON string', raw })
+      adminLog('stats_parse_fail', { raw })
       return null
     }
   }
-  return null
+
+  if (typeof obj !== 'object') return null
+
+  return {
+    total_users: pick(obj, 'total_users', 'totalUsers') ?? 0,
+    pending_deposits: pick(obj, 'pending_deposits', 'pendingDeposits') ?? 0,
+    daily_transactions: pick(obj, 'daily_transactions', 'dailyTransactions') ?? 0,
+    approved_deposits: pick(obj, 'approved_deposits', 'approvedDeposits') ?? 0,
+    total_deposits: pick(obj, 'total_deposits', 'totalDeposits') ?? 0,
+    pending_withdrawals: pick(obj, 'pending_withdrawals', 'pendingWithdrawals') ?? 0,
+  }
 }
 
 function logRpcResult(name, result) {
+  adminLog(`rpc_raw:${name}`, {
+    hasError: Boolean(result.error),
+    error: result.error ?? null,
+    dataType: Array.isArray(result.data) ? 'array' : typeof result.data,
+    dataLength: Array.isArray(result.data) ? result.data.length : undefined,
+    data: result.data,
+    status: result.status,
+    statusText: result.statusText,
+  })
+
   if (result.error) {
     logAdminError(name, result.error)
-    return
   }
-  const data = result.data
-  const summary = Array.isArray(data)
-    ? { type: 'array', count: data.length, sample: data[0] ?? null }
-    : { type: typeof data, data }
-  adminLog(`rpc:${name}`, { ok: true, ...summary })
+}
+
+async function runAdminDebug() {
+  const { data, error } = await supabase.rpc(ADMIN_RPC.debug)
+  if (error) {
+    adminLog('debug_rpc_unavailable', {
+      hint: 'Run supabase/migrations/007_fix_admin_auth_and_debug.sql',
+      error: error.message,
+    })
+    return null
+  }
+  adminLog('debug_auth', data)
+  return data
 }
 
 export async function fetchAdminDashboard() {
-  adminLog('fetch_start', {
-    configured: isSupabaseConfigured(),
-    rpcNames: ADMIN_RPC,
-  })
+  adminLog('fetch_start', { rpcNames: ADMIN_RPC })
 
   if (!isSupabaseConfigured()) {
-    return {
-      configured: false,
-      errors: ['Supabase env vars not set'],
-      stats: null,
-      pendingDeposits: [],
-      pendingWithdrawals: [],
-      users: [],
-    }
+    return emptyDashboard(['Supabase env vars not set'])
   }
 
   const authResult = await ensureSupabaseAdminAuth()
   if (!authResult.ok) {
-    const err = authResult.error || 'Supabase admin authentication failed'
-    adminLog('fetch_abort', { reason: 'auth', err })
-    return {
-      configured: true,
-      errors: [err],
-      stats: null,
-      pendingDeposits: [],
-      pendingWithdrawals: [],
-      users: [],
-      sessionEmail: null,
-    }
+    return emptyDashboard([authResult.error || 'Supabase admin authentication failed'])
   }
 
   const { data: sessionData } = await supabase.auth.getSession()
   const sessionEmail = sessionData?.session?.user?.email || authResult.email
-  const accessToken = sessionData?.session?.access_token
   adminLog('session', {
     email: sessionEmail,
-    hasToken: Boolean(accessToken),
-    tokenPrefix: accessToken ? `${accessToken.slice(0, 12)}…` : null,
+    userId: sessionData?.session?.user?.id,
+    hasToken: Boolean(sessionData?.session?.access_token),
   })
 
   if (sessionEmail?.toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
-    const err = `JWT email mismatch: got "${sessionEmail}", expected "${ADMIN_EMAIL}"`
-    adminLog('fetch_abort', { reason: 'email_mismatch', err })
-    return {
-      configured: true,
-      errors: [err],
-      stats: null,
-      pendingDeposits: [],
-      pendingWithdrawals: [],
-      users: [],
-      sessionEmail,
-    }
+    return emptyDashboard([
+      `JWT email mismatch: got "${sessionEmail}", expected "${ADMIN_EMAIL}"`,
+    ])
   }
 
-  const errors = []
+  await runAdminDebug()
 
-  adminLog('rpc_batch_start', Object.values(ADMIN_RPC))
+  const errors = []
 
   const [statsRes, depositsRes, withdrawalsRes, usersRes] = await Promise.all([
     supabase.rpc(ADMIN_RPC.stats),
@@ -176,57 +207,77 @@ export async function fetchAdminDashboard() {
   if (withdrawalsRes.error) errors.push(logAdminError(ADMIN_RPC.withdrawals, withdrawalsRes.error))
   if (usersRes.error) errors.push(logAdminError(ADMIN_RPC.users, usersRes.error))
 
-  const statsRaw = parseStatsPayload(statsRes.data)
-  const stats = statsRaw
+  const statsParsed = parseStatsPayload(statsRes.data)
+  const stats = statsParsed
     ? {
-        totalUsers: statsRaw.total_users ?? 0,
-        pendingDeposits: statsRaw.pending_deposits ?? 0,
-        dailyTransactions: statsRaw.daily_transactions ?? 0,
-        approvedDeposits: statsRaw.approved_deposits ?? 0,
-        totalDeposits: statsRaw.total_deposits ?? 0,
-        pendingWithdrawals: statsRaw.pending_withdrawals ?? 0,
+        totalUsers: Number(statsParsed.total_users) || 0,
+        pendingDeposits: Number(statsParsed.pending_deposits) || 0,
+        dailyTransactions: Number(statsParsed.daily_transactions) || 0,
+        approvedDeposits: Number(statsParsed.approved_deposits) || 0,
+        totalDeposits: Number(statsParsed.total_deposits) || 0,
+        pendingWithdrawals: Number(statsParsed.pending_withdrawals) || 0,
       }
-    : null
+    : statsRes.error
+      ? null
+      : {
+          totalUsers: 0,
+          pendingDeposits: 0,
+          dailyTransactions: 0,
+          approvedDeposits: 0,
+          totalDeposits: 0,
+          pendingWithdrawals: 0,
+        }
 
-  const pendingDeposits = (depositsRes.data || []).map((row) => ({
-    id: row.id,
-    supabaseId: row.id,
-    userId: row.user_id,
-    userEmail: row.user_email,
-    fullName: row.user_full_name,
-    amount: Number(row.amount),
-    currency: row.currency,
-    paymentMethod: row.payment_method,
-    transactionId: row.transaction_id,
-    screenshot: row.proof_url,
-    status: row.status,
-    createdAt: row.created_at,
+  const depositRows = Array.isArray(depositsRes.data) ? depositsRes.data : []
+  const withdrawalRows = Array.isArray(withdrawalsRes.data) ? withdrawalsRes.data : []
+  const userRows = Array.isArray(usersRes.data) ? usersRes.data : []
+
+  if (!depositsRes.error && depositRows.length === 0) {
+    adminLog('deposits_empty', 'RPC ok but 0 pending rows (status=pending in DB?)')
+  }
+  if (!usersRes.error && userRows.length === 0) {
+    adminLog('users_empty', 'RPC ok but 0 profiles — check public.profiles table has rows')
+  }
+
+  const pendingDeposits = depositRows.map((row) => ({
+    id: pick(row, 'id'),
+    supabaseId: pick(row, 'id'),
+    userId: pick(row, 'user_id', 'userId'),
+    userEmail: pick(row, 'user_email', 'userEmail'),
+    fullName: pick(row, 'user_full_name', 'userFullName'),
+    amount: Number(pick(row, 'amount')) || 0,
+    currency: pick(row, 'currency'),
+    paymentMethod: pick(row, 'payment_method', 'paymentMethod'),
+    transactionId: pick(row, 'transaction_id', 'transactionId'),
+    screenshot: pick(row, 'proof_url', 'proofUrl'),
+    status: pick(row, 'status'),
+    createdAt: pick(row, 'created_at', 'createdAt'),
     source: 'supabase',
   }))
 
-  const pendingWithdrawals = (withdrawalsRes.data || []).map((row) => ({
-    id: row.id,
-    supabaseId: row.id,
-    userId: row.user_id,
-    userEmail: row.user_email,
-    userName: row.user_full_name || row.user_email,
-    amount: Number(row.amount),
-    currency: row.currency,
-    bank: row.bank ?? null,
-    accountName: row.account_name ?? null,
-    accountNumber: row.account_number ?? null,
-    status: row.status,
-    createdAt: row.created_at,
+  const pendingWithdrawals = withdrawalRows.map((row) => ({
+    id: pick(row, 'id'),
+    supabaseId: pick(row, 'id'),
+    userId: pick(row, 'user_id', 'userId'),
+    userEmail: pick(row, 'user_email', 'userEmail'),
+    userName: pick(row, 'user_full_name', 'userFullName') || pick(row, 'user_email', 'userEmail'),
+    amount: Number(pick(row, 'amount')) || 0,
+    currency: pick(row, 'currency'),
+    bank: pick(row, 'bank') ?? null,
+    accountName: pick(row, 'account_name', 'accountName') ?? null,
+    accountNumber: pick(row, 'account_number', 'accountNumber') ?? null,
+    status: pick(row, 'status'),
+    createdAt: pick(row, 'created_at', 'createdAt'),
     source: 'supabase',
   }))
 
-  const users = (usersRes.data || []).map((row) => ({
-    id: row.user_id,
-    email: row.email,
-    fullName: row.full_name,
-    usdBalance: Number(row.usd_balance) || 0,
-    etbBalance: Number(row.etb_balance) || 0,
-    createdAt: row.created_at,
+  const users = userRows.map((row) => ({
+    id: pick(row, 'user_id', 'userId', 'id'),
+    email: pick(row, 'email'),
+    fullName: pick(row, 'full_name', 'fullName'),
+    usdBalance: Number(pick(row, 'usd_balance', 'usdBalance')) || 0,
+    etbBalance: Number(pick(row, 'etb_balance', 'etbBalance')) || 0,
+    createdAt: pick(row, 'created_at', 'createdAt'),
     source: 'supabase',
   }))
 
@@ -238,17 +289,29 @@ export async function fetchAdminDashboard() {
     pendingWithdrawals,
     users,
     sessionEmail,
+    _debug: {
+      statsResOk: !statsRes.error,
+      usersCount: users.length,
+      depositsCount: pendingDeposits.length,
+    },
   }
 
-  adminLog('fetch_complete', {
-    errors: errors.length,
-    stats,
-    pendingDeposits: pendingDeposits.length,
-    pendingWithdrawals: pendingWithdrawals.length,
-    users: users.length,
-  })
+  adminLog('fetch_complete', result)
 
   return result
+}
+
+function emptyDashboard(errors) {
+  adminLog('fetch_abort', { errors })
+  return {
+    configured: true,
+    errors,
+    stats: null,
+    pendingDeposits: [],
+    pendingWithdrawals: [],
+    users: [],
+    sessionEmail: null,
+  }
 }
 
 export async function resolveUserId(emailOrId) {
@@ -289,14 +352,13 @@ export async function approveDepositInSupabase(deposit) {
   if (!sessionCheck.ok) return sessionCheck
 
   if (deposit.supabaseId && UUID_REGEX.test(deposit.supabaseId)) {
-    adminLog('rpc_call', { fn: ADMIN_RPC.approveDeposit, deposit_id: deposit.supabaseId })
     const { data, error } = await supabase.rpc(ADMIN_RPC.approveDeposit, {
       deposit_id: deposit.supabaseId,
     })
     if (error) {
       return { ok: false, error: logAdminError(ADMIN_RPC.approveDeposit, error) }
     }
-    adminLog('rpc_ok', { fn: ADMIN_RPC.approveDeposit, data })
+    adminLog('approve_deposit_ok', data)
     return { ok: true, data }
   }
 
@@ -314,7 +376,6 @@ export async function approveDepositInSupabase(deposit) {
   const currency =
     deposit.currency === 'USDT' || deposit.currency === 'USD' ? 'USD' : 'ETB'
 
-  adminLog('rpc_call', { fn: ADMIN_RPC.approveDepositManual, userId, amount: deposit.amount })
   const { data, error } = await supabase.rpc(ADMIN_RPC.approveDepositManual, {
     p_user_id: userId,
     p_amount: Number(deposit.amount),
@@ -327,7 +388,6 @@ export async function approveDepositInSupabase(deposit) {
   if (error) {
     return { ok: false, error: logAdminError(ADMIN_RPC.approveDepositManual, error) }
   }
-  adminLog('rpc_ok', { fn: ADMIN_RPC.approveDepositManual, data })
   return { ok: true, data }
 }
 
@@ -357,12 +417,10 @@ export async function deleteUserInSupabase(userId) {
   const sessionCheck = await requireAdminRpcSession()
   if (!sessionCheck.ok) return sessionCheck
 
-  adminLog('rpc_call', { fn: ADMIN_RPC.deleteUser, user_id: userId })
   const { error } = await supabase.rpc(ADMIN_RPC.deleteUser, { user_id: userId })
   if (error) {
     return { ok: false, error: logAdminError(ADMIN_RPC.deleteUser, error) }
   }
-  adminLog('rpc_ok', { fn: ADMIN_RPC.deleteUser })
   return { ok: true }
 }
 

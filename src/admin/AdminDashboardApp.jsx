@@ -397,8 +397,10 @@ export default function AdminDashboardApp() {
               <h2>{sectionTitle}</h2>
               <p>
                 {remoteStats
-                  ? `Supabase · ${remoteStats.totalUsers ?? 0} users · ${remoteStats.pendingDeposits ?? 0} pending in DB`
-                  : 'Loading Supabase stats…'}
+                  ? `Supabase · ${remoteStats.totalUsers ?? 0} users · ${remoteStats.pendingDeposits ?? 0} pending deposits`
+                  : fetchErrors.length
+                    ? 'Supabase stats unavailable — see error below'
+                    : 'Loading Supabase stats…'}
               </p>
             </div>
             <button type="button" className="admin-btn admin-btn-ghost" onClick={refresh} disabled={isRefreshing}>
@@ -415,8 +417,20 @@ export default function AdminDashboardApp() {
                 ))}
               </ul>
               <p style={{ marginTop: '0.5rem', fontSize: '0.75rem' }}>
-                Run <code>supabase/migrations/005_admin_dashboard_backend.sql</code> in SQL Editor and sign in at
-                /admin-login with Supabase Auth user <strong>{ADMIN_EMAIL}</strong>.
+                If you see <code>not_admin</code>, run{' '}
+                <code>supabase/migrations/007_fix_admin_auth_and_debug.sql</code> then sign in at /admin-login as{' '}
+                <strong>{ADMIN_EMAIL}</strong>.
+              </p>
+            </div>
+          )}
+
+          {fetchErrors.length === 0 && remoteStats?.totalUsers === 0 && snapshot.users.length === 0 && (
+            <div className="admin-error-banner" role="alert" style={{ borderColor: '#b45309', background: '#451a03', color: '#fde68a' }}>
+              <strong>Connected but no data returned.</strong>
+              <p style={{ marginTop: '0.5rem', fontSize: '0.75rem' }}>
+                Open F12 Console and look for <code>[Admin Supabase] debug_auth</code> — if{' '}
+                <code>is_admin: false</code>, run migration 007. If <code>profiles_count: 0</code>, users exist only in
+                Auth but not in <code>public.profiles</code> (re-run signup trigger SQL).
               </p>
             </div>
           )}
