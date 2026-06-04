@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Brand headers — golden yellow #FFD700 (login + dashboard)
+   Brand headers — pure white #FFFFFF 3D (login + dashboard)
    ========================================================================== */
 
 .auth-page {
@@ -77,7 +77,7 @@
   stroke: #ffd700;
 }
 
-/* Golden yellow #FFD700 — shared login + dashboard */
+/* Pure white #FFFFFF — shared login + dashboard */
 .brand-gold-3d {
   position: relative;
   display: block;
@@ -92,19 +92,20 @@
   text-align: center;
   overflow-wrap: break-word;
   word-break: break-word;
-  background: #ffd700;
+  background: #ffffff;
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  color: #ffd700;
-  -webkit-text-stroke: 1px #000;
+  color: #ffffff;
+  -webkit-text-stroke: 1px rgba(0, 0, 0, 0.5);
   paint-order: stroke fill;
   text-shadow:
-    1px 1px 0 rgba(0, 0, 0, 0.5),
-    2px 2px 0 rgba(0, 0, 0, 0.4),
-    2px 4px 6px rgba(0, 0, 0, 0.35);
-  filter: drop-shadow(1px 1px 0 rgba(0, 0, 0, 0.55))
-    drop-shadow(2px 3px 8px rgba(0, 0, 0, 0.4));
+    0 1px 0 rgba(0, 0, 0, 0.45),
+    1px 2px 0 rgba(0, 0, 0, 0.4),
+    2px 3px 0 rgba(0, 0, 0, 0.35),
+    2px 4px 8px rgba(0, 0, 0, 0.4);
+  filter: drop-shadow(1px 1px 0 rgba(0, 0, 0, 0.5))
+    drop-shadow(2px 3px 10px rgba(0, 0, 0, 0.45));
 }
 
 /* Login BLACKROCK — text-6xl+ (60px–72px) */
@@ -121,7 +122,7 @@
 }
 
 .brand-gold-3d::after {
-  opacity: 0.2;
+  opacity: 0.35;
 }
 
 /* 3D extrusion — dark shadow only (not brown fill) */
@@ -155,7 +156,7 @@
     4px 4px 10px rgba(0, 0, 0, 0.5);
 }
 
-/* Subtle top shine on gold */
+/* Subtle top highlight on white 3D face */
 .brand-gold-3d::after {
   content: attr(data-text);
   position: absolute;
@@ -168,14 +169,14 @@
   -webkit-text-fill-color: transparent;
   background: linear-gradient(
     180deg,
-    rgba(255, 255, 255, 0.7) 0%,
-    rgba(255, 215, 0, 0.2) 25%,
-    transparent 40%
+    rgba(255, 255, 255, 1) 0%,
+    rgba(255, 255, 255, 0.85) 20%,
+    rgba(255, 255, 255, 0.15) 45%,
+    transparent 55%
   );
   -webkit-background-clip: text;
   background-clip: text;
   mix-blend-mode: overlay;
-  opacity: 0.45;
 }
 
 /* BlackRock 3D Premium Branding Logo */
