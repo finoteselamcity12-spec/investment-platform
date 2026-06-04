@@ -4,10 +4,17 @@ import {
   REGISTRATION_BONUS_ETB,
   REGISTRATION_BONUS_USD,
   DEPOSIT_BONUS_RATE,
+  WELCOME_BONUS_ACTION,
 } from './platformConfig'
 
 /** Supabase table for bonus audit (user-created public.history) */
 export const HISTORY_TABLE = 'history'
+
+/** Columns loaded for the history page (no select *) */
+export const HISTORY_DISPLAY_COLUMNS =
+  'id, user_id, action, currency, amount, reference_id, metadata, created_at'
+
+const LEGACY_SIGNUP_ACTION = 'signup_bonus'
 
 const SIGNUP_BONUS_ETB_ID = 'signup-bonus-etb'
 const SIGNUP_BONUS_USD_ID = 'signup-bonus-usd'
@@ -16,12 +23,28 @@ const SIGNUP_BONUS_USD_ID = 'signup-bonus-usd'
  * Equivalent to:
  * SELECT count(*) FROM public.history WHERE user_id = ? AND action = ?
  */
+export async function countWelcomeBonusHistory(userId) {
+  if (!userId || !isSupabaseConfigured()) return 0
+
+  const { count, error } = await supabase
+    .from(HISTORY_TABLE)
+    .select(HISTORY_DISPLAY_COLUMNS, { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .eq('action', WELCOME_BONUS_ACTION)
+
+  if (error) {
+    console.warn(`[${HISTORY_TABLE}] welcome_bonus count failed:`, error.message)
+    return 0
+  }
+  return count ?? 0
+}
+
 export async function countHistoryByAction(userId, action, referenceId = null) {
   if (!userId || !isSupabaseConfigured()) return 0
 
   let query = supabase
     .from(HISTORY_TABLE)
-    .select('*', { count: 'exact', head: true })
+    .select(HISTORY_DISPLAY_COLUMNS, { count: 'exact', head: true })
     .eq('user_id', userId)
     .eq('action', action)
 
@@ -48,9 +71,9 @@ export async function hasBonusHistoryAction(userId, action, referenceId = null) 
 export async function handleLoginSignupBonusCheck(userId, email) {
   if (!userId) return { skipped: true, reason: 'no_user_id' }
 
-  const signupCount = await countHistoryByAction(userId, 'signup_bonus')
+  const signupCount = await countWelcomeBonusHistory(userId)
   if (signupCount > 0) {
-    console.log('[Auth] signup_bonus history count:', signupCount, '— skipping grant')
+    console.log('[Auth] welcome_bonus history count:', signupCount, '— skipping grant')
     mirrorSignupBonusToLocalHistory(email, userId)
     return { skipped: true, reason: 'history_exists', count: signupCount }
   }
@@ -88,18 +111,22 @@ export function mirrorSignupBonusToLocalHistory(email, userId) {
   const txns = loadLocalTransactionsForUser(userId, email)
   const hasSignupAction = txns.some(
     (t) =>
-      t.action === 'signup_bonus' &&
+      (t.action === WELCOME_BONUS_ACTION || t.action === LEGACY_SIGNUP_ACTION) &&
       (t.userId === userId || t.id === `signup-bonus-${userId}`)
   )
   const hasEtb = txns.some(
     (t) =>
       t.id === `${SIGNUP_BONUS_ETB_ID}-${email}` ||
-      (t.action === 'signup_bonus' && t.currency === 'ETB' && t.userId === userId)
+      ((t.action === WELCOME_BONUS_ACTION || t.action === LEGACY_SIGNUP_ACTION) &&
+        t.currency === 'ETB' &&
+        t.userId === userId)
   )
   const hasUsd = txns.some(
     (t) =>
       t.id === `${SIGNUP_BONUS_USD_ID}-${email}` ||
-      (t.action === 'signup_bonus' && t.currency === 'USD' && t.userId === userId)
+      ((t.action === WELCOME_BONUS_ACTION || t.action === LEGACY_SIGNUP_ACTION) &&
+        t.currency === 'USD' &&
+        t.userId === userId)
   )
 
   if (hasSignupAction && hasEtb && hasUsd) return txns
@@ -112,10 +139,10 @@ export function mirrorSignupBonusToLocalHistory(email, userId) {
     txns.unshift({
       id: `${SIGNUP_BONUS_ETB_ID}-${email}`,
       userId,
-      action: 'signup_bonus',
+      action: WELCOME_BONUS_ACTION,
       type: 'Bonus',
       category: 'Deposits',
-      title: 'Sign-up Bonus (ETB)',
+      title: 'Welcome Bonus (ETB)',
       amount: REGISTRATION_BONUS_ETB,
       currency: 'ETB',
       status: 'Completed',
@@ -127,10 +154,10 @@ export function mirrorSignupBonusToLocalHistory(email, userId) {
     txns.unshift({
       id: `${SIGNUP_BONUS_USD_ID}-${email}`,
       userId,
-      action: 'signup_bonus',
+      action: WELCOME_BONUS_ACTION,
       type: 'Bonus',
       category: 'Deposits',
-      title: 'Sign-up Bonus (USD)',
+      title: 'Welcome Bonus (USD)',
       amount: REGISTRATION_BONUS_USD,
       currency: 'USD',
       status: 'Completed',
@@ -235,16 +262,19 @@ function historyRowToTransactions(row) {
   const createdAt = row.created_at || new Date().toISOString()
   const meta = row.metadata || {}
 
-  if (row.action === 'signup_bonus' && row.currency === 'MIXED') {
+  const isWelcome =
+    row.action === WELCOME_BONUS_ACTION || row.action === LEGACY_SIGNUP_ACTION
+
+  if (isWelcome && row.currency === 'MIXED') {
     const items = []
     if (meta.etb != null) {
       items.push({
         id: `${row.id}-etb`,
         userId: row.user_id,
-        action: 'signup_bonus',
+        action: WELCOME_BONUS_ACTION,
         referenceId: row.reference_id,
         type: 'Bonus',
-        title: 'Sign-up Bonus (ETB)',
+        title: 'Welcome Bonus (ETB)',
         amount: Number(meta.etb),
         currency: 'ETB',
         status: 'Completed',
@@ -255,10 +285,10 @@ function historyRowToTransactions(row) {
       items.push({
         id: `${row.id}-usd`,
         userId: row.user_id,
-        action: 'signup_bonus',
+        action: WELCOME_BONUS_ACTION,
         referenceId: row.reference_id,
         type: 'Bonus',
-        title: 'Sign-up Bonus (USD)',
+        title: 'Welcome Bonus (USD)',
         amount: Number(meta.usd),
         currency: 'USD',
         status: 'Completed',
@@ -269,7 +299,8 @@ function historyRowToTransactions(row) {
   }
 
   const titleByAction = {
-    signup_bonus: 'Sign-up Bonus',
+    [WELCOME_BONUS_ACTION]: 'Welcome Bonus',
+    [LEGACY_SIGNUP_ACTION]: 'Welcome Bonus',
     deposit_bonus: 'Deposit Bonus (10%)',
     referral_bonus: 'Referral Bonus',
   }
@@ -290,35 +321,29 @@ function historyRowToTransactions(row) {
   ]
 }
 
-export async function fetchBonusHistory(userId) {
+/**
+ * History page: current user only, welcome_bonus rows only.
+ * .eq('user_id', userId).eq('action', 'welcome_bonus')
+ */
+export async function fetchWelcomeBonusHistory(userId) {
   if (!userId || !isSupabaseConfigured()) return []
 
   const { data, error } = await supabase
     .from(HISTORY_TABLE)
-    .select('id, action, currency, amount, reference_id, metadata, created_at')
+    .select(HISTORY_DISPLAY_COLUMNS)
     .eq('user_id', userId)
+    .eq('action', WELCOME_BONUS_ACTION)
     .order('created_at', { ascending: false })
 
   if (error) {
-    console.warn(`[${HISTORY_TABLE}] fetch failed:`, error.message)
+    console.warn(`[${HISTORY_TABLE}] welcome_bonus fetch failed:`, error.message)
     return []
   }
-  return data || []
+
+  return dedupeTransactions((data || []).flatMap(historyRowToTransactions))
 }
 
-/** Supabase history for current user only, merged with scoped local rows, deduped & sorted */
-export async function fetchUserHistory(userId, email) {
-  if (!userId) {
-    return loadLocalTransactionsForUser(null, email)
-  }
-
-  const remoteRows = await fetchBonusHistory(userId)
-  const fromServer = remoteRows.flatMap(historyRowToTransactions)
-  const localOnly = loadLocalTransactionsForUser(userId, email).filter(
-    (t) => !t.action || !fromServer.some((s) => s.id === t.id)
-  )
-
-  const merged = dedupeTransactions([...fromServer, ...localOnly])
-  merged.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
-  return merged
+/** @deprecated Use fetchWelcomeBonusHistory for the history page */
+export async function fetchUserHistory(userId) {
+  return fetchWelcomeBonusHistory(userId)
 }

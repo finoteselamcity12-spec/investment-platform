@@ -22,7 +22,6 @@ import {
 import { fetchUserBalances, testSupabaseConnection } from '../lib/supabaseData'
 import {
   handleLoginSignupBonusCheck,
-  fetchUserHistory,
   dedupeTransactions,
   saveLocalTransactionsForUser,
 } from '../lib/bonusHistory'
@@ -169,12 +168,7 @@ export default function AppShell({ children, activePage, setActivePage }) {
     const investments = JSON.parse(localStorage.getItem('user_investments') || '[]')
     setMyActiveInvestmentsList(investments)
 
-    if (supabaseUserId && profileEmail) {
-      const txns = await fetchUserHistory(supabaseUserId, profileEmail)
-      setTransactions(txns)
-    } else {
-      setTransactions([])
-    }
+    setTransactions([])
 
     const referralUserId = supabaseUserId || userData[profileEmail]?.id
     if (referralUserId) {

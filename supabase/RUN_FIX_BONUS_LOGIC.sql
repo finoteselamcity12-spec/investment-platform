@@ -7,7 +7,7 @@
 CREATE TABLE IF NOT EXISTS public.history (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
-  action TEXT NOT NULL CHECK (action IN ('signup_bonus', 'deposit_bonus', 'referral_bonus')),
+  action TEXT NOT NULL CHECK (action IN ('welcome_bonus', 'signup_bonus', 'deposit_bonus', 'referral_bonus')),
   currency TEXT,
   amount NUMERIC(18, 4) NOT NULL DEFAULT 0,
   reference_id UUID,
@@ -15,9 +15,9 @@ CREATE TABLE IF NOT EXISTS public.history (
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS history_signup_once
+CREATE UNIQUE INDEX IF NOT EXISTS history_welcome_once
   ON public.history (user_id)
-  WHERE action = 'signup_bonus';
+  WHERE action = 'welcome_bonus';
 
 CREATE UNIQUE INDEX IF NOT EXISTS history_deposit_once
   ON public.history (user_id, reference_id)
@@ -55,7 +55,7 @@ BEGIN
 
   SELECT COUNT(*)::INTEGER INTO v_signup_count
   FROM public.history
-  WHERE user_id = p_user_id AND action = 'signup_bonus';
+  WHERE user_id = p_user_id AND action IN ('welcome_bonus', 'signup_bonus');
 
   IF v_signup_count > 0 THEN
     RETURN json_build_object('ok', true, 'skipped', true, 'reason', 'history_exists', 'count', v_signup_count);
@@ -64,7 +64,7 @@ BEGIN
   INSERT INTO public.history (user_id, action, currency, amount, metadata)
   VALUES (
     p_user_id,
-    'signup_bonus',
+    'welcome_bonus',
     'MIXED',
     0,
     jsonb_build_object('etb', 150.00, 'usd', 1.70)
@@ -73,7 +73,7 @@ BEGIN
 
   SELECT COUNT(*)::INTEGER INTO v_signup_count
   FROM public.history
-  WHERE user_id = p_user_id AND action = 'signup_bonus';
+  WHERE user_id = p_user_id AND action IN ('welcome_bonus', 'signup_bonus');
 
   IF v_signup_count = 0 THEN
     RETURN json_build_object('ok', false, 'error', 'history_insert_failed');
@@ -139,7 +139,7 @@ BEGIN
   INSERT INTO public.history (user_id, action, currency, amount, metadata)
   VALUES (
     NEW.id,
-    'signup_bonus',
+    'welcome_bonus',
     'MIXED',
     0,
     jsonb_build_object('etb', 150.00, 'usd', 1.70)
@@ -155,11 +155,11 @@ $$;
 
 -- Backfill signup_bonus history for users who already have balances
 INSERT INTO public.history (user_id, action, currency, amount, metadata)
-SELECT b.user_id, 'signup_bonus', 'MIXED', 0, jsonb_build_object('etb', 150.00, 'usd', 1.70)
+SELECT b.user_id, 'welcome_bonus', 'MIXED', 0, jsonb_build_object('etb', 150.00, 'usd', 1.70)
 FROM public.balances b
 WHERE NOT EXISTS (
   SELECT 1 FROM public.history h
-  WHERE h.user_id = b.user_id AND h.action = 'signup_bonus'
+  WHERE h.user_id = b.user_id AND h.action IN ('welcome_bonus', 'signup_bonus')
 )
 ON CONFLICT DO NOTHING;
 
