@@ -50,14 +50,22 @@ VITE_SUPABASE_ANON_KEY=your_anon_key
 | Referral (ETB deposit) | +125 ETB to referrer |
 | Min withdrawal | 300 ETB or 3 USD |
 
-## 4. Registration flow
+## 4. Sync auth.users → profiles (admin dashboard / deposits)
+
+If admin shows **"No Supabase profile"** or zero users, run:
+
+`supabase/RUN_SYNC_PROFILES.sql`
+
+This re-creates the `handle_new_user` trigger (`SECURITY DEFINER`) and backfills `public.profiles` from `auth.users`.
+
+## 5. Registration flow
 
 - Users register with **Email** and **Password** on `/register`.
 - Each user gets a share link: `/register?ref=<USER_UUID>`.
 - Optional `?ref=<referrer_uuid_or_email>` sets `profiles.referred_by`.
 - Frontend syncs profile via `syncProfileAfterSignup()` after Supabase Auth sign-up.
 
-## 5. Admin dashboard (required for live stats + approvals)
+## 6. Admin dashboard (required for live stats + approvals)
 
 Run in SQL Editor:
 
@@ -73,7 +81,7 @@ When an admin approves a deposit:
 2. Referral bonus runs via the deposit status trigger.
 3. Local storage is still updated for backward compatibility.
 
-## 6. Verify
+## 7. Verify
 
 - Register a new user → check `balances` for 150 / 1.7.
 - Register with `?ref=` → check `profiles.referred_by`.
