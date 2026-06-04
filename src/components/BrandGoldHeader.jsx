@@ -7,15 +7,16 @@ const COIN_COUNT = 5
  * @param {'login' | 'dashboard'} variant — sizing for short vs long title
  */
 export default function BrandGoldHeader({ title, variant = 'login', className = '' }) {
-  const titleClass =
-    variant === 'dashboard'
-      ? 'brand-gold-3d brand-gold-3d--dashboard'
-      : 'brand-gold-3d brand-gold-3d--login'
+  const isLogin = variant === 'login'
+  const titleClass = isLogin
+    ? 'brand-gold-3d brand-gold-3d--login w-full text-center font-extrabold tracking-wider'
+    : 'brand-gold-3d brand-gold-3d--dashboard'
 
-  const coinSize = variant === 'login' ? 28 : 24
+  const coinSize = isLogin ? 28 : 24
+  const headerClass = `brand-header-block ${isLogin ? 'w-full' : ''} ${className}`.trim()
 
   return (
-    <header className={`brand-header-block ${className}`.trim()}>
+    <header className={headerClass}>
       <div className="brand-coin-row" aria-hidden="true">
         {Array.from({ length: COIN_COUNT }, (_, i) => (
           <span key={i} className="brand-coin-icon">

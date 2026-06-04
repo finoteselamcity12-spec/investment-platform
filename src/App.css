@@ -26,9 +26,15 @@
   box-sizing: border-box;
 }
 
+.brand-header-block.w-full {
+  width: 100%;
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
+}
+
 .auth-brand-header {
   max-width: 100%;
-  width: 95%;
+  width: 100%;
   margin-bottom: 1.5rem;
 }
 
@@ -106,10 +112,32 @@
     drop-shadow(4px 4px 8px rgba(0, 0, 0, 0.4));
 }
 
-/* Login: large & prominent (≈ text-4xl → text-5xl) */
+/* Login: huge & bold (≈ text-6xl, 60px+) */
 .brand-gold-3d--login {
-  font-size: clamp(2.5rem, 12vw, 3.75rem);
-  letter-spacing: 0.08em;
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  font-size: clamp(3.75rem, 14vw, 4.5rem);
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  /* Strict pure gold #FFD700 — no brown/dark tint on fill */
+  background: #ffd700;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: #ffd700;
+  -webkit-text-stroke: 2px rgba(0, 0, 0, 0.55);
+  text-shadow:
+    0 1px 0 rgba(0, 0, 0, 0.5),
+    1px 2px 0 rgba(0, 0, 0, 0.5),
+    2px 3px 0 rgba(0, 0, 0, 0.45);
+  filter: drop-shadow(2px 2px 0 rgba(0, 0, 0, 0.55))
+    drop-shadow(3px 3px 0 rgba(0, 0, 0, 0.5))
+    drop-shadow(5px 6px 12px rgba(0, 0, 0, 0.45));
+}
+
+.brand-gold-3d--login::after {
+  opacity: 0.25;
 }
 
 .brand-gold-3d--dashboard {
@@ -136,6 +164,18 @@
     3px 3px 0 rgba(0, 0, 0, 0.5),
     4px 4px 0 rgba(0, 0, 0, 0.55),
     4px 4px 8px rgba(0, 0, 0, 0.5);
+}
+
+.brand-gold-3d--login::before {
+  -webkit-text-stroke: 2px rgba(0, 0, 0, 0.6);
+  transform: translate(4px, 5px);
+  text-shadow:
+    1px 1px 0 rgba(0, 0, 0, 0.6),
+    2px 2px 0 rgba(0, 0, 0, 0.6),
+    3px 3px 0 rgba(0, 0, 0, 0.55),
+    4px 4px 0 rgba(0, 0, 0, 0.55),
+    5px 5px 0 rgba(0, 0, 0, 0.5),
+    5px 5px 10px rgba(0, 0, 0, 0.55);
 }
 
 /* Subtle top shine on gold */
@@ -727,7 +767,7 @@
 
 @media (min-width: 1024px) {
   .brand-gold-3d--login {
-    font-size: 3.75rem;
+    font-size: 4.5rem;
   }
 
   .brand-gold-3d--dashboard {
@@ -793,13 +833,13 @@
   }
 
   .auth-brand-header {
-    width: 95%;
+    width: 100%;
     margin-bottom: 1.25rem;
   }
 
   .brand-gold-3d--login {
-    font-size: clamp(2.25rem, 11vw, 3.25rem);
-    letter-spacing: 0.07em;
+    font-size: clamp(3.5rem, 13vw, 4.25rem);
+    letter-spacing: 0.1em;
   }
 
   .brand-gold-3d--dashboard {
@@ -893,8 +933,8 @@
 
 @media (max-width: 375px) {
   .brand-gold-3d--login {
-    font-size: clamp(2rem, 10vw, 2.75rem);
-    letter-spacing: 0.05em;
+    font-size: clamp(3.25rem, 12vw, 3.75rem);
+    letter-spacing: 0.08em;
   }
 
   .brand-gold-3d--dashboard {
