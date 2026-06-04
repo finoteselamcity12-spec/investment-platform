@@ -1,7 +1,13 @@
 import { REFERRAL_BONUS_ETB, REFERRAL_BONUS_USD } from '../../lib/platformConfig'
 import { findProfileIdByEmail } from '../../lib/supabaseData'
 import { loadReferralStats, updateReferralStats } from '../../lib/referralUtils'
-import { approveDepositInSupabase, rejectDepositInSupabase, deleteUserInSupabase } from './adminSupabase'
+import {
+  approveDepositInSupabase,
+  rejectDepositInSupabase,
+  deleteUserInSupabase,
+  approveWithdrawalInSupabase,
+  rejectWithdrawalInSupabase,
+} from './adminSupabase'
 
 export const ADMIN_EMAIL = 'workinehabche@gmail.com'
 
@@ -74,6 +80,28 @@ export function loadAdminSnapshot() {
     activeInvestments,
     dailyTransactions,
   }
+}
+
+export function mergePendingWithdrawals(localList, remoteList) {
+  const seen = new Set()
+  const merged = []
+
+  for (const w of remoteList || []) {
+    const key = w.supabaseId || w.id
+    if (seen.has(key)) continue
+    seen.add(key)
+    merged.push(w)
+  }
+
+  for (const w of localList || []) {
+    if (w.supabaseId && seen.has(w.supabaseId)) continue
+    const key = `local:${w.id}`
+    if (seen.has(key)) continue
+    seen.add(key)
+    merged.push({ ...w, source: w.source || 'local' })
+  }
+
+  return merged
 }
 
 export function mergePendingDeposits(localList, remoteList) {
@@ -213,9 +241,14 @@ export async function rejectDeposit(depositId, snapshot) {
   return loadAdminSnapshot()
 }
 
-export function approveWithdrawal(withdrawalId, snapshot) {
+export async function approveWithdrawal(withdrawalId, snapshot) {
   const withdrawal = snapshot.pendingWithdrawals.find((w) => w.id === withdrawalId)
   if (!withdrawal) return snapshot
+
+  const result = await approveWithdrawalInSupabase(withdrawal)
+  if (!result.ok) {
+    throw new Error(result.error || 'Supabase withdrawal approval failed')
+  }
 
   const pendingWithdrawals = snapshot.pendingWithdrawals.filter((w) => w.id !== withdrawalId)
   const approvedWithdrawals = [
@@ -228,9 +261,14 @@ export function approveWithdrawal(withdrawalId, snapshot) {
   return loadAdminSnapshot()
 }
 
-export function rejectWithdrawal(withdrawalId, snapshot) {
+export async function rejectWithdrawal(withdrawalId, snapshot) {
   const withdrawal = snapshot.pendingWithdrawals.find((w) => w.id === withdrawalId)
   if (!withdrawal) return snapshot
+
+  const result = await rejectWithdrawalInSupabase(withdrawal)
+  if (!result.ok) {
+    throw new Error(result.error || 'Supabase withdrawal reject failed')
+  }
 
   const pendingWithdrawals = snapshot.pendingWithdrawals.filter((w) => w.id !== withdrawalId)
   const rejectedWithdrawals = [

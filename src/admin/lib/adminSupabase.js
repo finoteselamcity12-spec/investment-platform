@@ -77,9 +77,10 @@ export async function fetchAdminDashboard() {
 
   const errors = []
 
-  const [statsRes, depositsRes, usersRes] = await Promise.all([
+  const [statsRes, depositsRes, withdrawalsRes, usersRes] = await Promise.all([
     supabase.rpc('admin_get_dashboard_stats'),
     supabase.rpc('admin_list_pending_deposits'),
+    supabase.rpc('admin_list_withdrawals'),
     supabase.rpc('admin_list_users'),
   ])
 
@@ -88,6 +89,9 @@ export async function fetchAdminDashboard() {
   }
   if (depositsRes.error) {
     errors.push(logAdminError('admin_list_pending_deposits', depositsRes.error))
+  }
+  if (withdrawalsRes.error) {
+    errors.push(logAdminError('admin_list_withdrawals', withdrawalsRes.error))
   }
   if (usersRes.error) {
     errors.push(logAdminError('admin_list_users', usersRes.error))
@@ -106,6 +110,22 @@ export async function fetchAdminDashboard() {
     paymentMethod: row.payment_method,
     transactionId: row.transaction_id,
     screenshot: row.proof_url,
+    status: row.status,
+    createdAt: row.created_at,
+    source: 'supabase',
+  }))
+
+  const pendingWithdrawals = (withdrawalsRes.data || []).map((row) => ({
+    id: row.id,
+    supabaseId: row.id,
+    userId: row.user_id,
+    userEmail: row.user_email,
+    userName: row.user_full_name || row.user_email,
+    amount: Number(row.amount),
+    currency: row.currency,
+    bank: row.bank,
+    accountName: row.account_name,
+    accountNumber: row.account_number,
     status: row.status,
     createdAt: row.created_at,
     source: 'supabase',
@@ -131,9 +151,11 @@ export async function fetchAdminDashboard() {
           dailyTransactions: stats.daily_transactions ?? 0,
           approvedDeposits: stats.approved_deposits ?? 0,
           totalDeposits: stats.total_deposits ?? 0,
+          pendingWithdrawals: stats.pending_withdrawals ?? 0,
         }
       : null,
     pendingDeposits,
+    pendingWithdrawals,
     users,
     sessionEmail,
   }
@@ -174,7 +196,7 @@ export async function approveDepositInSupabase(deposit) {
 
   if (deposit.supabaseId && UUID_REGEX.test(deposit.supabaseId)) {
     const { data, error } = await supabase.rpc('admin_approve_deposit', {
-      p_deposit_id: deposit.supabaseId,
+      deposit_id: deposit.supabaseId,
     })
     if (error) {
       return { ok: false, error: logAdminError('admin_approve_deposit', error) }
@@ -217,7 +239,7 @@ export async function rejectDepositInSupabase(deposit) {
   }
 
   const { error } = await supabase.rpc('admin_reject_deposit', {
-    p_deposit_id: deposit.supabaseId,
+    deposit_id: deposit.supabaseId,
   })
 
   if (error) {
@@ -236,9 +258,37 @@ export async function deleteUserInSupabase(userId) {
     return { ok: false, error: 'Admin Supabase session missing' }
   }
 
-  const { error } = await supabase.rpc('admin_delete_user', { p_user_id: userId })
+  const { error } = await supabase.rpc('admin_delete_user', { user_id: userId })
   if (error) {
     return { ok: false, error: logAdminError('admin_delete_user', error) }
+  }
+  return { ok: true }
+}
+
+export async function approveWithdrawalInSupabase(withdrawal) {
+  if (!withdrawal.supabaseId || !UUID_REGEX.test(withdrawal.supabaseId)) {
+    return { ok: true, skipped: true }
+  }
+
+  const { error } = await supabase.rpc('admin_approve_withdrawal', {
+    withdrawal_id: withdrawal.supabaseId,
+  })
+  if (error) {
+    return { ok: false, error: logAdminError('admin_approve_withdrawal', error) }
+  }
+  return { ok: true }
+}
+
+export async function rejectWithdrawalInSupabase(withdrawal) {
+  if (!withdrawal.supabaseId || !UUID_REGEX.test(withdrawal.supabaseId)) {
+    return { ok: true, skipped: true }
+  }
+
+  const { error } = await supabase.rpc('admin_reject_withdrawal', {
+    withdrawal_id: withdrawal.supabaseId,
+  })
+  if (error) {
+    return { ok: false, error: logAdminError('admin_reject_withdrawal', error) }
   }
   return { ok: true }
 }

@@ -15,6 +15,7 @@ import {
   ADMIN_EMAIL,
   loadAdminSnapshot,
   mergePendingDeposits,
+  mergePendingWithdrawals,
   mergeUsers,
   approveDeposit,
   rejectDeposit,
@@ -64,11 +65,16 @@ export default function AdminDashboardApp() {
         local.pendingDepositsLocal || local.pendingDeposits,
         remote.pendingDeposits
       )
+      const pendingWithdrawals = mergePendingWithdrawals(
+        local.pendingWithdrawals,
+        remote.pendingWithdrawals
+      )
       const users = mergeUsers(remote.users, local.users)
 
       setSnapshot({
         ...local,
         pendingDeposits,
+        pendingWithdrawals,
         users,
         registrationCount: remote.stats?.totalUsers ?? local.registrationCount,
         dailyTransactions: remote.stats?.dailyTransactions ?? local.dailyTransactions,
@@ -168,19 +174,37 @@ export default function AdminDashboardApp() {
   )
 
   const handleApproveWithdrawal = useCallback(
-    (id) => {
-      setSnapshot(approveWithdrawal(id, snapshot))
-      showToast('Withdrawal approved.', 'success')
+    async (id) => {
+      setBusyId(id)
+      try {
+        const next = await approveWithdrawal(id, snapshot)
+        setSnapshot(next)
+        await refresh()
+        showToast('Withdrawal approved.', 'success')
+      } catch (e) {
+        showToast(e?.message || 'Withdrawal approve failed', 'error')
+      } finally {
+        setBusyId(null)
+      }
     },
-    [snapshot, showToast]
+    [snapshot, showToast, refresh]
   )
 
   const handleRejectWithdrawal = useCallback(
-    (id) => {
-      setSnapshot(rejectWithdrawal(id, snapshot))
-      showToast('Withdrawal rejected.', 'info')
+    async (id) => {
+      setBusyId(id)
+      try {
+        const next = await rejectWithdrawal(id, snapshot)
+        setSnapshot(next)
+        await refresh()
+        showToast('Withdrawal rejected (balance refunded if in DB).', 'info')
+      } catch (e) {
+        showToast(e?.message || 'Withdrawal reject failed', 'error')
+      } finally {
+        setBusyId(null)
+      }
     },
-    [snapshot, showToast]
+    [snapshot, showToast, refresh]
   )
 
   const handleDeleteUser = useCallback(
@@ -393,7 +417,7 @@ export default function AdminDashboardApp() {
                 ))}
               </div>
               <p style={{ fontSize: '0.8125rem', color: '#64748b' }}>
-                Pending withdrawals: <strong style={{ color: '#e2e8f0' }}>{snapshot.pendingWithdrawals.length}</strong>
+                Pending withdrawals: <strong style={{ color: '#e2e8f0' }}>{remoteStats?.pendingWithdrawals ?? snapshot.pendingWithdrawals.length}</strong>
                 {' · '}
                 Approved deposits: <strong style={{ color: '#e2e8f0' }}>{snapshot.approvedDeposits.length}</strong>
               </p>
