@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowUpCircle, Wallet } from 'lucide-react'
 import supabase from '../lib/supabase'
+import { WITHDRAWAL_MIN_ETB, WITHDRAWAL_MIN_USD } from '../lib/platformConfig'
 
 function formatCurrency(amount, currency) {
   if (currency === 'USD') return `$${Number(amount).toFixed(2)}`
@@ -43,12 +44,12 @@ export default function Withdraw() {
 
     // Enforce minimum withdrawal amounts
     const currency = bank === 'USDT' ? 'USD' : 'ETB'
-    if (currency === 'ETB' && value < 300) {
-      showToast('Minimum withdrawal is 300 Birr.', 'error')
+    if (currency === 'ETB' && value < WITHDRAWAL_MIN_ETB) {
+      showToast(`Minimum withdrawal is ${WITHDRAWAL_MIN_ETB} Birr.`, 'error')
       return
     }
-    if (currency === 'USD' && value < 3) {
-      showToast('Minimum withdrawal is $3.', 'error')
+    if (currency === 'USD' && value < WITHDRAWAL_MIN_USD) {
+      showToast(`Minimum withdrawal is $${WITHDRAWAL_MIN_USD}.`, 'error')
       return
     }
 

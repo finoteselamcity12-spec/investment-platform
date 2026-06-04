@@ -10,6 +10,15 @@ import {
 import supabase from '../lib/supabase'
 import { getSession } from '../lib/authService'
 import { formatCurrency } from '../lib/formatCurrency'
+import {
+  REGISTRATION_BONUS_USD,
+  REGISTRATION_BONUS_ETB,
+  WITHDRAWAL_MIN_USD,
+  WITHDRAWAL_MIN_ETB,
+  REFERRAL_BONUS_USD,
+  REFERRAL_BONUS_ETB,
+} from '../lib/platformConfig'
+import { fetchUserBalances } from '../lib/supabaseData'
 import AdminLoginModal from './AdminLoginModal'
 import ProfileModal from './ProfileModal'
 
@@ -98,16 +107,9 @@ export default function AppShell({ children, activePage, setActivePage }) {
   const [historyFilter, setHistoryFilter] = useState('All')
   const claimCooldownMs = 24 * 60 * 60 * 1000
   
-  // System settings
-  const REGISTRATION_BONUS_USD = 1.7
-  const REGISTRATION_BONUS_ETB = 150
-  const WITHDRAWAL_MIN_USD = 3
-  const WITHDRAWAL_MIN_ETB = 300
-  const REFERRAL_BONUS_USD = 2
-  const REFERRAL_BONUS_ETB = 135
-
   // Load current session and saved data on mount
   useEffect(() => {
+    async function loadUserState() {
     const session = getSession()
     if (session?.user?.email) {
       setUserEmail(session.user.email)
@@ -135,9 +137,22 @@ export default function AppShell({ children, activePage, setActivePage }) {
     if (profileEmail && userData[profileEmail]) {
       setUsdBalance(userData[profileEmail].usdBalance || 0.0)
       setEtbBalance(userData[profileEmail].etbBalance || 0.0)
-      // also ensure profile image loads for existing local users
       if (!profileImage && (userData[profileEmail].profileImage || userData[profileEmail].avatar)) {
         setProfileImage(userData[profileEmail].profileImage || userData[profileEmail].avatar)
+      }
+    }
+
+    const supabaseUserId = session?.user?.id
+    if (supabaseUserId) {
+      const remoteBalances = await fetchUserBalances(supabaseUserId)
+      if (remoteBalances) {
+        setUsdBalance(remoteBalances.usdBalance)
+        setEtbBalance(remoteBalances.etbBalance)
+        if (profileEmail && userData[profileEmail]) {
+          userData[profileEmail].usdBalance = remoteBalances.usdBalance
+          userData[profileEmail].etbBalance = remoteBalances.etbBalance
+          localStorage.setItem('admin_user_data', JSON.stringify(userData))
+        }
       }
     }
 
@@ -155,6 +170,9 @@ export default function AppShell({ children, activePage, setActivePage }) {
 
     const claimTs = localStorage.getItem('lastClaimTimestamp')
     if (claimTs) setClaimTimestamp(parseInt(claimTs))
+    }
+
+    loadUserState()
   }, [])
 
   const navItems = [

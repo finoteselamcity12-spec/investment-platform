@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { LogOut, ShieldCheck, Hash, Database, X } from 'lucide-react'
 import { Navigate } from 'react-router-dom'
 import { getSession } from '../lib/authService'
+import { REFERRAL_BONUS_ETB, REFERRAL_BONUS_USD } from '../lib/platformConfig'
+import { recordDepositForReferral, findProfileIdByEmail } from '../lib/supabaseData'
 
 const ADMIN_CREDENTIALS = {
   name: 'Admin',
@@ -137,7 +139,7 @@ export default function AdminDashboard() {
     localStorage.setItem(key, JSON.stringify(value))
   }
 
-  function handleApproveDeposit(depositId) {
+  async function handleApproveDeposit(depositId) {
     const deposit = pendingDeposits.find((item) => item.id === depositId)
     if (!deposit) return
 
@@ -171,33 +173,58 @@ export default function AdminDashboard() {
     setUsers(Object.values(usersData))
     showToast('Deposit approved and user wallet updated.', 'success')
 
-    // If the user was referred, grant inviter reward after deposit confirmation
+    // Referral bonus: 3 USD or 125 ETB (local wallet + Supabase trigger via deposits table)
     try {
+      const REFERRAL_USD = REFERRAL_BONUS_USD
+      const REFERRAL_ETB = REFERRAL_BONUS_ETB
       const registered = JSON.parse(localStorage.getItem('platform_registered_users_data') || '{}')
-      const referrer = registered[ userId ]?.referredBy || null
-      if (referrer) {
-        const refData = usersData[referrer] || null
-        if (refData) {
-          // Determine reward based on deposit currency
-          if (deposit.currency === 'USDT' || deposit.currency === 'USD') {
-            refData.usdBalance = Number((refData.usdBalance || 0) + 2)
-            // update global referral earnings
+      const depositorEmail = deposit.userEmail || userId
+      const depositorRecord =
+        registered[depositorEmail] ||
+        Object.values(registered).find((u) => u.userId === userId || u.email === depositorEmail)
+      const referrerKey = depositorRecord?.referredBy
+
+      if (referrerKey) {
+        const referrerRecord =
+          usersData[referrerKey] ||
+          usersData[registered[referrerKey]?.email] ||
+          Object.values(usersData).find(
+            (u) => u.id === referrerKey || u.email === referrerKey
+          )
+
+        if (referrerRecord) {
+          const referrerStorageKey = referrerRecord.email || referrerKey
+          const isUsdDeposit = deposit.currency === 'USDT' || deposit.currency === 'USD'
+
+          if (isUsdDeposit) {
+            referrerRecord.usdBalance = Number((referrerRecord.usdBalance || 0) + REFERRAL_USD)
             const referralData = JSON.parse(localStorage.getItem('referral_data') || '{}')
-            referralData.earningsUsd = (referralData.earningsUsd || 0) + 2
+            referralData.earningsUsd = (referralData.earningsUsd || 0) + REFERRAL_USD
             referralData.referralCount = (referralData.referralCount || 0) + 1
             localStorage.setItem('referral_data', JSON.stringify(referralData))
           } else {
-            refData.etbBalance = Number((refData.etbBalance || 0) + 135)
+            referrerRecord.etbBalance = Number((referrerRecord.etbBalance || 0) + REFERRAL_ETB)
             const referralData = JSON.parse(localStorage.getItem('referral_data') || '{}')
-            referralData.earningsEtb = (referralData.earningsEtb || 0) + 135
+            referralData.earningsEtb = (referralData.earningsEtb || 0) + REFERRAL_ETB
             referralData.referralCount = (referralData.referralCount || 0) + 1
             localStorage.setItem('referral_data', JSON.stringify(referralData))
           }
 
-          usersData[referrer] = refData
+          usersData[referrerStorageKey] = referrerRecord
           saveStorage('admin_user_data', usersData)
           setUsers(Object.values(usersData))
           showToast('Referrer rewarded for successful deposit.', 'success')
+        }
+
+        const depositorProfileId =
+          (await findProfileIdByEmail(depositorEmail)) ||
+          depositorRecord?.userId
+        if (depositorProfileId && /^[0-9a-f-]{36}$/i.test(depositorProfileId)) {
+          await recordDepositForReferral({
+            userId: depositorProfileId,
+            currency: deposit.currency,
+            amount: deposit.amount,
+          })
         }
       }
     } catch (err) {

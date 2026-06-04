@@ -1,3 +1,10 @@
+import {
+  REFERRAL_BONUS_ETB,
+  REFERRAL_BONUS_USD,
+  WITHDRAWAL_MIN_ETB,
+  WITHDRAWAL_MIN_USD,
+} from './platformConfig'
+
 export const TELEGRAM_USERNAME = '@investment_platform_3'
 export const TELEGRAM_URL = 'https://t.me/investment_platform_3'
 export const SUPPORT_EMAIL = 'balackrock@gmail.com'
@@ -11,7 +18,8 @@ export const TERMS_SECTIONS = [
   {
     title: 'Registration',
     bullets: [
-      'Users must register using a valid Email and Phone Number.',
+      'Users must register using a valid Email Address and Phone Number (both are required).',
+      'New accounts receive an automatic sign-up bonus of 150 ETB and 1.7 USD.',
     ],
   },
   {
@@ -35,19 +43,30 @@ export const TERMS_SECTIONS = [
   {
     title: 'Withdrawal',
     bullets: [
-      'To withdraw, go to the "Withdrawal" section, enter your wallet address and amount. Requests are processed within 24-48 hours.',
+      'To withdraw, go to the "Withdrawal" section, enter your wallet address and amount.',
+      `Minimum withdrawal: ${WITHDRAWAL_MIN_ETB} ETB or $${WITHDRAWAL_MIN_USD} USD.`,
+      'Requests are processed within 24–48 hours.',
     ],
   },
   {
-    title: 'Invite',
+    title: 'Invite (Referral)',
     bullets: [
-      'Grow your network by sharing your unique referral link found in the "Invite" section. You earn bonuses for every active user you bring to the platform.',
+      'Grow your network by sharing your unique referral link from the "Invite" section.',
+      `When your invitee makes an approved deposit, you earn ${REFERRAL_BONUS_USD} USD (USD/USDT deposits) or ${REFERRAL_BONUS_ETB} ETB (ETB deposits).`,
+    ],
+  },
+  {
+    title: 'Official Support',
+    bullets: [
+      `Telegram: ${TELEGRAM_USERNAME}`,
+      `Email: ${SUPPORT_EMAIL}`,
     ],
   },
   {
     title: 'Security & Compliance',
     bullets: [
-      'By using this platform, you agree to these terms. Unauthorized use is prohibited. Blackrock Investment is not liable for market risks; invest responsibly.',
+      'By using this platform, you agree to these terms. Unauthorized use is prohibited.',
+      'Blackrock Investment is not liable for market risks; invest responsibly.',
     ],
   },
 ]

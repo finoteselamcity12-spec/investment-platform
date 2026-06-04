@@ -74,7 +74,7 @@ export default function Profile({ ctx }) {
   }
 
   const userFullName = userData?.fullName || session?.user?.fullName || 'Account Holder'
-  const userEmail = userData?.email || session?.user?.email || 'user@example.com'
+  const userEmail = userData?.email || session?.user?.email || ''
 
   const handleSave = async () => {
     // Basic validation

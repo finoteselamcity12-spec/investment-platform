@@ -3,6 +3,11 @@ import { Eye, EyeOff, Mail, Phone } from 'lucide-react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import supabase from '../lib/supabase'
 import { createSession, validators, sanitizeInput } from '../lib/authService'
+import {
+  REGISTRATION_BONUS_ETB,
+  REGISTRATION_BONUS_USD,
+} from '../lib/platformConfig'
+import { syncProfileAfterSignup } from '../lib/supabaseData'
 import TermsAndConditionsPanel from '../components/TermsAndConditionsPanel'
 
 const initialForm = {
@@ -26,8 +31,34 @@ function validatePhone(phone) {
   return digits.length >= 8 && digits.length <= 15
 }
 
+const PRIMARY_GREEN = '#84CC16'
+
 const inputWithIconClass =
-  'auth-input-field w-full rounded-xl border-2 border-gray-200 bg-gray-50 py-3 pr-4 pl-11 text-gray-900 placeholder-gray-500 focus:outline-none focus:border-lime-400 focus:bg-white focus:ring-2 focus:ring-lime-400/30 transition-all'
+  'auth-input-field w-full rounded-xl border-2 border-gray-200 bg-gray-50 py-3 pr-4 pl-12 text-gray-900 placeholder-gray-500 focus:outline-none focus:border-[#84CC16] focus:bg-white focus:ring-2 focus:ring-[#84CC16]/25 transition-all'
+
+function AuthIconField({ label, required, icon: Icon, valid, children }) {
+  return (
+    <div>
+      <label className="mb-2 flex items-center gap-2 text-sm font-bold text-gray-700">
+        <span>{label}</span>
+        {required && <span className="text-xs font-semibold text-[#84CC16]">(Required)</span>}
+      </label>
+      <div className="relative">
+        <span
+          className="pointer-events-none absolute left-3 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg"
+          style={{ backgroundColor: `${PRIMARY_GREEN}18`, color: PRIMARY_GREEN }}
+          aria-hidden="true"
+        >
+          <Icon size={18} />
+        </span>
+        {children}
+      </div>
+      {required && valid && (
+        <p className="mt-1.5 text-xs font-medium text-[#2e7d32]">Valid</p>
+      )}
+    </div>
+  )
+}
 
 export default function Auth() {
   const navigate = useNavigate()
@@ -41,18 +72,21 @@ export default function Auth() {
   const [referrerId, setReferrerId] = useState('')
 
   const isRegister = !isLogin
+  const isEmailValid = validateEmail(form.email)
+  const isPhoneValid = validatePhone(form.phone)
+
   const canSubmit = useMemo(() => {
     if (isRegister) {
+      const contactComplete = isEmailValid && isPhoneValid
       return (
+        contactComplete &&
         form.fullName.trim().length > 1 &&
-        validateEmail(form.email) &&
-        validatePhone(form.phone) &&
         form.password.length >= 8 &&
         form.password === form.confirmPassword
       )
     }
-    return validateEmail(form.email) && form.password.length >= 8
-  }, [form, isRegister])
+    return isEmailValid && form.password.length >= 8
+  }, [form, isRegister, isEmailValid, isPhoneValid])
 
   useEffect(() => {
     try {
@@ -119,18 +153,21 @@ export default function Auth() {
         const sanitizedPhone = sanitizeInput(form.phone.trim())
 
         let signupError = null
+        let authUserId = null
         try {
-          const { error } = await supabase.auth.signUp({
+          const { data, error } = await supabase.auth.signUp({
             email: sanitizedEmail,
             password: form.password,
             options: {
               data: {
                 full_name: sanitizedName,
                 phone: sanitizedPhone,
+                referred_by: referrerId || null,
               },
             },
           })
           if (error) signupError = error
+          authUserId = data?.user?.id || null
         } catch (e) {
           signupError = e
         }
@@ -146,9 +183,19 @@ export default function Auth() {
           return
         }
 
+        if (authUserId) {
+          await syncProfileAfterSignup({
+            userId: authUserId,
+            email: sanitizedEmail,
+            phone: sanitizedPhone,
+            fullName: sanitizedName,
+            referrerCode: referrerId,
+          })
+        }
+
         const users = JSON.parse(localStorage.getItem('platform_registered_users_data') || '{}')
         users[sanitizedEmail] = {
-          userId,
+          userId: authUserId || userId,
           fullName: sanitizedName,
           email: sanitizedEmail,
           phone: sanitizedPhone,
@@ -164,17 +211,15 @@ export default function Auth() {
         }
 
         const userData = JSON.parse(localStorage.getItem('admin_user_data') || '{}')
-        const wallet_etb = 150
-        const wallet_usd = 1.7
 
         if (!userData[sanitizedEmail]) {
           userData[sanitizedEmail] = {
-            id: userId,
+            id: authUserId || userId,
             email: sanitizedEmail,
             phone: sanitizedPhone,
             fullName: sanitizedName,
-            usdBalance: wallet_usd,
-            etbBalance: wallet_etb,
+            usdBalance: REGISTRATION_BONUS_USD,
+            etbBalance: REGISTRATION_BONUS_ETB,
             bonusEligible: true,
             bonusClaimed: true,
             totalDeposits: 0,
@@ -321,44 +366,40 @@ export default function Auth() {
             </div>
           )}
 
-          <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">Email Address</label>
-            <div className="relative">
-              <Mail
-                size={18}
-                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-lime-600"
-                aria-hidden="true"
-              />
-              <input
-                type="email"
-                value={form.email}
-                onChange={(event) => setForm({ ...form, email: event.target.value })}
-                placeholder="name@example.com"
-                required
-                className={inputWithIconClass}
-              />
-            </div>
-          </div>
+          <AuthIconField
+            label="Email Address"
+            required={isRegister}
+            icon={Mail}
+            valid={isEmailValid}
+          >
+            <input
+              type="email"
+              value={form.email}
+              onChange={(event) => setForm({ ...form, email: event.target.value })}
+              placeholder="name@example.com"
+              required
+              autoComplete="email"
+              className={`${inputWithIconClass} ${isRegister && isEmailValid ? 'border-[#84CC16]/60' : ''}`}
+            />
+          </AuthIconField>
 
           {isRegister && (
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">Phone Number</label>
-              <div className="relative">
-                <Phone
-                  size={18}
-                  className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-lime-600"
-                  aria-hidden="true"
-                />
-                <input
-                  type="tel"
-                  value={form.phone}
-                  onChange={(event) => setForm({ ...form, phone: event.target.value })}
-                  placeholder="+251 9XX XXX XXXX"
-                  required
-                  className={inputWithIconClass}
-                />
-              </div>
-            </div>
+            <AuthIconField
+              label="Phone Number"
+              required
+              icon={Phone}
+              valid={isPhoneValid}
+            >
+              <input
+                type="tel"
+                value={form.phone}
+                onChange={(event) => setForm({ ...form, phone: event.target.value })}
+                placeholder="+251 9XX XXX XXXX"
+                required
+                autoComplete="tel"
+                className={`${inputWithIconClass} ${isPhoneValid ? 'border-[#84CC16]/60' : ''}`}
+              />
+            </AuthIconField>
           )}
 
           <div>
@@ -402,6 +443,12 @@ export default function Auth() {
           >
             {loading ? 'Processing...' : isLogin ? 'LOGIN' : 'CREATE ACCOUNT'}
           </button>
+
+          {isRegister && !canSubmit && (form.email || form.phone) && (
+            <p className="text-center text-xs text-gray-500">
+              Enter a valid email and phone number to enable registration.
+            </p>
+          )}
 
           {isLogin && (
             <div className="mt-4 text-right">
