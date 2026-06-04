@@ -57,12 +57,21 @@ VITE_SUPABASE_ANON_KEY=your_anon_key
 - Optional `?ref=<referrer_uuid_or_email>` sets `profiles.referred_by`.
 - Frontend syncs profile via `syncProfileAfterSignup()` after Supabase Auth sign-up.
 
-## 5. Referral on deposit approval
+## 5. Admin dashboard (required for live stats + approvals)
 
-When an admin approves a deposit in the dashboard:
+Run in SQL Editor:
 
-1. Local wallet is updated (existing behavior).
-2. A row is inserted into `deposits` so the **Supabase trigger** awards the referrer.
+`supabase/migrations/005_admin_dashboard_backend.sql`
+
+This adds admin RPC functions (`admin_get_dashboard_stats`, `admin_approve_deposit`, etc.) that bypass RLS for the admin JWT.
+
+**Admin must sign in with Supabase Auth** as `workinehabche@gmail.com` (create this user in Auth → Users with the same password as the admin console). Use `/admin-login`.
+
+When an admin approves a deposit:
+
+1. `admin_approve_deposit` credits `balances` in Supabase (user dashboard reads this).
+2. Referral bonus runs via the deposit status trigger.
+3. Local storage is still updated for backward compatibility.
 
 ## 6. Verify
 

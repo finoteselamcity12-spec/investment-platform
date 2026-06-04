@@ -488,3 +488,39 @@
   border-radius: 0.5rem;
   margin-top: 0.75rem;
 }
+
+.admin-error-banner {
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #991b1b;
+  background: #450a0a;
+  color: #fecaca;
+  font-size: 0.8125rem;
+}
+
+.admin-error-banner ul {
+  margin: 0.5rem 0 0 1rem;
+  padding: 0;
+}
+
+.admin-error-banner code {
+  font-size: 0.7rem;
+  color: #fde68a;
+}
+
+.admin-proof-thumb {
+  padding: 0;
+  border: 1px solid #334155;
+  border-radius: 0.375rem;
+  background: #0f1419;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.admin-proof-thumb img {
+  display: block;
+  width: 3.5rem;
+  height: 3.5rem;
+  object-fit: cover;
+}

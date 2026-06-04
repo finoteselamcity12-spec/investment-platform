@@ -14,6 +14,8 @@ import AdminReceiptModal from './components/AdminReceiptModal'
 import {
   ADMIN_EMAIL,
   loadAdminSnapshot,
+  mergePendingDeposits,
+  mergeUsers,
   approveDeposit,
   rejectDeposit,
   approveWithdrawal,
@@ -21,7 +23,7 @@ import {
   deleteUser,
   formatAdminCurrency,
 } from './lib/adminStorage'
-import { fetchAdminSupabaseStats } from './lib/adminSupabase'
+import { fetchAdminDashboard } from './lib/adminSupabase'
 import './admin.css'
 
 const NAV = [
@@ -37,6 +39,8 @@ export default function AdminDashboardApp() {
   const [adminSession, setAdminSession] = useState(null)
   const [snapshot, setSnapshot] = useState(() => loadAdminSnapshot())
   const [remoteStats, setRemoteStats] = useState(null)
+  const [fetchErrors, setFetchErrors] = useState([])
+  const [isRefreshing, setIsRefreshing] = useState(false)
   const [section, setSection] = useState('overview')
   const [toast, setToast] = useState({ message: '', type: 'success' })
   const [receiptDeposit, setReceiptDeposit] = useState(null)
@@ -48,8 +52,35 @@ export default function AdminDashboardApp() {
     return () => clearTimeout(t)
   }, [])
 
-  const refresh = useCallback(() => {
-    setSnapshot(loadAdminSnapshot())
+  const refresh = useCallback(async () => {
+    setIsRefreshing(true)
+    const local = loadAdminSnapshot()
+    try {
+      const remote = await fetchAdminDashboard()
+      setFetchErrors(remote.errors || [])
+      setRemoteStats(remote.stats)
+
+      const pendingDeposits = mergePendingDeposits(
+        local.pendingDepositsLocal || local.pendingDeposits,
+        remote.pendingDeposits
+      )
+      const users = mergeUsers(remote.users, local.users)
+
+      setSnapshot({
+        ...local,
+        pendingDeposits,
+        users,
+        registrationCount: remote.stats?.totalUsers ?? local.registrationCount,
+        dailyTransactions: remote.stats?.dailyTransactions ?? local.dailyTransactions,
+      })
+    } catch (err) {
+      const msg = err?.message || String(err)
+      console.error('[Admin] refresh failed:', err)
+      setFetchErrors([msg])
+      setSnapshot(local)
+    } finally {
+      setIsRefreshing(false)
+    }
   }, [])
 
   useEffect(() => {
@@ -76,27 +107,27 @@ export default function AdminDashboardApp() {
   }, [refresh])
 
   useEffect(() => {
-    if (!isAuthorized) return
-    fetchAdminSupabaseStats().then(setRemoteStats)
-  }, [isAuthorized])
+    if (!isAuthorized || !adminSession) return
+    refresh()
+  }, [isAuthorized, adminSession, refresh])
 
   const metrics = useMemo(
     () => [
       {
         label: 'Total Users',
-        value: remoteStats?.profileCount ?? snapshot.registrationCount,
+        value: remoteStats?.totalUsers ?? snapshot.registrationCount ?? 0,
       },
       {
         label: 'Daily Transactions',
-        value: snapshot.dailyTransactions,
+        value: remoteStats?.dailyTransactions ?? snapshot.dailyTransactions ?? 0,
       },
       {
         label: 'Active Investments',
-        value: snapshot.activeInvestments,
+        value: snapshot.activeInvestments ?? 0,
       },
       {
         label: 'Pending Deposits',
-        value: snapshot.pendingDeposits.length,
+        value: remoteStats?.pendingDeposits ?? snapshot.pendingDeposits.length ?? 0,
       },
     ],
     [snapshot, remoteStats]
@@ -108,22 +139,32 @@ export default function AdminDashboardApp() {
       try {
         const next = await approveDeposit(id, snapshot)
         setSnapshot(next)
-        showToast('Deposit approved and wallet credited.', 'success')
+        await refresh()
+        showToast('Deposit approved — Supabase balance updated.', 'success')
       } catch (e) {
         showToast(e?.message || 'Approve failed', 'error')
       } finally {
         setBusyId(null)
       }
     },
-    [snapshot, showToast]
+    [snapshot, showToast, refresh]
   )
 
   const handleRejectDeposit = useCallback(
-    (id) => {
-      setSnapshot(rejectDeposit(id, snapshot))
-      showToast('Deposit rejected.', 'info')
+    async (id) => {
+      setBusyId(id)
+      try {
+        const next = await rejectDeposit(id, snapshot)
+        setSnapshot(next)
+        await refresh()
+        showToast('Deposit rejected.', 'info')
+      } catch (e) {
+        showToast(e?.message || 'Reject failed', 'error')
+      } finally {
+        setBusyId(null)
+      }
     },
-    [snapshot, showToast]
+    [snapshot, showToast, refresh]
   )
 
   const handleApproveWithdrawal = useCallback(
@@ -160,16 +201,38 @@ export default function AdminDashboardApp() {
   const depositRows = useMemo(
     () =>
       snapshot.pendingDeposits.map((d) => (
-        <tr key={d.id}>
+        <tr key={d.supabaseId || d.id}>
           <td>
-            <div style={{ fontWeight: 600 }}>{d.userEmail || d.userId}</div>
-            <div style={{ fontSize: '0.6875rem', color: '#64748b' }}>{d.paymentMethod}</div>
+            <div style={{ fontWeight: 600 }}>{d.userEmail || '—'}</div>
+            <div style={{ fontSize: '0.6875rem', color: '#64748b', fontFamily: 'monospace' }}>
+              {d.userId || '—'}
+            </div>
+            {d.source === 'local' && (
+              <span className="admin-badge admin-badge-pending" style={{ marginTop: '0.25rem' }}>
+                Local only
+              </span>
+            )}
+          </td>
+          <td style={{ fontFamily: 'monospace', fontSize: '0.75rem', maxWidth: '10rem', wordBreak: 'break-all' }}>
+            {d.transactionId || '—'}
+          </td>
+          <td>
+            {d.screenshot ? (
+              <button
+                type="button"
+                className="admin-proof-thumb"
+                onClick={() => setReceiptDeposit(d)}
+                aria-label="View payment proof"
+              >
+                <img src={d.screenshot} alt="Proof" />
+              </button>
+            ) : (
+              <span style={{ color: '#64748b', fontSize: '0.75rem' }}>No image</span>
+            )}
           </td>
           <td>{formatAdminCurrency(d.amount, d.currency)}</td>
+          <td style={{ fontSize: '0.75rem' }}>{d.paymentMethod || '—'}</td>
           <td style={{ fontSize: '0.75rem' }}>{new Date(d.createdAt).toLocaleString()}</td>
-          <td>
-            <span className="admin-badge admin-badge-pending">Pending</span>
-          </td>
           <td>
             <div className="admin-actions">
               <button
@@ -180,14 +243,14 @@ export default function AdminDashboardApp() {
               >
                 Approve
               </button>
-              <button type="button" className="admin-btn admin-btn-reject" onClick={() => handleRejectDeposit(d.id)}>
+              <button
+                type="button"
+                className="admin-btn admin-btn-reject"
+                disabled={busyId === d.id}
+                onClick={() => handleRejectDeposit(d.id)}
+              >
                 Reject
               </button>
-              {d.screenshot && (
-                <button type="button" className="admin-btn admin-btn-ghost" onClick={() => setReceiptDeposit(d)}>
-                  Receipt
-                </button>
-              )}
             </div>
           </td>
         </tr>
@@ -288,15 +351,30 @@ export default function AdminDashboardApp() {
             <div>
               <h2>{sectionTitle}</h2>
               <p>
-                {remoteStats?.configured
-                  ? `Supabase linked · ${remoteStats.profileCount ?? '—'} profiles`
-                  : 'Local data mode (Supabase optional)'}
+                {remoteStats
+                  ? `Supabase · ${remoteStats.totalUsers ?? 0} users · ${remoteStats.pendingDeposits ?? 0} pending in DB`
+                  : 'Loading Supabase stats…'}
               </p>
             </div>
-            <button type="button" className="admin-btn admin-btn-ghost" onClick={refresh}>
-              Refresh data
+            <button type="button" className="admin-btn admin-btn-ghost" onClick={refresh} disabled={isRefreshing}>
+              {isRefreshing ? 'Refreshing…' : 'Refresh data'}
             </button>
           </header>
+
+          {fetchErrors.length > 0 && (
+            <div className="admin-error-banner" role="alert">
+              <strong>Supabase error (check F12 → Console / Network):</strong>
+              <ul>
+                {fetchErrors.map((err) => (
+                  <li key={err}>{err}</li>
+                ))}
+              </ul>
+              <p style={{ marginTop: '0.5rem', fontSize: '0.75rem' }}>
+                Run <code>supabase/migrations/005_admin_dashboard_backend.sql</code> in SQL Editor and sign in at
+                /admin-login with Supabase Auth user <strong>{ADMIN_EMAIL}</strong>.
+              </p>
+            </div>
+          )}
 
           {section === 'overview' && (
             <>
@@ -322,10 +400,12 @@ export default function AdminDashboardApp() {
               subtitle="Approve or reject from each row"
               emptyMessage="No pending deposits."
               columns={[
-                { key: 'user', label: 'User' },
+                { key: 'user', label: 'User / ID' },
+                { key: 'tx', label: 'Transaction ID' },
+                { key: 'proof', label: 'Proof' },
                 { key: 'amount', label: 'Amount' },
+                { key: 'method', label: 'Method' },
                 { key: 'date', label: 'Submitted' },
-                { key: 'status', label: 'Status' },
                 { key: 'actions', label: 'Actions' },
               ]}
               rows={depositRows}

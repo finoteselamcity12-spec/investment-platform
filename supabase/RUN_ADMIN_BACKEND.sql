@@ -1,0 +1,7 @@
+-- Admin dashboard backend fix
+-- In Supabase Dashboard → SQL Editor → New query:
+-- Paste and run the FULL contents of:
+--   supabase/migrations/005_admin_dashboard_backend.sql
+--
+-- Then create Auth user: workinehabche@gmail.com (same password as admin console)
+-- Sign in at /admin-login so JWT allows admin RPCs.

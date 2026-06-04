@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { ADMIN_CREDENTIALS } from '../lib/adminStorage'
+import { ensureAdminSupabaseSession } from '../lib/adminSupabase'
 
 export default function AdminLoginForm({ onSuccess }) {
   const [loginName, setLoginName] = useState('')
@@ -7,27 +8,33 @@ export default function AdminLoginForm({ onSuccess }) {
   const [loginId, setLoginId] = useState('')
   const [loginError, setLoginError] = useState('')
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault()
     setLoginError('')
 
     if (
-      loginName === ADMIN_CREDENTIALS.name &&
-      loginPassword === ADMIN_CREDENTIALS.password &&
-      loginId === ADMIN_CREDENTIALS.id
+      loginName !== ADMIN_CREDENTIALS.name ||
+      loginPassword !== ADMIN_CREDENTIALS.password ||
+      loginId !== ADMIN_CREDENTIALS.id
     ) {
-      const session = {
-        name: loginName,
-        id: loginId,
-        email: 'workinehabche@gmail.com',
-        loginTime: new Date().toISOString(),
-      }
-      sessionStorage.setItem('admin_session', JSON.stringify(session))
-      onSuccess(session)
+      setLoginError('Invalid admin credentials. Please check name, password, and ID.')
       return
     }
 
-    setLoginError('Invalid admin credentials. Please check name, password, and ID.')
+    const supabaseAuth = await ensureAdminSupabaseSession(loginPassword)
+    if (!supabaseAuth.ok) {
+      setLoginError(supabaseAuth.error)
+      return
+    }
+
+    const session = {
+      name: loginName,
+      id: loginId,
+      email: 'workinehabche@gmail.com',
+      loginTime: new Date().toISOString(),
+    }
+    sessionStorage.setItem('admin_session', JSON.stringify(session))
+    onSuccess(session)
   }
 
   return (

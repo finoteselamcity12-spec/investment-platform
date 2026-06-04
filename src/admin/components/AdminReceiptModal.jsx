@@ -16,10 +16,19 @@ export default function AdminReceiptModal({ deposit, onClose }) {
           </button>
         </div>
         <p style={{ marginTop: '0.75rem', fontSize: '0.8125rem' }}>
+          <strong>User ID:</strong> <span style={{ fontFamily: 'monospace' }}>{deposit.userId || '—'}</span>
+        </p>
+        <p style={{ fontSize: '0.8125rem' }}>
+          <strong>Email:</strong> {deposit.userEmail || '—'}
+        </p>
+        <p style={{ fontSize: '0.8125rem' }}>
           <strong>Amount:</strong> {formatAdminCurrency(deposit.amount, deposit.currency)}
         </p>
         <p style={{ fontSize: '0.8125rem' }}>
-          <strong>Method:</strong> {deposit.paymentMethod} · <strong>TX:</strong> {deposit.transactionId}
+          <strong>Method:</strong> {deposit.paymentMethod || '—'}
+        </p>
+        <p style={{ fontSize: '0.8125rem', wordBreak: 'break-all' }}>
+          <strong>Transaction ID:</strong> {deposit.transactionId || '—'}
         </p>
         {deposit.screenshot && typeof deposit.screenshot === 'string' && deposit.screenshot.startsWith('data:') && (
           <img src={deposit.screenshot} alt="Payment receipt" />

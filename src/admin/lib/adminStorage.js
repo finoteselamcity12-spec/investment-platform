@@ -1,6 +1,7 @@
 import { REFERRAL_BONUS_ETB, REFERRAL_BONUS_USD } from '../../lib/platformConfig'
-import { recordDepositForReferral, findProfileIdByEmail } from '../../lib/supabaseData'
+import { findProfileIdByEmail } from '../../lib/supabaseData'
 import { loadReferralStats, updateReferralStats } from '../../lib/referralUtils'
+import { approveDepositInSupabase, rejectDepositInSupabase } from './adminSupabase'
 
 export const ADMIN_EMAIL = 'workinehabche@gmail.com'
 
@@ -63,6 +64,7 @@ export function loadAdminSnapshot() {
     users,
     usersByKey: usersData,
     pendingDeposits,
+    pendingDepositsLocal: pendingDeposits,
     approvedDeposits,
     rejectedDeposits,
     pendingWithdrawals,
@@ -74,9 +76,41 @@ export function loadAdminSnapshot() {
   }
 }
 
+export function mergePendingDeposits(localList, remoteList) {
+  const seen = new Set()
+  const merged = []
+
+  for (const d of remoteList || []) {
+    const key = d.supabaseId || d.id
+    if (seen.has(key)) continue
+    seen.add(key)
+    merged.push(d)
+  }
+
+  for (const d of localList || []) {
+    if (d.supabaseId && seen.has(d.supabaseId)) continue
+    const key = `local:${d.id}`
+    if (seen.has(key)) continue
+    seen.add(key)
+    merged.push({ ...d, source: d.source || 'local' })
+  }
+
+  return merged
+}
+
+export function mergeUsers(remoteUsers, localUsers) {
+  if (remoteUsers?.length) return remoteUsers
+  return localUsers || []
+}
+
 export async function approveDeposit(depositId, snapshot) {
   const deposit = snapshot.pendingDeposits.find((d) => d.id === depositId)
   if (!deposit) return snapshot
+
+  const supabaseResult = await approveDepositInSupabase(deposit)
+  if (!supabaseResult.ok) {
+    throw new Error(supabaseResult.error || 'Supabase approval failed')
+  }
 
   const pendingDeposits = snapshot.pendingDeposits.filter((d) => d.id !== depositId)
   const approvedDeposits = [
@@ -150,27 +184,23 @@ export async function approveDeposit(depositId, snapshot) {
           writeJson('platform_registered_users_data', registered)
         }
 
-        const depositorProfileId =
-          (await findProfileIdByEmail(depositorEmail)) || depositorRecord?.userId
-        if (depositorProfileId && /^[0-9a-f-]{36}$/i.test(depositorProfileId)) {
-          await recordDepositForReferral({
-            userId: depositorProfileId,
-            currency: deposit.currency,
-            amount: deposit.amount,
-          })
-        }
       }
     }
   } catch (err) {
-    console.error('Referral bonus error:', err)
+    console.error('Referral bonus local sync error:', err)
   }
 
   return loadAdminSnapshot()
 }
 
-export function rejectDeposit(depositId, snapshot) {
+export async function rejectDeposit(depositId, snapshot) {
   const deposit = snapshot.pendingDeposits.find((d) => d.id === depositId)
   if (!deposit) return snapshot
+
+  const rejectResult = await rejectDepositInSupabase(deposit)
+  if (!rejectResult.ok) {
+    throw new Error(rejectResult.error || 'Supabase reject failed')
+  }
 
   const pendingDeposits = snapshot.pendingDeposits.filter((d) => d.id !== depositId)
   const rejectedDeposits = [
