@@ -18,7 +18,7 @@ export const TERMS_SECTIONS = [
   {
     title: 'Registration',
     bullets: [
-      'Users must register using a valid Email Address and Password.',
+      'Users must register with Full Name, Email Address, and Password.',
       'New accounts receive an automatic sign-up bonus of 150 ETB and 1.7 USD.',
     ],
   },
