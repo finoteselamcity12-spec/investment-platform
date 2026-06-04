@@ -149,19 +149,17 @@ export default function HomePage({ ctx }) {
           ))}
         </div>
 
-        <div className="home-invite-card rounded-2xl border-2 border-slate-200 bg-white p-5 shadow-sm">
-          <p className="text-sm font-bold text-slate-800">Your Invite Link</p>
-          <p className="mt-1 text-xs text-slate-500">
+        <div className="home-invite-card rounded-2xl border-2 border-slate-200 bg-white shadow-sm">
+          <p className="home-invite-title">Your Invite Link</p>
+          <p className="home-invite-desc">
             Share this link to invite friends and earn referral rewards.
           </p>
-          <p className="mt-3 break-all rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 font-mono text-xs text-slate-800">
-            {referralLink || 'Loading invite link…'}
-          </p>
+          <p className="home-invite-url">{referralLink || 'Loading invite link…'}</p>
           <button
             type="button"
             onClick={handleCopyInviteLink}
             disabled={!referralLink}
-            className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[#84CC16] py-3 text-sm font-bold text-white shadow-md transition hover:bg-lime-500 disabled:cursor-not-allowed disabled:opacity-50"
+            className="home-invite-copy-btn flex w-full items-center justify-center gap-2 rounded-xl bg-[#84CC16] text-white shadow-md transition hover:bg-lime-500 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {isCopied ? <Check size={18} /> : <Copy size={18} />}
             {isCopied ? 'Copied!' : 'Copy Link'}

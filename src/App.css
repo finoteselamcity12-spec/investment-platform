@@ -162,8 +162,9 @@
 .home-referral-label {
   font-size: 0.7rem;
   font-weight: 600;
-  line-height: 1.25;
-  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.3;
+  color: #ffffff;
+  opacity: 0.95;
   word-wrap: break-word;
 }
 
@@ -171,8 +172,9 @@
   margin-top: 0.35rem;
   font-size: 1rem;
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 1.25;
   color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
   word-break: break-word;
 }
 
@@ -180,7 +182,8 @@
   font-size: 0.875rem;
   font-weight: 600;
   letter-spacing: 0.04em;
-  opacity: 0.95;
+  color: #ffffff;
+  opacity: 1;
 }
 
 .home-balance-total {
@@ -188,6 +191,8 @@
   font-size: clamp(1.75rem, 8vw, 2.75rem);
   font-weight: 800;
   line-height: 1.1;
+  color: #ffffff;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .home-wallet-grid {
@@ -209,14 +214,17 @@
 .home-wallet-label {
   font-size: 0.75rem;
   font-weight: 600;
-  opacity: 0.88;
+  color: rgba(255, 255, 255, 0.95);
+  opacity: 1;
 }
 
 .home-wallet-value {
-  margin-top: 0.2rem;
+  margin-top: 0.25rem;
   font-size: 0.95rem;
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 1.25;
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
 }
 
 .home-action-grid {
@@ -272,18 +280,18 @@
 }
 
 .home-metric-label {
-  font-size: 0.65rem;
+  font-size: 0.8rem;
   font-weight: 600;
-  color: #64748b;
-  line-height: 1.25;
+  color: #475569;
+  line-height: 1.3;
 }
 
 .home-metric-value {
-  margin-top: 0.25rem;
-  font-size: 0.9rem;
+  margin-top: 0.35rem;
+  font-size: 1.05rem;
   font-weight: 700;
-  color: #1a472a;
-  line-height: 1.2;
+  color: #14532d;
+  line-height: 1.25;
   word-break: break-word;
 }
 
@@ -291,6 +299,46 @@
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
+  padding: 1rem;
+}
+
+.home-invite-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.home-invite-desc {
+  margin-top: 0.35rem;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  color: #475569;
+}
+
+.home-invite-url {
+  margin-top: 0.75rem;
+  display: block;
+  max-height: 5.5rem;
+  overflow-x: auto;
+  overflow-y: auto;
+  word-break: break-all;
+  border-radius: 0.75rem;
+  border: 1px solid #e2e8f0;
+  background-color: #f8fafc;
+  padding: 0.75rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.45;
+  color: #0f172a;
+  -webkit-overflow-scrolling: touch;
+}
+
+.home-invite-copy-btn {
+  margin-top: 0.75rem;
+  padding: 0.75rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 700;
 }
 
 /* 3D welcome header */
@@ -319,12 +367,16 @@
   .app-main-content {
     padding-top: 4.5rem;
     padding-bottom: 5.5rem;
-    padding-left: 0.5rem;
-    padding-right: 0.5rem;
+    padding-left: 0.625rem;
+    padding-right: 0.625rem;
   }
 
   .app-bottom-nav-inner {
     padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  }
+
+  .app-nav-label {
+    font-size: 0.65rem !important;
   }
 
   .home-page {
@@ -332,97 +384,133 @@
   }
 
   .home-dashboard-stack {
-    gap: 0.5rem;
+    gap: 0.625rem;
     padding: 0.25rem 0.125rem !important;
   }
 
   .welcome-3d {
-    font-size: clamp(1.2rem, 5.5vw, 1.65rem);
+    font-size: clamp(1.35rem, 6vw, 1.85rem);
     letter-spacing: 0.5px;
     padding: 0 0.25rem;
-    margin-bottom: 0.125rem;
+    margin-bottom: 0.25rem;
   }
 
   .home-balance-card {
-    padding: 0.75rem 0.625rem;
+    padding: 1rem 0.75rem;
     border-radius: 1rem;
   }
 
   .home-balance-title {
-    font-size: 0.7rem;
+    font-size: 0.9rem;
+    font-weight: 700;
   }
 
   .home-balance-total {
-    font-size: clamp(1.5rem, 7vw, 1.85rem);
-    margin-top: 0.125rem;
+    font-size: clamp(1.85rem, 8vw, 2.35rem);
+    margin-top: 0.25rem;
+    font-weight: 800;
   }
 
   .home-wallet-grid,
   .home-referral-grid,
   .home-metrics-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 6px;
+    gap: 8px;
   }
 
   .home-wallet-card,
   .home-referral-card {
-    padding: 6px 5px;
+    padding: 10px 8px;
   }
 
   .home-wallet-label,
   .home-referral-label {
-    font-size: 0.6rem;
-    line-height: 1.2;
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1.3;
   }
 
   .home-wallet-value,
   .home-referral-value {
-    font-size: 0.8rem;
-    margin-top: 0.125rem;
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-top: 0.35rem;
   }
 
   .home-action-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 6px;
+    gap: 8px;
   }
 
   .home-action-btn {
-    min-height: 52px;
-    padding: 8px 6px;
-    font-size: 0.75rem;
+    min-height: 56px;
+    padding: 10px 8px;
+    font-size: 0.9rem;
+    font-weight: 700;
     flex-direction: column;
-    gap: 0.2rem;
+    gap: 0.25rem;
   }
 
   .home-metric-card {
-    padding: 8px 6px;
+    padding: 12px 10px;
   }
 
   .home-metric-label {
-    font-size: 0.58rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #334155;
   }
 
   .home-metric-value {
-    font-size: 0.8rem;
-    margin-top: 0.125rem;
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-top: 0.35rem;
+    color: #14532d;
   }
 
   .home-invite-card {
-    padding: 0.75rem !important;
-    margin-top: 0 !important;
+    padding: 1rem !important;
   }
 
-  .home-invite-card p {
-    margin-top: 0.25rem !important;
+  .home-invite-title {
+    font-size: 1.05rem;
   }
 
-  .home-invite-card .mt-3 {
-    margin-top: 0.5rem !important;
+  .home-invite-desc {
+    font-size: 0.9rem;
   }
 
-  .home-invite-card .mt-4 {
-    margin-top: 0.5rem !important;
-    padding-top: 0.5rem !important;
-    padding-bottom: 0.5rem !important;
+  .home-invite-url {
+    font-size: 0.95rem;
+    font-weight: 600;
+    padding: 0.875rem;
+    max-height: 6rem;
+  }
+
+  .home-invite-copy-btn {
+    font-size: 1rem;
+    padding: 0.875rem 1rem;
+  }
+}
+
+@media (max-width: 375px) {
+  .home-balance-total {
+    font-size: 1.85rem;
+  }
+
+  .home-wallet-label,
+  .home-referral-label,
+  .home-metric-label {
+    font-size: 0.875rem;
+  }
+
+  .home-wallet-value,
+  .home-referral-value,
+  .home-metric-value {
+    font-size: 1.15rem;
+  }
+
+  .home-invite-url {
+    font-size: 0.9rem;
   }
 }
