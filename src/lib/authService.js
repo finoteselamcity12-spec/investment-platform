@@ -182,23 +182,11 @@ export const validators = {
   },
   
   password: (password) => {
-    const checks = {
-      length: password.length >= 8,
-      hasUpperCase: /[A-Z]/.test(password),
-      hasLowerCase: /[a-z]/.test(password),
-      hasNumber: /[0-9]/.test(password),
-      hasSpecialChar: /[!@#$%^&*]/.test(password),
+    const valid = String(password).length >= 4
+    return {
+      valid,
+      errors: valid ? null : ['Password must be at least 4 characters'],
     }
-    
-    const valid = checks.length && checks.hasUpperCase && checks.hasLowerCase && checks.hasNumber
-    const errors = []
-    
-    if (!checks.length) errors.push('Password must be at least 8 characters')
-    if (!checks.hasUpperCase) errors.push('Password must contain uppercase letter')
-    if (!checks.hasLowerCase) errors.push('Password must contain lowercase letter')
-    if (!checks.hasNumber) errors.push('Password must contain number')
-    
-    return { valid, errors: errors.length > 0 ? errors : null }
   },
   
   fullName: (name) => {

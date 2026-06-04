@@ -1,6 +1,10 @@
 import { useMemo, useEffect } from 'react'
 import { CheckCircle, Clock, AlertCircle } from 'lucide-react'
-import { countHistoryByAction, mirrorSignupBonusToLocalHistory } from '../lib/bonusHistory'
+import {
+  countHistoryByAction,
+  mirrorSignupBonusToLocalHistory,
+  fetchUserHistory,
+} from '../lib/bonusHistory'
 import { getSession } from '../lib/authService'
 
 const PRIMARY_GREEN = '#84CC16'
@@ -21,18 +25,16 @@ export default function HistoryPage({ ctx }) {
 
     async function syncHistoryDisplay() {
       const userId = getSession()?.user?.id
-      if (userId) {
-        const signupCount = await countHistoryByAction(userId, 'signup_bonus')
-        if (signupCount > 0) {
-          mirrorSignupBonusToLocalHistory(userEmail, userId)
-        }
-      } else {
+      if (!userId) return
+
+      const signupCount = await countHistoryByAction(userId, 'signup_bonus')
+      if (signupCount > 0) {
         mirrorSignupBonusToLocalHistory(userEmail, userId)
       }
 
-      const txns = JSON.parse(localStorage.getItem('user_transactions') || '[]')
+      const rows = await fetchUserHistory(userId, userEmail)
       if (setTransactions) {
-        setTransactions(txns)
+        setTransactions(rows)
       }
     }
 
@@ -62,13 +64,11 @@ export default function HistoryPage({ ctx }) {
   return (
     <div className="bg-white pb-2">
       <div className="space-y-3">
-        {/* Header */}
         <div>
           <p className="text-xs font-semibold text-slate-500">Activity</p>
           <h1 className="mt-1 text-2xl font-bold text-slate-950">Transaction History</h1>
         </div>
 
-        {/* Filter Tabs - Mobile Scroll */}
         <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4">
           {historyFilters.map((filter) => (
             <button
@@ -86,7 +86,6 @@ export default function HistoryPage({ ctx }) {
           ))}
         </div>
 
-        {/* Transaction List */}
         {filteredHistory.length > 0 ? (
           <div className="space-y-3">
             {filteredHistory.map((tx) => (
@@ -129,7 +128,6 @@ export default function HistoryPage({ ctx }) {
           </div>
         )}
 
-        {/* Summary */}
         {filteredHistory.length > 0 && (
           <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-center">
             <p className="text-xs font-semibold text-slate-600">

@@ -93,11 +93,11 @@ export default function Auth() {
       return (
         isFullNameValid &&
         isEmailValid &&
-        form.password.length >= 8 &&
+        form.password.length >= 4 &&
         passwordsMatch
       )
     }
-    return isEmailValid && form.password.length >= 8
+    return isEmailValid && form.password.length >= 4
   }, [form, isRegister, isFullNameValid, isEmailValid, passwordsMatch])
 
   useEffect(() => {
@@ -472,7 +472,7 @@ export default function Auth() {
             <label className="mb-2 block text-sm font-bold text-gray-700">
               Password
               {isRegister && (
-                <span className="ml-2 text-xs font-semibold text-[#84CC16]">(Required, 8+ characters)</span>
+                <span className="ml-2 text-xs font-semibold text-[#84CC16]">(Required, 4+ characters)</span>
               )}
             </label>
             <div className="relative">
@@ -548,7 +548,7 @@ export default function Auth() {
 
           {isRegister && !canSubmit && (form.fullName || form.email) && (
             <p className="text-center text-xs text-gray-500">
-              Complete all fields: full name, valid email, and matching passwords (8+ characters).
+              Complete all fields: full name, valid email, and matching passwords (4+ characters).
             </p>
           )}
 

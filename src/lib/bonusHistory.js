@@ -85,7 +85,7 @@ export async function hasDepositBonusForDeposit(userId, depositId) {
 export function mirrorSignupBonusToLocalHistory(email, userId) {
   if (!email) return
 
-  const txns = JSON.parse(localStorage.getItem('user_transactions') || '[]')
+  const txns = loadLocalTransactionsForUser(userId, email)
   const hasSignupAction = txns.some(
     (t) =>
       t.action === 'signup_bonus' &&
@@ -138,7 +138,7 @@ export function mirrorSignupBonusToLocalHistory(email, userId) {
     })
   }
 
-  localStorage.setItem('user_transactions', JSON.stringify(txns))
+  if (userId) saveLocalTransactionsForUser(userId, txns)
   return txns
 }
 
@@ -152,7 +152,7 @@ export function recordDepositBonusLocal({
 }) {
   const bonus =
     bonusAmount ?? Math.round(Number(depositAmount) * DEPOSIT_BONUS_RATE * 100) / 100
-  const txns = JSON.parse(localStorage.getItem('user_transactions') || '[]')
+  const txns = loadLocalTransactionsForUser(userId, email)
   const entryId = `deposit-bonus-${depositId || `${Date.now()}`}`
 
   if (txns.some((t) => t.action === 'deposit_bonus' && t.referenceId === depositId)) {
@@ -174,8 +174,120 @@ export function recordDepositBonusLocal({
     date: new Date().toISOString(),
   })
 
-  localStorage.setItem('user_transactions', JSON.stringify(txns))
+  if (userId) saveLocalTransactionsForUser(userId, txns)
   return txns
+}
+
+export function transactionsStorageKey(userId) {
+  return userId ? `user_transactions_${userId}` : 'user_transactions'
+}
+
+export function dedupeTransactions(items) {
+  const seen = new Set()
+  return (items || []).filter((item) => {
+    const key =
+      item.id ||
+      `${item.action || item.type}-${item.referenceId || item.reference_id || ''}-${item.date || item.created_at}`
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+}
+
+export function loadLocalTransactionsForUser(userId, email) {
+  const scopedKey = transactionsStorageKey(userId)
+  let txns = []
+
+  try {
+    txns = JSON.parse(localStorage.getItem(scopedKey) || '[]')
+  } catch {
+    txns = []
+  }
+
+  if (txns.length === 0 && (userId || email)) {
+    const legacy = JSON.parse(localStorage.getItem('user_transactions') || '[]')
+    txns = legacy.filter((t) => {
+      if (userId && t.userId === userId) return true
+      if (email && typeof t.id === 'string' && t.id.includes(email)) return true
+      return false
+    })
+    if (userId && txns.length > 0) {
+      localStorage.setItem(scopedKey, JSON.stringify(txns))
+    }
+  }
+
+  return dedupeTransactions(
+    txns.filter((t) => {
+      if (!userId) return true
+      if (t.userId && t.userId !== userId) return false
+      if (email && !t.userId && typeof t.id === 'string' && !t.id.includes(email)) return false
+      return true
+    })
+  )
+}
+
+export function saveLocalTransactionsForUser(userId, txns) {
+  const key = transactionsStorageKey(userId)
+  localStorage.setItem(key, JSON.stringify(dedupeTransactions(txns)))
+}
+
+function historyRowToTransactions(row) {
+  const createdAt = row.created_at || new Date().toISOString()
+  const meta = row.metadata || {}
+
+  if (row.action === 'signup_bonus' && row.currency === 'MIXED') {
+    const items = []
+    if (meta.etb != null) {
+      items.push({
+        id: `${row.id}-etb`,
+        userId: row.user_id,
+        action: 'signup_bonus',
+        referenceId: row.reference_id,
+        type: 'Bonus',
+        title: 'Sign-up Bonus (ETB)',
+        amount: Number(meta.etb),
+        currency: 'ETB',
+        status: 'Completed',
+        date: createdAt,
+      })
+    }
+    if (meta.usd != null) {
+      items.push({
+        id: `${row.id}-usd`,
+        userId: row.user_id,
+        action: 'signup_bonus',
+        referenceId: row.reference_id,
+        type: 'Bonus',
+        title: 'Sign-up Bonus (USD)',
+        amount: Number(meta.usd),
+        currency: 'USD',
+        status: 'Completed',
+        date: createdAt,
+      })
+    }
+    if (items.length > 0) return items
+  }
+
+  const titleByAction = {
+    signup_bonus: 'Sign-up Bonus',
+    deposit_bonus: 'Deposit Bonus (10%)',
+    referral_bonus: 'Referral Bonus',
+  }
+
+  return [
+    {
+      id: row.id,
+      userId: row.user_id,
+      action: row.action,
+      referenceId: row.reference_id,
+      type: 'Bonus',
+      title: titleByAction[row.action] || row.action,
+      amount: Number(row.amount) || 0,
+      currency: row.currency === 'MIXED' ? 'USD' : row.currency || 'USD',
+      status: 'Completed',
+      date: createdAt,
+    },
+  ]
 }
 
 export async function fetchBonusHistory(userId) {
@@ -192,4 +304,21 @@ export async function fetchBonusHistory(userId) {
     return []
   }
   return data || []
+}
+
+/** Supabase history for current user only, merged with scoped local rows, deduped & sorted */
+export async function fetchUserHistory(userId, email) {
+  if (!userId) {
+    return loadLocalTransactionsForUser(null, email)
+  }
+
+  const remoteRows = await fetchBonusHistory(userId)
+  const fromServer = remoteRows.flatMap(historyRowToTransactions)
+  const localOnly = loadLocalTransactionsForUser(userId, email).filter(
+    (t) => !t.action || !fromServer.some((s) => s.id === t.id)
+  )
+
+  const merged = dedupeTransactions([...fromServer, ...localOnly])
+  merged.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
+  return merged
 }

@@ -20,7 +20,12 @@ import {
   REFERRAL_BONUS_ETB,
 } from '../lib/platformConfig'
 import { fetchUserBalances, testSupabaseConnection } from '../lib/supabaseData'
-import { handleLoginSignupBonusCheck } from '../lib/bonusHistory'
+import {
+  handleLoginSignupBonusCheck,
+  fetchUserHistory,
+  dedupeTransactions,
+  saveLocalTransactionsForUser,
+} from '../lib/bonusHistory'
 import { loadReferralStats } from '../lib/referralUtils'
 import AdminLoginModal from './AdminLoginModal'
 import ProfileModal from './ProfileModal'
@@ -164,8 +169,12 @@ export default function AppShell({ children, activePage, setActivePage }) {
     const investments = JSON.parse(localStorage.getItem('user_investments') || '[]')
     setMyActiveInvestmentsList(investments)
 
-    const txns = JSON.parse(localStorage.getItem('user_transactions') || '[]')
-    setTransactions(txns)
+    if (supabaseUserId && profileEmail) {
+      const txns = await fetchUserHistory(supabaseUserId, profileEmail)
+      setTransactions(txns)
+    } else {
+      setTransactions([])
+    }
 
     const referralUserId = supabaseUserId || userData[profileEmail]?.id
     if (referralUserId) {
@@ -213,10 +222,13 @@ export default function AppShell({ children, activePage, setActivePage }) {
     setTimeout(() => setToastMessage(''), 3000)
   }
   function addTransaction(entry) {
-    setTransactions((prev) => [entry, ...prev])
-    const txns = JSON.parse(localStorage.getItem('user_transactions') || '[]')
-    txns.unshift(entry)
-    localStorage.setItem('user_transactions', JSON.stringify(txns))
+    const userId = getSession()?.user?.id
+    const withUser = { ...entry, userId: entry.userId || userId }
+    setTransactions((prev) => {
+      const next = dedupeTransactions([withUser, ...prev])
+      if (userId) saveLocalTransactionsForUser(userId, next)
+      return next
+    })
   }
 
   // Share context with children through render function or pass directly
