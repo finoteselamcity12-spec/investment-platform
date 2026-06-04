@@ -1,3 +1,44 @@
+/* ==========================================================================
+   Auth — login/register welcome title (forest green 3D)
+   ========================================================================== */
+
+.auth-page {
+  box-sizing: border-box;
+}
+
+.auth-welcome-title {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: min(95%, 22rem);
+  margin: 0 auto clamp(1.25rem, 5vw, 2rem);
+  padding: 0 0.5rem;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: clamp(1.35rem, 6.5vw, 2.25rem);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: clamp(0.04em, 0.35vw, 0.08em);
+  text-align: center;
+  text-transform: uppercase;
+  background: linear-gradient(
+    180deg,
+    #b8f06a 0%,
+    #84cc16 35%,
+    #3d7a2a 70%,
+    #1a472a 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  text-shadow:
+    0 1px 0 #6fad14,
+    1px 1px 0 #2d6b3f,
+    2px 2px 0 #1a472a,
+    3px 3px 0 #153d24,
+    4px 4px 0 rgba(0, 0, 0, 0.22);
+}
+
 /* BlackRock 3D Premium Branding Logo */
 .blackrock-3d-text {
   display: inline-block;
@@ -110,6 +151,19 @@
    Home Dashboard — premium mobile (glassmorphism + gold)
    ========================================================================== */
 
+.app-shell {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.app-main-content {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
+}
+
 .home-page--premium {
   --home-charcoal: #1a1d24;
   --home-charcoal-soft: #2d3340;
@@ -117,6 +171,9 @@
   --home-gold-bright: #ffd700;
   --home-gold-muted: #b8962e;
   width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  box-sizing: border-box;
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   background:
     radial-gradient(ellipse 120% 80% at 50% -20%, rgba(212, 175, 55, 0.12), transparent 55%),
@@ -128,8 +185,9 @@
   flex-direction: column;
   align-items: stretch;
   gap: 1.35rem;
-  width: 100%;
-  max-width: 100%;
+  width: 95%;
+  max-width: 32rem;
+  margin-inline: auto;
   box-sizing: border-box;
   padding-bottom: 0.5rem;
 }
@@ -155,6 +213,8 @@
   margin: 0;
   padding: 0 0.25rem;
   max-width: 100%;
+  overflow-wrap: break-word;
+  word-break: break-word;
   font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: clamp(1.25rem, 6vw, 1.85rem);
   font-weight: 800;
@@ -187,6 +247,8 @@
 /* —— Wallet panel (dark glass shell) —— */
 .home-wallets-panel {
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 1rem 0.875rem;
   border-radius: 1.35rem;
   background: linear-gradient(
@@ -332,6 +394,8 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .home-action-btn--premium {
@@ -394,6 +458,8 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .home-metric-card--premium {
@@ -494,6 +560,8 @@
 
 .app-main-content {
   padding-bottom: 6.75rem;
+  padding-left: max(0.5rem, 2.5%);
+  padding-right: max(0.5rem, 2.5%);
 }
 
 .app-bottom-nav {
@@ -631,8 +699,27 @@
   }
 
   .home-dashboard-stack {
+    width: 95%;
     gap: 1.2rem;
     padding: 0;
+  }
+
+  .home-wallets-panel,
+  .home-action-grid,
+  .home-metrics-grid {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .home-wallet-value,
+  .home-referral-value {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .auth-welcome-title {
+    font-size: clamp(1.15rem, 5.5vw, 1.65rem);
+    width: 95%;
   }
 
   .welcome-premium {

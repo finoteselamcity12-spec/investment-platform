@@ -30,7 +30,7 @@ export async function countWelcomeBonusHistory(userId) {
     .from(HISTORY_TABLE)
     .select(HISTORY_DISPLAY_COLUMNS, { count: 'exact', head: true })
     .eq('user_id', userId)
-    .eq('action', WELCOME_BONUS_ACTION)
+    .in('action', [WELCOME_BONUS_ACTION, LEGACY_SIGNUP_ACTION])
 
   if (error) {
     console.warn(`[${HISTORY_TABLE}] welcome_bonus count failed:`, error.message)
@@ -435,6 +435,10 @@ export async function fetchUserHistory(userId, email) {
     return loadLocalTransactionsForUser(null, email)
   }
 
+  if (email) {
+    mirrorSignupBonusToLocalHistory(email, userId)
+  }
+
   const [remoteRows, depositWithdrawalRows] = await Promise.all([
     fetchBonusHistory(userId),
     fetchUserDepositsAndWithdrawals(userId),
@@ -446,12 +450,17 @@ export async function fetchUserHistory(userId, email) {
     ...depositWithdrawalRows.map((t) => t.id),
   ])
 
-  const localOnly = loadLocalTransactionsForUser(userId, email).filter((t) => {
+  const localTxns = loadLocalTransactionsForUser(userId, email).filter((t) => {
     if (t.userId && t.userId !== userId) return false
-    return !serverIds.has(t.id)
+    if (serverIds.has(t.id)) return false
+    const refKey = t.referenceId || t.reference_id
+    if (refKey && fromServer.some((s) => s.referenceId === refKey && s.action === t.action)) {
+      return false
+    }
+    return true
   })
 
-  const merged = dedupeTransactions([...fromServer, ...depositWithdrawalRows, ...localOnly])
+  const merged = dedupeTransactions([...fromServer, ...depositWithdrawalRows, ...localTxns])
   merged.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
   return merged
 }

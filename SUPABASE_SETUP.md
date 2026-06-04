@@ -102,9 +102,15 @@ The admin UI logs the RPC payload in the browser console immediately before each
 
 When an admin approves a deposit:
 
-1. `admin_approve_deposit(p_deposit_id)` credits `balances` in Supabase (user dashboard reads this).
+1. `admin_approve_deposit(p_deposit_id)` credits `balances` and inserts a `deposit_bonus` row into `public.history`.
 2. Referral bonus runs via the deposit status trigger.
 3. Local storage is still updated for backward compatibility.
+
+**If signup/deposit bonuses are missing from the History tab:**
+
+1. Run `supabase/RUN_WELCOME_BONUS_ACTION.sql` (allows `welcome_bonus` action).
+2. Run `supabase/RUN_FIX_SIGNUP_HISTORY_INSERT.sql` (signup trigger writes `public.history`).
+3. Re-run `supabase/RUN_FIX_RPC_PARAMS.sql` (deposit approval logs `deposit_bonus` to history).
 
 ## 9. Verify
 

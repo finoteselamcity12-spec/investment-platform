@@ -253,7 +253,7 @@ export default function AppShell({ children, activePage, setActivePage }) {
   }
 
   return (
-    <div className="min-h-screen bg-white text-slate-900">
+    <div className="app-shell min-h-screen w-full max-w-full overflow-x-hidden bg-white text-slate-900">
       {/* Top Header */}
       <div className="fixed top-0 inset-x-0 z-40 bg-white border-b border-slate-200 shadow-sm">
         <div className="mx-auto max-w-7xl px-4 py-4 flex items-center justify-between">

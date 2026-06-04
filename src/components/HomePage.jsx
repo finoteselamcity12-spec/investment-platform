@@ -43,8 +43,8 @@ export default function HomePage({ ctx }) {
   ]
 
   return (
-    <div className="home-page home-page--premium box-border min-h-0 w-full max-w-full overflow-x-hidden px-4">
-      <div className="home-dashboard-stack mx-auto flex w-full max-w-lg flex-col">
+    <div className="home-page home-page--premium box-border min-h-0 w-full max-w-full overflow-x-hidden">
+      <div className="home-dashboard-stack mx-auto flex w-[95%] max-w-lg flex-col">
         <header className="home-header-premium">
           <p className="home-header-eyebrow">Your portfolio</p>
           <h1 className="welcome-premium">Welcome to Blackrock</h1>

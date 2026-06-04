@@ -373,13 +373,13 @@ export default function Auth() {
         : 'border-lime-400 bg-lime-50 text-gray-800'
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-b from-lime-400 to-lime-500 flex flex-col items-center justify-center p-4 relative overflow-hidden">
+    <div className="auth-page min-h-screen w-full max-w-full overflow-x-hidden bg-gradient-to-b from-lime-400 to-lime-500 flex flex-col items-center justify-center p-4 relative">
       <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_20%_50%,rgba(255,255,255,0.8),transparent_50%),radial-gradient(circle_at_80%_80%,rgba(255,255,255,0.4),transparent_50%)]" />
 
-      <h1 className="blackrock-3d-text" data-text="BLACKROCK">BLACKROCK</h1>
+      <h1 className="auth-welcome-title">WELCOME TO BLACKROCK</h1>
 
       <div
-        className="auth-container relative z-10 w-full max-w-md rounded-3xl bg-white p-8 shadow-2xl md:p-10"
+        className="auth-container relative z-10 w-[95%] max-w-md rounded-3xl bg-white p-8 shadow-2xl md:p-10"
         style={{
           boxShadow: '0 20px 60px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.8)',
         }}

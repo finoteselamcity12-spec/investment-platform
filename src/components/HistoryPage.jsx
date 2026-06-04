@@ -1,11 +1,9 @@
 import { useMemo, useEffect } from 'react'
 import { CheckCircle, Clock, AlertCircle } from 'lucide-react'
 import {
-  countHistoryByAction,
   mirrorSignupBonusToLocalHistory,
   fetchUserHistory,
 } from '../lib/bonusHistory'
-import { WELCOME_BONUS_ACTION } from '../lib/platformConfig'
 import { getSession } from '../lib/authService'
 
 const PRIMARY_GREEN = '#84CC16'
@@ -30,8 +28,7 @@ export default function HistoryPage({ ctx }) {
         return
       }
 
-      const signupCount = await countHistoryByAction(userId, WELCOME_BONUS_ACTION)
-      if (signupCount > 0 && userEmail) {
+      if (userEmail) {
         mirrorSignupBonusToLocalHistory(userEmail, userId)
       }
 

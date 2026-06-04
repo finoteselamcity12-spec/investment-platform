@@ -12,6 +12,10 @@ SET search_path = public
 AS $$
 DECLARE
   dep RECORD;
+  bonus_amt NUMERIC(18, 4);
+  norm_currency TEXT;
+  bonus_row_id UUID;
+  v_deposit_bonus_count INTEGER;
 BEGIN
   IF NOT public.is_admin() THEN
     RAISE EXCEPTION 'not_admin';
@@ -24,15 +28,21 @@ BEGIN
   END IF;
 
   IF dep.status = 'approved' THEN
-    RETURN json_build_object('ok', true, 'already_approved', true, 'p_deposit_id', p_deposit_id);
+    RETURN json_build_object(
+      'ok', true,
+      'already_approved', true,
+      'p_deposit_id', p_deposit_id
+    );
   END IF;
 
   IF dep.status = 'rejected' THEN
     RAISE EXCEPTION 'deposit_already_rejected';
   END IF;
 
-  -- For 10% deposit bonus + public.history logging, run RUN_ALIGN_HISTORY_TABLE.sql after this script.
-  IF dep.currency IN ('USD', 'USDT') THEN
+  norm_currency := CASE WHEN upper(dep.currency) IN ('USD', 'USDT') THEN 'USD' ELSE 'ETB' END;
+  bonus_amt := ROUND(dep.amount * 0.10, 4);
+
+  IF norm_currency = 'USD' THEN
     UPDATE public.balances
     SET usd_balance = usd_balance + dep.amount, updated_at = NOW()
     WHERE user_id = dep.user_id;
@@ -42,11 +52,50 @@ BEGIN
     WHERE user_id = dep.user_id;
   END IF;
 
+  SELECT COUNT(*)::INTEGER INTO v_deposit_bonus_count
+  FROM public.history
+  WHERE user_id = dep.user_id
+    AND action = 'deposit_bonus'
+    AND reference_id = p_deposit_id;
+
+  IF v_deposit_bonus_count = 0 THEN
+    INSERT INTO public.history (user_id, action, currency, amount, reference_id, metadata)
+    VALUES (
+      dep.user_id,
+      'deposit_bonus',
+      norm_currency,
+      bonus_amt,
+      p_deposit_id,
+      jsonb_build_object('deposit_amount', dep.amount, 'rate', 0.10)
+    )
+    ON CONFLICT DO NOTHING
+    RETURNING id INTO bonus_row_id;
+  END IF;
+
+  IF bonus_row_id IS NOT NULL AND bonus_amt > 0 THEN
+    IF norm_currency = 'USD' THEN
+      UPDATE public.balances
+      SET usd_balance = usd_balance + bonus_amt, updated_at = NOW()
+      WHERE user_id = dep.user_id;
+    ELSE
+      UPDATE public.balances
+      SET etb_balance = etb_balance + bonus_amt, updated_at = NOW()
+      WHERE user_id = dep.user_id;
+    END IF;
+  END IF;
+
   UPDATE public.deposits
   SET status = 'approved', updated_at = NOW()
   WHERE id = p_deposit_id;
 
-  RETURN json_build_object('ok', true, 'p_deposit_id', p_deposit_id);
+  RETURN json_build_object(
+    'ok', true,
+    'p_deposit_id', p_deposit_id,
+    'deposit_amount', dep.amount,
+    'deposit_bonus', COALESCE(bonus_amt, 0),
+    'bonus_applied', bonus_row_id IS NOT NULL,
+    'currency', norm_currency
+  );
 END;
 $$;
 
