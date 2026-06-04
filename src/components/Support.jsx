@@ -1,12 +1,12 @@
 import { Mail } from 'lucide-react'
+import {
+  TELEGRAM_USERNAME,
+  TELEGRAM_URL,
+  SUPPORT_EMAIL,
+  GOAL_TEXT,
+} from '../lib/supportConfig'
 
 const PRIMARY_GREEN = '#84CC16'
-const TELEGRAM_USERNAME = '@BlackrockSupport'
-const TELEGRAM_URL = 'https://t.me/BlackrockSupport'
-const SUPPORT_EMAIL = 'damot@gmail.com'
-
-const GOAL_TEXT =
-  'Blackrock Investment is a long-term, sustainable platform built to provide consistent growth. We are committed to transparency and the security of your assets, ensuring a reliable investment experience for all our users.'
 
 function TelegramIcon({ className }) {
   return (
@@ -75,9 +75,8 @@ export default function Support() {
           </a>
         </div>
 
-        <section className="rounded-2xl border border-[#84CC16]/30 bg-[#84CC16]/5 p-6">
-          <h2 className="text-lg font-bold text-slate-950">Our Goal</h2>
-          <p className="mt-4 text-sm leading-relaxed text-slate-700 sm:text-base">
+        <section className="rounded-2xl border border-[#84CC16]/30 bg-[#84CC16]/5 p-6 sm:p-8">
+          <p className="text-sm leading-[1.75] text-slate-700 sm:text-base">
             {GOAL_TEXT}
           </p>
         </section>

@@ -3,6 +3,7 @@ import { Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import supabase from '../lib/supabase'
 import { createSession, validators, sanitizeInput, updateUserProfile } from '../lib/authService'
+import { TERMS_TEXT } from '../lib/supportConfig'
 
 const initialForm = { fullName: '', email: '', password: '', confirmPassword: '' }
 const emailRegex = /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/
@@ -22,6 +23,7 @@ export default function Auth() {
   const [loading, setLoading] = useState(false)
   const [message, setMessage] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [showTerms, setShowTerms] = useState(false)
   const [referrerId, setReferrerId] = useState('')
 
   const isRegister = !isLogin
@@ -360,6 +362,24 @@ export default function Auth() {
           {message && (
             <div className="rounded-xl border-l-4 border-lime-400 bg-lime-50 px-4 py-3 text-sm font-semibold text-gray-800 shadow-sm mt-4">
               {message}
+            </div>
+          )}
+
+          {isLogin && (
+            <div className="mt-6 border-t border-gray-200 pt-5">
+              <button
+                type="button"
+                onClick={() => setShowTerms((prev) => !prev)}
+                className="w-full text-center text-sm font-bold text-lime-700 underline decoration-lime-400/60 underline-offset-4 transition hover:text-lime-800"
+                aria-expanded={showTerms}
+              >
+                Terms and Conditions
+              </button>
+              {showTerms && (
+                <div className="mt-4 max-h-56 overflow-y-auto rounded-xl border border-lime-200 bg-lime-50/80 px-4 py-4 text-left text-sm leading-relaxed text-gray-800">
+                  {TERMS_TEXT}
+                </div>
+              )}
             </div>
           )}
         </form>
