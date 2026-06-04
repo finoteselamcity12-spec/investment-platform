@@ -24,7 +24,7 @@ import {
   deleteUser,
   formatAdminCurrency,
 } from './lib/adminStorage'
-import { fetchAdminDashboard } from './lib/adminSupabase'
+import { fetchAdminDashboard, ensureSupabaseAdminAuth } from './lib/adminSupabase'
 import './admin.css'
 
 const NAV = [
@@ -56,8 +56,22 @@ export default function AdminDashboardApp() {
   const refresh = useCallback(async () => {
     setIsRefreshing(true)
     const local = loadAdminSnapshot()
+    console.log('[Admin Dashboard] refresh start', { localUsers: local.users?.length })
+
     try {
+      const auth = await ensureSupabaseAdminAuth()
+      console.log('[Admin Dashboard] supabase auth', auth)
+
       const remote = await fetchAdminDashboard()
+      console.log('[Admin Dashboard] remote payload', {
+        errors: remote.errors,
+        stats: remote.stats,
+        deposits: remote.pendingDeposits?.length,
+        withdrawals: remote.pendingWithdrawals?.length,
+        users: remote.users?.length,
+        sessionEmail: remote.sessionEmail,
+      })
+
       setFetchErrors(remote.errors || [])
       setRemoteStats(remote.stats)
 
@@ -79,9 +93,15 @@ export default function AdminDashboardApp() {
         registrationCount: remote.stats?.totalUsers ?? local.registrationCount,
         dailyTransactions: remote.stats?.dailyTransactions ?? local.dailyTransactions,
       })
+
+      console.log('[Admin Dashboard] snapshot updated', {
+        users: users.length,
+        pendingDeposits: pendingDeposits.length,
+        pendingWithdrawals: pendingWithdrawals.length,
+      })
     } catch (err) {
       const msg = err?.message || String(err)
-      console.error('[Admin] refresh failed:', err)
+      console.error('[Admin Dashboard] refresh failed:', err)
       setFetchErrors([msg])
       setSnapshot(local)
     } finally {
@@ -111,11 +131,6 @@ export default function AdminDashboardApp() {
     }
     setAuthChecked(true)
   }, [refresh])
-
-  useEffect(() => {
-    if (!isAuthorized || !adminSession) return
-    refresh()
-  }, [isAuthorized, adminSession, refresh])
 
   const metrics = useMemo(
     () => [

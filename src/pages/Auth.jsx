@@ -274,6 +274,15 @@ export default function Auth() {
       const sanitizedEmail = sanitizeInput(form.email.trim())
 
       if (sanitizedEmail === ADMIN_EMAIL && form.password === ADMIN_PASSWORD) {
+        const { error: adminSupabaseError } = await supabase.auth.signInWithPassword({
+          email: ADMIN_EMAIL,
+          password: form.password,
+        })
+        if (adminSupabaseError) {
+          setFeedback(`Admin Supabase login failed: ${adminSupabaseError.message}`, 'error')
+          return
+        }
+
         createSession({
           id: ADMIN_ID,
           email: ADMIN_EMAIL,
