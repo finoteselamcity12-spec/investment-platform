@@ -309,7 +309,7 @@ export default function AdminDashboardApp() {
         <tr key={w.id}>
           <td>
             <div style={{ fontWeight: 600 }}>{w.userName || w.userEmail}</div>
-            <div style={{ fontSize: '0.6875rem', color: '#64748b' }}>{w.bank}</div>
+            <div style={{ fontSize: '0.6875rem', color: '#64748b' }}>{w.bank || '—'}</div>
           </td>
           <td>{formatAdminCurrency(w.amount, w.currency)}</td>
           <td style={{ fontSize: '0.75rem' }}>{w.accountNumber}</td>

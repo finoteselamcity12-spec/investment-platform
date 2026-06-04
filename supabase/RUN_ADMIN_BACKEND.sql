@@ -47,6 +47,13 @@ CREATE TABLE IF NOT EXISTS public.withdrawals (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
+ALTER TABLE public.withdrawals
+  ADD COLUMN IF NOT EXISTS bank TEXT,
+  ADD COLUMN IF NOT EXISTS account_name TEXT,
+  ADD COLUMN IF NOT EXISTS account_number TEXT,
+  ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW(),
+  ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'pending';
+
 ALTER TABLE public.deposits
   ADD COLUMN IF NOT EXISTS payment_method TEXT,
   ADD COLUMN IF NOT EXISTS transaction_id TEXT,
