@@ -1,11 +1,17 @@
 import { useMemo, useState, useEffect } from 'react'
-import { Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react'
+import { Eye, EyeOff, Mail, Phone } from 'lucide-react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import supabase from '../lib/supabase'
-import { createSession, validators, sanitizeInput, updateUserProfile } from '../lib/authService'
-import { TERMS_TEXT } from '../lib/supportConfig'
+import { createSession, validators, sanitizeInput } from '../lib/authService'
+import TermsAndConditionsPanel from '../components/TermsAndConditionsPanel'
 
-const initialForm = { fullName: '', email: '', password: '', confirmPassword: '' }
+const initialForm = {
+  fullName: '',
+  email: '',
+  phone: '',
+  password: '',
+  confirmPassword: '',
+}
 const emailRegex = /^[^\s@]+@[^\s@]+\.[A-Za-z]{2,}$/
 const ADMIN_EMAIL = 'workinehabche@gmail.com'
 const ADMIN_PASSWORD = '1q2w3e4@'
@@ -14,6 +20,14 @@ const ADMIN_ID = '15610010'
 function validateEmail(email) {
   return emailRegex.test(String(email).trim())
 }
+
+function validatePhone(phone) {
+  const digits = String(phone).replace(/\D/g, '')
+  return digits.length >= 8 && digits.length <= 15
+}
+
+const inputWithIconClass =
+  'auth-input-field w-full rounded-xl border-2 border-gray-200 bg-gray-50 py-3 pr-4 pl-11 text-gray-900 placeholder-gray-500 focus:outline-none focus:border-lime-400 focus:bg-white focus:ring-2 focus:ring-lime-400/30 transition-all'
 
 export default function Auth() {
   const navigate = useNavigate()
@@ -32,6 +46,7 @@ export default function Auth() {
       return (
         form.fullName.trim().length > 1 &&
         validateEmail(form.email) &&
+        validatePhone(form.phone) &&
         form.password.length >= 8 &&
         form.password === form.confirmPassword
       )
@@ -40,16 +55,14 @@ export default function Auth() {
   }, [form, isRegister])
 
   useEffect(() => {
-    // Capture referral id from query param if present
     try {
       const params = new URLSearchParams(location.search)
       const ref = params.get('ref') || ''
       if (ref) setReferrerId(ref)
-    } catch (e) {
+    } catch {
       // ignore
     }
 
-    // Keep the tab state in sync with the current route
     if (location.pathname === '/register') {
       setIsLogin(false)
     } else if (location.pathname === '/login' || location.pathname === '/') {
@@ -59,8 +72,7 @@ export default function Auth() {
 
   async function handleAuth(event) {
     event.preventDefault()
-    
-    // Server-side input validation
+
     const emailValidation = validators.email(form.email)
     if (!emailValidation.valid) {
       setMessage(emailValidation.error)
@@ -82,7 +94,6 @@ export default function Auth() {
 
     try {
       if (isRegister) {
-        // Validate full name
         const nameValidation = validators.fullName(form.fullName)
         if (!nameValidation.valid) {
           setMessage(nameValidation.error)
@@ -90,17 +101,22 @@ export default function Auth() {
           return
         }
 
-        // Check password match
+        if (!validatePhone(form.phone)) {
+          setMessage('Please enter a valid phone number.')
+          setLoading(false)
+          return
+        }
+
         if (form.password !== form.confirmPassword) {
           setMessage('Passwords do not match')
           setLoading(false)
           return
         }
 
-        // Generate a unique userId for referrals and internal mapping
         const userId = `user-${Date.now()}`
         const sanitizedName = sanitizeInput(form.fullName.trim())
         const sanitizedEmail = sanitizeInput(form.email.trim())
+        const sanitizedPhone = sanitizeInput(form.phone.trim())
 
         let signupError = null
         try {
@@ -108,7 +124,10 @@ export default function Auth() {
             email: sanitizedEmail,
             password: form.password,
             options: {
-              data: { full_name: sanitizedName },
+              data: {
+                full_name: sanitizedName,
+                phone: sanitizedPhone,
+              },
             },
           })
           if (error) signupError = error
@@ -127,25 +146,23 @@ export default function Auth() {
           return
         }
 
-        // Persist registration in localStorage so the app records new users (always save locally)
         const users = JSON.parse(localStorage.getItem('platform_registered_users_data') || '{}')
         users[sanitizedEmail] = {
           userId,
           fullName: sanitizedName,
           email: sanitizedEmail,
+          phone: sanitizedPhone,
           referredBy: referrerId || null,
           createdAt: new Date().toISOString(),
         }
         localStorage.setItem('platform_registered_users_data', JSON.stringify(users))
 
-        // Also keep a simple list for counts used elsewhere (store emails)
         const registered = JSON.parse(localStorage.getItem('platform_registered_users') || '[]')
         if (!registered.includes(sanitizedEmail)) {
           registered.push(sanitizedEmail)
           localStorage.setItem('platform_registered_users', JSON.stringify(registered))
         }
 
-        // Initialize user wallet record used by admin tools
         const userData = JSON.parse(localStorage.getItem('admin_user_data') || '{}')
         const wallet_etb = 150
         const wallet_usd = 1.7
@@ -154,8 +171,8 @@ export default function Auth() {
           userData[sanitizedEmail] = {
             id: userId,
             email: sanitizedEmail,
+            phone: sanitizedPhone,
             fullName: sanitizedName,
-            // Registration bonus wallet values
             usdBalance: wallet_usd,
             etbBalance: wallet_etb,
             bonusEligible: true,
@@ -168,6 +185,7 @@ export default function Auth() {
         } else {
           if (!userData[sanitizedEmail].fullName) userData[sanitizedEmail].fullName = sanitizedName
           if (!userData[sanitizedEmail].id) userData[sanitizedEmail].id = userId
+          if (!userData[sanitizedEmail].phone) userData[sanitizedEmail].phone = sanitizedPhone
           localStorage.setItem('admin_user_data', JSON.stringify(userData))
         }
 
@@ -178,7 +196,6 @@ export default function Auth() {
         return
       }
 
-      // Login with enhanced validation
       const sanitizedEmail = sanitizeInput(form.email.trim())
 
       if (sanitizedEmail === ADMIN_EMAIL && form.password === ADMIN_PASSWORD) {
@@ -210,10 +227,13 @@ export default function Auth() {
 
       if (error) throw error
 
-      // Create secure session with JWT
       const userData = JSON.parse(localStorage.getItem('admin_user_data') || '{}')
-      const userProfile = userData[sanitizedEmail] || { id: user?.id, fullName: user?.user_metadata?.full_name, email: sanitizedEmail }
-      
+      const userProfile = userData[sanitizedEmail] || {
+        id: user?.id,
+        fullName: user?.user_metadata?.full_name,
+        email: sanitizedEmail,
+      }
+
       createSession({
         id: user?.id || userProfile.id,
         email: sanitizedEmail,
@@ -221,7 +241,6 @@ export default function Auth() {
         profileImage: null,
       })
 
-      // Update last login
       userData[sanitizedEmail] = {
         ...userData[sanitizedEmail],
         lastLogin: new Date().toISOString(),
@@ -245,14 +264,16 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen w-full bg-gradient-to-b from-lime-400 to-lime-500 flex flex-col items-center justify-center p-4 relative overflow-hidden">
-      {/* Subtle animated background gradient overlay */}
       <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_20%_50%,rgba(255,255,255,0.8),transparent_50%),radial-gradient(circle_at_80%_80%,rgba(255,255,255,0.4),transparent_50%)]" />
 
       <h1 className="blackrock-3d-text" data-text="BLACKROCK">BLACKROCK</h1>
 
-      <div className="auth-container w-full max-w-md bg-white rounded-3xl rounded-b-3xl p-8 md:p-10 shadow-2xl transition-all relative z-10" style={{
-        boxShadow: '0 20px 60px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.8)'
-      }}>
+      <div
+        className="auth-container w-full max-w-md bg-white rounded-3xl rounded-b-3xl p-8 md:p-10 shadow-2xl transition-all relative z-10"
+        style={{
+          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.8)',
+        }}
+      >
         <div className="mb-8 flex overflow-hidden rounded-full bg-gray-100 p-1 shadow-md border border-gray-200">
           <button
             type="button"
@@ -262,8 +283,8 @@ export default function Auth() {
               navigate('/login')
             }}
             className={`flex-1 rounded-full px-5 py-3 text-sm font-bold transition-all duration-300 ${
-              isLogin 
-                ? 'bg-gradient-to-r from-lime-400 to-lime-500 text-white shadow-lg' 
+              isLogin
+                ? 'bg-gradient-to-r from-lime-400 to-lime-500 text-white shadow-lg'
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -277,8 +298,8 @@ export default function Auth() {
               navigate('/register')
             }}
             className={`flex-1 rounded-full px-5 py-3 text-sm font-bold transition-all duration-300 ${
-              !isLogin 
-                ? 'bg-gradient-to-r from-lime-400 to-lime-500 text-white shadow-lg' 
+              !isLogin
+                ? 'bg-gradient-to-r from-lime-400 to-lime-500 text-white shadow-lg'
                 : 'text-gray-500 hover:text-gray-700'
             }`}
           >
@@ -301,33 +322,64 @@ export default function Auth() {
           )}
 
           <div>
-            <label className="block text-sm font-bold text-gray-700 mb-2">Email</label>
-            <input
-              type="email"
-              value={form.email}
-              onChange={(event) => setForm({ ...form, email: event.target.value })}
-              placeholder="name@example.com"
-              className="auth-input-field w-full rounded-xl border-2 border-gray-200 bg-gray-50 px-4 py-3 text-gray-900 placeholder-gray-500 focus:outline-none focus:border-lime-400 focus:bg-white focus:ring-2 focus:ring-lime-400/30 transition-all"
-            />
+            <label className="block text-sm font-bold text-gray-700 mb-2">Email Address</label>
+            <div className="relative">
+              <Mail
+                size={18}
+                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-lime-600"
+                aria-hidden="true"
+              />
+              <input
+                type="email"
+                value={form.email}
+                onChange={(event) => setForm({ ...form, email: event.target.value })}
+                placeholder="name@example.com"
+                required
+                className={inputWithIconClass}
+              />
+            </div>
           </div>
 
-          <div className="relative">
+          {isRegister && (
+            <div>
+              <label className="block text-sm font-bold text-gray-700 mb-2">Phone Number</label>
+              <div className="relative">
+                <Phone
+                  size={18}
+                  className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-lime-600"
+                  aria-hidden="true"
+                />
+                <input
+                  type="tel"
+                  value={form.phone}
+                  onChange={(event) => setForm({ ...form, phone: event.target.value })}
+                  placeholder="+251 9XX XXX XXXX"
+                  required
+                  className={inputWithIconClass}
+                />
+              </div>
+            </div>
+          )}
+
+          <div>
             <label className="block text-sm font-bold text-gray-700 mb-2">Password</label>
-            <input
-              type={showPassword ? 'text' : 'password'}
-              value={form.password}
-              onChange={(event) => setForm({ ...form, password: event.target.value })}
-              placeholder="Enter your password"
-              className="auth-input-field w-full rounded-xl border-2 border-gray-200 bg-gray-50 px-4 py-3 pr-12 text-gray-900 placeholder-gray-500 focus:outline-none focus:border-lime-400 focus:bg-white focus:ring-2 focus:ring-lime-400/30 transition-all"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword((prev) => !prev)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 transition hover:text-slate-700"
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
-            >
-              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-            </button>
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={form.password}
+                onChange={(event) => setForm({ ...form, password: event.target.value })}
+                placeholder="Enter your password"
+                className="auth-input-field w-full rounded-xl border-2 border-gray-200 bg-gray-50 px-4 py-3 pr-12 text-gray-900 placeholder-gray-500 focus:outline-none focus:border-lime-400 focus:bg-white focus:ring-2 focus:ring-lime-400/30 transition-all"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 transition hover:text-slate-700"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
 
           {isRegister && (
@@ -365,27 +417,23 @@ export default function Auth() {
             </div>
           )}
 
-          {isLogin && (
-            <div className="mt-6 border-t border-gray-200 pt-5">
-              <button
-                type="button"
-                onClick={() => setShowTerms((prev) => !prev)}
-                className="w-full text-center text-sm font-bold text-lime-700 underline decoration-lime-400/60 underline-offset-4 transition hover:text-lime-800"
-                aria-expanded={showTerms}
-              >
-                Terms and Conditions
-              </button>
-              {showTerms && (
-                <div className="mt-4 max-h-56 overflow-y-auto rounded-xl border border-lime-200 bg-lime-50/80 px-4 py-4 text-left text-sm leading-relaxed text-gray-800">
-                  {TERMS_TEXT}
-                </div>
-              )}
-            </div>
-          )}
+          <div className="mt-6 border-t border-gray-200 pt-5">
+            <button
+              type="button"
+              onClick={() => setShowTerms((prev) => !prev)}
+              className="w-full text-center text-sm font-bold text-lime-700 underline decoration-lime-400/60 underline-offset-4 transition hover:text-lime-800"
+              aria-expanded={showTerms}
+            >
+              Terms and Conditions
+            </button>
+            {showTerms && (
+              <div className="mt-4 max-h-80 overflow-y-auto rounded-xl border border-lime-200 bg-lime-50/90 px-4 py-4">
+                <TermsAndConditionsPanel />
+              </div>
+            )}
+          </div>
         </form>
       </div>
-
     </div>
   )
 }
-
