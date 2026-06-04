@@ -1,98 +1,81 @@
 import { useState } from 'react'
-import { TrendingUp, Wallet, Gift, ArrowDownRight, Users } from 'lucide-react'
-import { getSession } from '../lib/authService'
+import { TrendingUp, Wallet, ArrowDownRight, Users, Copy, Check } from 'lucide-react'
 
 export default function HomePage({ ctx }) {
   const {
     usdBalance = 0,
     etbBalance = 0,
-    setUsdBalance,
-    setEtbBalance,
     myActiveInvestmentsList = [],
-    showToast,
-    claimTimestamp,
-    claimCooldownMs,
-    setClaimTimestamp,
     setActivePage,
-    userEmail,
+    referralLink = '',
+    showToast,
+    copied,
+    setCopied,
   } = ctx
 
-  const usdDailyReward = myActiveInvestmentsList
+  const [linkCopied, setLinkCopied] = useState(false)
+
+  const usdDailyProfit = myActiveInvestmentsList
     .filter((item) => item.currency === 'USD')
     .reduce((sum, item) => sum + (Number(item.dailyProfit) || 0), 0)
 
-  const etbDailyReward = myActiveInvestmentsList
+  const etbDailyProfit = myActiveInvestmentsList
     .filter((item) => item.currency === 'ETB')
     .reduce((sum, item) => sum + (Number(item.dailyProfit) || 0), 0)
 
-  const lastClaimAge = claimTimestamp ? Date.now() - claimTimestamp : null
-  const claimAvailable = !claimTimestamp || lastClaimAge >= claimCooldownMs
-  const claimRemainingHours = claimTimestamp
-    ? Math.max(0, Math.ceil((claimCooldownMs - lastClaimAge) / 3600000))
-    : 0
+  const activeInvestmentUsd = myActiveInvestmentsList
+    .filter((item) => item.currency === 'USD')
+    .reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
 
-  const [claiming, setClaiming] = useState(false)
-
-  function persistBalances(nextUsd, nextEtb) {
-    const session = getSession()
-    const email = userEmail || session?.user?.email
-    if (!email) return
-
-    const userData = JSON.parse(localStorage.getItem('admin_user_data') || '{}')
-    userData[email] = {
-      ...(userData[email] || {}),
-      email,
-      usdBalance: nextUsd,
-      etbBalance: nextEtb,
-    }
-    localStorage.setItem('admin_user_data', JSON.stringify(userData))
-  }
-
-  function handleClaimRewards() {
-    if (!claimAvailable) {
-      showToast?.(`Claim available in ${claimRemainingHours} hours`, 'error')
-      return
-    }
-
-    const totalReward = usdDailyReward + etbDailyReward
-    if (totalReward <= 0) {
-      showToast?.('No daily profit to claim. Start an investment first.', 'error')
-      return
-    }
-
-    setClaiming(true)
-    const nextUsd = Number(usdBalance) + usdDailyReward
-    const nextEtb = Number(etbBalance) + etbDailyReward
-
-    setUsdBalance?.(nextUsd)
-    setEtbBalance?.(nextEtb)
-    persistBalances(nextUsd, nextEtb)
-
-    const ts = Date.now()
-    localStorage.setItem('lastClaimTimestamp', String(ts))
-    setClaimTimestamp?.(ts)
-
-    const txns = JSON.parse(localStorage.getItem('user_transactions') || '[]')
-    txns.unshift({
-      id: `claim-${ts}`,
-      type: 'Claim',
-      category: 'Claims',
-      title: `Daily claim: $${usdDailyReward.toFixed(2)} + ${etbDailyReward.toFixed(2)} Br`,
-      amount: totalReward,
-      status: 'Completed',
-      date: new Date().toISOString(),
-    })
-    localStorage.setItem('user_transactions', JSON.stringify(txns))
-
-    showToast?.('Daily rewards claimed successfully!', 'success')
-    setClaiming(false)
-  }
+  const activeInvestmentEtb = myActiveInvestmentsList
+    .filter((item) => item.currency === 'ETB')
+    .reduce((sum, item) => sum + (Number(item.amount) || 0), 0)
 
   const actionButtons = [
     { label: 'Deposit', page: 'deposit', icon: Wallet },
     { label: 'Invest', page: 'invest', icon: TrendingUp },
     { label: 'Withdraw', page: 'withdraw', icon: ArrowDownRight },
     { label: 'Invite', page: 'invite', icon: Users },
+  ]
+
+  async function handleCopyInviteLink() {
+    if (!referralLink) {
+      showToast?.('Invite link is loading. Please try again.', 'error')
+      return
+    }
+    try {
+      await navigator.clipboard.writeText(referralLink)
+      setCopied?.(true)
+      setLinkCopied(true)
+      showToast?.('Invite link copied!', 'success')
+      setTimeout(() => {
+        setCopied?.(false)
+        setLinkCopied(false)
+      }, 2000)
+    } catch {
+      showToast?.('Could not copy. Please copy the link manually.', 'error')
+    }
+  }
+
+  const isCopied = copied || linkCopied
+
+  const statCards = [
+    {
+      label: 'Daily ETB Profit',
+      value: `${etbDailyProfit.toFixed(2)} Br`,
+    },
+    {
+      label: 'Daily USD Profit',
+      value: `$${usdDailyProfit.toFixed(2)}`,
+    },
+    {
+      label: 'Active Investment ETB',
+      value: `${activeInvestmentEtb.toLocaleString()} Br`,
+    },
+    {
+      label: 'Active Investment USD',
+      value: `$${activeInvestmentUsd.toFixed(2)}`,
+    },
   ]
 
   return (
@@ -135,42 +118,32 @@ export default function HomePage({ ctx }) {
           ))}
         </div>
 
-        <div className="rounded-2xl border-2 border-slate-200 bg-white p-5">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <p className="text-sm font-semibold text-slate-600">Daily Profit</p>
-              <p className="mt-1 text-2xl font-bold text-slate-950">
-                ${(usdDailyReward + etbDailyReward).toFixed(2)}
-              </p>
-              <p className="mt-1 text-xs text-slate-500">
-                USD ${usdDailyReward.toFixed(2)} · ETB {etbDailyReward.toFixed(2)} Br
-              </p>
+        <div className="home-metrics-grid">
+          {statCards.map(({ label, value }) => (
+            <div key={label} className="home-metric-card">
+              <p className="home-metric-label">{label}</p>
+              <p className="home-metric-value">{value}</p>
             </div>
-            <button
-              type="button"
-              onClick={handleClaimRewards}
-              disabled={!claimAvailable || claiming}
-              className={`inline-flex items-center gap-2 rounded-full px-6 py-3 font-bold transition-all ${
-                claimAvailable && !claiming
-                  ? 'bg-[#84CC16] text-white shadow-lg shadow-[#84CC16]/30 hover:bg-lime-500'
-                  : 'cursor-not-allowed bg-slate-200 text-slate-500'
-              }`}
-            >
-              <Gift size={18} />
-              {claimAvailable ? (claiming ? 'Claiming…' : 'Claim') : `${claimRemainingHours}h`}
-            </button>
-          </div>
+          ))}
         </div>
 
-        <div className="home-metrics-grid">
-          <div className="home-metric-card">
-            <p className="home-metric-label">Active Plans</p>
-            <p className="home-metric-value">{myActiveInvestmentsList.length}</p>
-          </div>
-          <div className="home-metric-card">
-            <p className="home-metric-label">Sign-up Bonus</p>
-            <p className="home-metric-value text-sm">150 Br + $1.7</p>
-          </div>
+        <div className="rounded-2xl border-2 border-slate-200 bg-white p-5 shadow-sm">
+          <p className="text-sm font-bold text-slate-800">Your Invite Link</p>
+          <p className="mt-1 text-xs text-slate-500">
+            Share this link to invite friends and earn referral rewards.
+          </p>
+          <p className="mt-3 break-all rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 font-mono text-xs text-slate-800">
+            {referralLink || 'Loading invite link…'}
+          </p>
+          <button
+            type="button"
+            onClick={handleCopyInviteLink}
+            disabled={!referralLink}
+            className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[#84CC16] py-3 text-sm font-bold text-white shadow-md transition hover:bg-lime-500 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {isCopied ? <Check size={18} /> : <Copy size={18} />}
+            {isCopied ? 'Copied!' : 'Copy Link'}
+          </button>
         </div>
       </div>
     </div>

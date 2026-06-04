@@ -8,6 +8,7 @@ import {
   REGISTRATION_BONUS_USD,
 } from '../lib/platformConfig'
 import { syncProfileAfterSignup, fetchUserBalances } from '../lib/supabaseData'
+import { ensureSignupBonusHistoryRecords } from '../lib/signupBonusHistory'
 import TermsAndConditionsPanel from '../components/TermsAndConditionsPanel'
 
 const initialForm = {
@@ -257,6 +258,8 @@ export default function Auth() {
           if (!userData[sanitizedEmail].id) userData[sanitizedEmail].id = authUserId || userId
           localStorage.setItem('admin_user_data', JSON.stringify(userData))
         }
+
+        ensureSignupBonusHistoryRecords(sanitizedEmail)
 
         setFeedback(
           `Welcome, ${sanitizedName}! Registration successful. Redirecting to login…`,

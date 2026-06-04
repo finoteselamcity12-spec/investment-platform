@@ -1,10 +1,27 @@
-import { useMemo } from 'react'
+import { useMemo, useEffect } from 'react'
 import { CheckCircle, Clock, AlertCircle } from 'lucide-react'
+import { ensureSignupBonusHistoryRecords } from '../lib/signupBonusHistory'
 
 const PRIMARY_GREEN = '#84CC16'
 
 export default function HistoryPage({ ctx }) {
-  const { transactions, historyFilter, setHistoryFilter, historyFilters, formatCurrency } = ctx
+  const {
+    transactions,
+    setTransactions,
+    historyFilter,
+    setHistoryFilter,
+    historyFilters,
+    formatCurrency,
+    userEmail,
+  } = ctx
+
+  useEffect(() => {
+    if (!userEmail) return
+    const updated = ensureSignupBonusHistoryRecords(userEmail)
+    if (updated && setTransactions) {
+      setTransactions(updated)
+    }
+  }, [userEmail, setTransactions])
 
   const filteredHistory = useMemo(() => {
     if (historyFilter === 'All') return transactions
