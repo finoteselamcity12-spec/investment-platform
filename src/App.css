@@ -107,69 +107,44 @@
 }
 
 /* ==========================================================================
-   Home Dashboard — full-width mobile layout (#84CC16)
+   Home Dashboard — stable layout (#84CC16)
    ========================================================================== */
 
-.home-page,
-.home-page *,
-.home-page *::before,
-.home-page *::after {
-  box-sizing: border-box;
-}
-
-/* Break out of AppShell padding — edge-to-edge with safe margin */
 .home-page {
-  width: 100vw;
-  max-width: 100%;
-  margin-left: calc(50% - 50vw);
-  margin-right: calc(50% - 50vw);
-  padding: 1rem 8px 1.5rem;
+  width: 100%;
   background-color: #ffffff;
 }
 
 .home-dashboard-stack {
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1.5rem;
   width: 100%;
-  max-width: none;
-  margin: 0;
-  padding: 0;
-}
-
-.home-dashboard-stack > * {
-  width: 100%;
-  max-width: 100%;
-  margin: 0;
 }
 
 .home-subtitle {
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   color: #64748b;
   margin-top: 0.5rem;
 }
 
 .home-balance-card {
   width: 100%;
-  max-width: 100%;
-  margin: 0;
   background-color: #84CC16;
   box-shadow: 0 20px 40px rgba(132, 204, 22, 0.28);
-  padding: 2rem 1.25rem 2.25rem;
-  min-height: 240px;
-  border-radius: 20px;
+  padding: 1.5rem 1.25rem;
 }
 
 .home-balance-title {
-  font-size: 1rem;
+  font-size: 0.875rem;
   font-weight: 600;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   opacity: 0.95;
 }
 
 .home-balance-total {
-  margin-top: 0.75rem;
-  font-size: clamp(2.75rem, 11vw, 3.5rem);
+  margin-top: 0.5rem;
+  font-size: clamp(2.25rem, 9vw, 3rem);
   font-weight: 800;
   line-height: 1.1;
 }
@@ -177,31 +152,28 @@
 .home-wallet-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 14px;
-  margin-top: 1.75rem;
+  gap: 10px;
+  margin-top: 1.25rem;
+  width: 100%;
 }
 
 .home-wallet-card {
   min-width: 0;
-  min-height: 80px;
-  border-radius: 14px;
+  border-radius: 12px;
   background-color: rgba(0, 0, 0, 0.18);
-  padding: 16px 14px;
+  padding: 14px 12px;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
 }
 
 .home-wallet-label {
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   font-weight: 600;
   opacity: 0.88;
 }
 
 .home-wallet-value {
-  margin-top: 0.5rem;
-  font-size: 1.35rem;
+  margin-top: 0.35rem;
+  font-size: 1.15rem;
   font-weight: 700;
   line-height: 1.2;
 }
@@ -211,8 +183,6 @@
   grid-template-columns: 1fr 1fr;
   gap: 10px;
   width: 100%;
-  max-width: 100%;
-  margin: 0;
 }
 
 .home-action-btn {
@@ -221,22 +191,17 @@
   justify-content: flex-start;
   min-width: 0;
   width: 100%;
-  max-width: 100%;
-  margin: 0;
-  min-height: 120px;
-  height: auto;
-  padding: 22px 20px;
+  min-height: 100px;
+  padding: 18px 16px;
   border: none;
-  border-radius: 16px;
+  border-radius: 15px;
   background-color: #84CC16;
   color: #ffffff;
-  font-size: 1.0625rem;
+  font-size: 1rem;
   font-weight: 700;
   text-align: left;
-  box-shadow: 0 12px 28px rgba(132, 204, 22, 0.38);
+  box-shadow: 0 10px 24px rgba(132, 204, 22, 0.35);
   transition: background-color 0.2s ease, transform 0.15s ease;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
 }
 
 .home-action-btn:hover {
@@ -252,36 +217,29 @@
   grid-template-columns: 1fr 1fr;
   gap: 10px;
   width: 100%;
-  max-width: 100%;
-  margin: 0;
 }
 
 .home-metric-card {
   min-width: 0;
   width: 100%;
-  max-width: 100%;
-  margin: 0;
-  min-height: 120px;
-  border-radius: 16px;
+  min-height: 100px;
+  border-radius: 15px;
   border: 1px solid rgba(132, 204, 22, 0.25);
   background-color: #ffffff;
-  padding: 20px 16px;
-  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+  padding: 18px 14px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
 }
 
 .home-metric-label {
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   font-weight: 600;
   color: #64748b;
-  line-height: 1.35;
+  line-height: 1.3;
 }
 
 .home-metric-value {
-  margin-top: 0.65rem;
-  font-size: 1.25rem;
+  margin-top: 0.5rem;
+  font-size: 1.125rem;
   font-weight: 700;
   color: #1a472a;
   line-height: 1.2;
@@ -293,7 +251,7 @@
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: clamp(0.5px, 0.35vw, 2px);
-  margin: 0.5rem 0 0.75rem;
+  margin: 0.25rem 0 0.5rem;
   font-size: clamp(1.75rem, 7vw, 3.25rem);
   line-height: 1.1;
   text-align: center;
@@ -307,52 +265,21 @@
   .welcome-3d {
     font-size: clamp(2.5rem, 5vw, 3.75rem);
   }
-
-  .home-page {
-    padding-left: 10px;
-    padding-right: 10px;
-  }
-
-  .home-balance-card {
-    min-height: 260px;
-    padding: 2.25rem 1.5rem 2.5rem;
-  }
 }
 
 @media (max-width: 768px) {
-  .home-page {
-    padding-left: 8px;
-    padding-right: 8px;
-  }
-
   .welcome-3d {
     font-size: clamp(1.5rem, 7vw, 2.25rem);
     letter-spacing: 0.5px;
-    padding: 0;
-  }
-
-  .home-dashboard-stack {
-    gap: 1.125rem;
+    padding: 0 0.25rem;
   }
 
   .home-action-btn {
-    min-height: 120px;
-    padding: 20px 16px;
-    font-size: 1.0625rem;
+    min-height: 100px;
   }
 
   .home-metric-card {
-    min-height: 120px;
-    padding: 20px 14px;
-  }
-
-  .home-balance-card {
-    min-height: 240px;
-    padding: 1.75rem 1rem 2rem;
-  }
-
-  .home-wallet-card {
-    min-height: 84px;
-    padding: 16px 12px;
+    min-height: 100px;
+    padding: 18px 14px;
   }
 }
