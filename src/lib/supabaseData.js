@@ -149,6 +149,71 @@ export async function refreshUserBalancesFromAuth(hintUserId, email) {
   return { ...balances, userId }
 }
 
+/**
+ * Deduct investment amount using live DB balance (fetch → check → update).
+ */
+export async function deductBalanceForInvestment(userId, currency, amount) {
+  if (!isSupabaseConfigured()) {
+    return { ok: false, error: 'not_configured' }
+  }
+
+  const resolvedUserId = await resolveAuthenticatedUserId(userId)
+  if (!resolvedUserId) {
+    return { ok: false, error: 'not_authenticated' }
+  }
+
+  const investAmount = Number(amount)
+  if (!Number.isFinite(investAmount) || investAmount <= 0) {
+    return { ok: false, error: 'invalid_amount' }
+  }
+
+  const live = await fetchUserBalances(resolvedUserId)
+  if (!live?.fromDatabase) {
+    return { ok: false, error: 'fetch_failed' }
+  }
+
+  const isUsd = currency === 'USD' || currency === 'USDT'
+  const currentBalance = isUsd ? live.usdBalance : live.etbBalance
+
+  if (currentBalance < investAmount) {
+    return {
+      ok: false,
+      error: 'insufficient',
+      currentBalance,
+      requiredAmount: investAmount,
+      usdBalance: live.usdBalance,
+      etbBalance: live.etbBalance,
+    }
+  }
+
+  const nextUsd = isUsd ? live.usdBalance - investAmount : live.usdBalance
+  const nextEtb = !isUsd ? live.etbBalance - investAmount : live.etbBalance
+
+  const { data, error } = await supabase
+    .from('balances')
+    .update({
+      usd_balance: nextUsd,
+      etb_balance: nextEtb,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('user_id', resolvedUserId)
+    .select('usd_balance, etb_balance')
+    .maybeSingle()
+
+  if (error) {
+    console.error('[invest] balance deduct failed:', error.message)
+    return { ok: false, error: 'update_failed', message: error.message }
+  }
+
+  const balances = {
+    usdBalance: Number(data?.usd_balance ?? nextUsd) || 0,
+    etbBalance: Number(data?.etb_balance ?? nextEtb) || 0,
+    fromDatabase: true,
+  }
+
+  return { ok: true, ...balances, userId: resolvedUserId }
+}
+
 export async function countApprovedDeposits(userId) {
   if (!userId || !isSupabaseConfigured()) return 0
 

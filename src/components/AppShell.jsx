@@ -205,7 +205,7 @@ export default function AppShell({ children, activePage, setActivePage }) {
   useEffect(() => {
     if (prevActivePage.current === activePage) return
     prevActivePage.current = activePage
-    if (activePage === 'home' || activePage === 'deposit') {
+    if (activePage === 'home' || activePage === 'deposit' || activePage === 'invest') {
       refreshBalances()
     }
   }, [activePage, refreshBalances])

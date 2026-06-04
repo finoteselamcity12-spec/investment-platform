@@ -1,79 +1,114 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Clock, Gift, Star, TrendingUp } from 'lucide-react'
+import { getSession } from '../lib/authService'
+import {
+  deductBalanceForInvestment,
+  persistUserBalances,
+} from '../lib/supabaseData'
 
 export default function InvestPage({ ctx = {} }) {
   const {
     usdBalance = 0,
     etbBalance = 0,
+    balancesLoading = false,
     setUsdBalance,
     setEtbBalance,
     setMyActiveInvestmentsList,
     showToast,
     addTransaction,
     userEmail,
+    refreshBalances,
   } = ctx
   const [currency, setCurrency] = useState('USD')
   const [investingId, setInvestingId] = useState(null)
 
-  function persistWallet(email, nextUsd, nextEtb) {
-    if (!email) return
-    const userData = JSON.parse(localStorage.getItem('admin_user_data') || '{}')
-    userData[email] = { ...(userData[email] || {}), email, usdBalance: nextUsd, etbBalance: nextEtb }
-    localStorage.setItem('admin_user_data', JSON.stringify(userData))
-  }
+  useEffect(() => {
+    refreshBalances?.()
+  }, [refreshBalances])
 
-  function handleInvest(plan, planIndex) {
+  async function handleInvest(plan, planIndex) {
     const isUSD = currency === 'USD'
     const amount = Number(plan.amount)
-    const balance = isUSD ? Number(usdBalance) : Number(etbBalance)
-
-    if (balance < amount) {
-      showToast?.(
-        isUSD ? 'Insufficient USD balance. Deposit first.' : 'Insufficient ETB balance. Deposit first.',
-        'error'
-      )
-      return
-    }
-
     const investId = `${currency}-${planIndex}-${Date.now()}`
     setInvestingId(investId)
 
-    const dailyProfit = Number(plan.profit) || 0
-    const investment = {
-      id: investId,
-      currency: isUSD ? 'USD' : 'ETB',
-      amount,
-      days: plan.days,
-      dailyProfit,
-      bonus: plan.bonus,
-      startedAt: new Date().toISOString(),
+    try {
+      const userId = getSession()?.user?.id
+      if (!userId) {
+        showToast?.('Please sign in again.', 'error')
+        return
+      }
+
+      const result = await deductBalanceForInvestment(userId, isUSD ? 'USD' : 'ETB', amount)
+
+      if (!result.ok) {
+        if (result.error === 'insufficient') {
+          setUsdBalance?.(result.usdBalance ?? 0)
+          setEtbBalance?.(result.etbBalance ?? 0)
+          if (userEmail) {
+            persistUserBalances(
+              userEmail,
+              { usdBalance: result.usdBalance ?? 0, etbBalance: result.etbBalance ?? 0 },
+              userId
+            )
+          }
+          const available = isUSD ? result.usdBalance : result.etbBalance
+          showToast?.(
+            isUSD
+              ? `Insufficient USD balance. Available: $${Number(available).toFixed(2)}`
+              : `Insufficient ETB balance. Available: ${Number(available).toLocaleString()} Br`,
+            'error'
+          )
+        } else {
+          showToast?.('Could not verify balance. Please try again.', 'error')
+          await refreshBalances?.()
+        }
+        return
+      }
+
+      setUsdBalance?.(result.usdBalance)
+      setEtbBalance?.(result.etbBalance)
+      if (userEmail) {
+        persistUserBalances(userEmail, result, userId)
+      }
+
+      const dailyProfit = Number(plan.profit) || 0
+      const investment = {
+        id: investId,
+        userId,
+        currency: isUSD ? 'USD' : 'ETB',
+        amount,
+        days: plan.days,
+        dailyProfit,
+        bonus: plan.bonus,
+        startedAt: new Date().toISOString(),
+      }
+
+      const investments = JSON.parse(localStorage.getItem('user_investments') || '[]')
+      investments.push(investment)
+      localStorage.setItem('user_investments', JSON.stringify(investments))
+      setMyActiveInvestmentsList?.(investments)
+
+      addTransaction?.({
+        id: `tx-inv-${Date.now()}`,
+        userId,
+        type: 'Investment',
+        category: 'Investments',
+        title: `Invested ${isUSD ? `$${amount}` : `${amount} Br`}`,
+        amount,
+        currency: isUSD ? 'USD' : 'ETB',
+        status: 'Active',
+        date: new Date().toISOString(),
+      })
+
+      showToast?.('Investment started successfully!', 'success')
+    } catch (err) {
+      console.error('[InvestPage] invest failed:', err)
+      showToast?.('Investment failed. Please try again.', 'error')
+      await refreshBalances?.()
+    } finally {
+      setInvestingId(null)
     }
-
-    const nextUsd = isUSD ? balance - amount : Number(usdBalance)
-    const nextEtb = !isUSD ? balance - amount : Number(etbBalance)
-
-    setUsdBalance?.(nextUsd)
-    setEtbBalance?.(nextEtb)
-    persistWallet(userEmail, nextUsd, nextEtb)
-
-    const investments = JSON.parse(localStorage.getItem('user_investments') || '[]')
-    investments.push(investment)
-    localStorage.setItem('user_investments', JSON.stringify(investments))
-    setMyActiveInvestmentsList?.(investments)
-
-    addTransaction?.({
-      id: `tx-inv-${Date.now()}`,
-      type: 'Investment',
-      category: 'Investments',
-      title: `Invested ${isUSD ? `$${amount}` : `${amount} Br`}`,
-      amount,
-      currency: isUSD ? 'USD' : 'ETB',
-      status: 'Active',
-      date: new Date().toISOString(),
-    })
-
-    showToast?.('Investment started successfully!', 'success')
-    setInvestingId(null)
   }
 
   // Hardcoded USD plans (strict replacement)
@@ -119,7 +154,6 @@ export default function InvestPage({ ctx = {} }) {
     { amount: 50000, days: 90, profit: 5000, deposit: 55000, bonus: 55000 },
   ]
 
-  // Get VIP level based on amount
   const getVipLevel = (amount) => {
     if (currency === 'USD') {
       if (amount <= 10) return 'Bronze'
@@ -127,14 +161,16 @@ export default function InvestPage({ ctx = {} }) {
       if (amount <= 200) return 'Gold'
       if (amount <= 500) return 'Platinum'
       return 'Diamond'
-    } else {
-      if (amount <= 1000) return 'Bronze'
-      if (amount <= 5000) return 'Silver'
-      if (amount <= 15000) return 'Gold'
-      if (amount <= 30000) return 'Platinum'
-      return 'Diamond'
     }
+    if (amount <= 1000) return 'Bronze'
+    if (amount <= 5000) return 'Silver'
+    if (amount <= 15000) return 'Gold'
+    if (amount <= 30000) return 'Platinum'
+    return 'Diamond'
   }
+
+  const displayUsd = balancesLoading ? '…' : `$${Number(usdBalance).toFixed(2)}`
+  const displayEtb = balancesLoading ? '…' : `${Number(etbBalance).toLocaleString()} Br`
 
   function renderCards() {
     const plans = currency === 'USD' ? usdPlans : etbPlans
@@ -145,19 +181,20 @@ export default function InvestPage({ ctx = {} }) {
         {plans.map((plan, idx) => {
           const dailyEarnings = Number(plan.profit) || 0
           const bonusAmount = Number(plan.bonus) || 0
-          const totalReturnAllDays = (dailyEarnings * Number(plan.days)) + bonusAmount
-          
+          const totalReturnAllDays = dailyEarnings * Number(plan.days) + bonusAmount
+
           return (
             <div
               key={idx}
               className="rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 overflow-hidden shadow-md hover:shadow-lg transition-shadow"
             >
-              {/* Card Header */}
               <div className="bg-gradient-to-r from-amber-100 to-orange-100 px-5 py-4">
                 <div className="flex items-start justify-between mb-2">
                   <div>
                     <p className="text-2xl font-bold text-slate-950">
-                      {isUSD ? `$${(Number(plan.amount)).toFixed(2)}` : `${(Number(plan.amount)).toLocaleString()} Br`}
+                      {isUSD
+                        ? `$${Number(plan.amount).toFixed(2)}`
+                        : `${Number(plan.amount).toLocaleString()} Br`}
                     </p>
                     <p className="text-xs font-semibold text-amber-700 uppercase tracking-wider mt-1">
                       {getVipLevel(plan.amount)} Tier
@@ -169,9 +206,7 @@ export default function InvestPage({ ctx = {} }) {
                 </div>
               </div>
 
-              {/* Card Body */}
               <div className="px-5 py-4 space-y-3 border-b border-amber-200">
-                {/* Duration */}
                 <div className="flex items-center gap-3">
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100">
                     <Clock size={16} className="text-amber-700" />
@@ -182,7 +217,6 @@ export default function InvestPage({ ctx = {} }) {
                   </div>
                 </div>
 
-                {/* Daily Earnings */}
                 <div className="flex items-center gap-3">
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-green-100">
                     <Gift size={16} className="text-green-700" />
@@ -190,12 +224,13 @@ export default function InvestPage({ ctx = {} }) {
                   <div>
                     <p className="text-xs text-slate-600">Daily Earnings</p>
                     <p className="font-semibold text-slate-900">
-                      {isUSD ? `$${(Number(dailyEarnings)).toFixed(2)}` : `${(Number(dailyEarnings)).toLocaleString()} Br`}
+                      {isUSD
+                        ? `$${Number(dailyEarnings).toFixed(2)}`
+                        : `${Number(dailyEarnings).toLocaleString()} Br`}
                     </p>
                   </div>
                 </div>
 
-                {/* Bonus Reward */}
                 <div className="flex items-center gap-3">
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100">
                     <Star size={16} className="text-blue-700" />
@@ -203,29 +238,31 @@ export default function InvestPage({ ctx = {} }) {
                   <div>
                     <p className="text-xs text-slate-600">Bonus Reward</p>
                     <p className="font-semibold text-slate-900">
-                      {isUSD ? `$${(Number(bonusAmount)).toFixed(2)}` : `${(Number(bonusAmount)).toLocaleString()} Br`}
+                      {isUSD
+                        ? `$${Number(bonusAmount).toFixed(2)}`
+                        : `${Number(bonusAmount).toLocaleString()} Br`}
                     </p>
                   </div>
                 </div>
               </div>
 
-              {/* Total Return Section */}
               <div className="bg-slate-100 px-5 py-3 text-center mb-4 mx-5 mt-4 rounded-xl">
                 <p className="text-xs text-slate-600 font-medium">Total Return (All Days)</p>
                 <p className="text-lg font-bold text-slate-950 mt-1">
-                  {isUSD ? `$${(Number(totalReturnAllDays)).toFixed(2)}` : `${(Number(totalReturnAllDays)).toLocaleString()} Br`}
+                  {isUSD
+                    ? `$${Number(totalReturnAllDays).toFixed(2)}`
+                    : `${Number(totalReturnAllDays).toLocaleString()} Br`}
                 </p>
               </div>
 
-              {/* Invest Button */}
               <div className="px-5 pb-5">
                 <button
                   type="button"
-                  disabled={!!investingId}
+                  disabled={!!investingId || balancesLoading}
                   onClick={() => handleInvest(plan, idx)}
                   className="w-full py-3 bg-[#84CC16] hover:bg-lime-500 disabled:opacity-60 text-white font-bold rounded-xl transition-all shadow-lg shadow-[#84CC16]/30 flex items-center justify-center gap-2"
                 >
-                  <span>{investingId ? 'Processing…' : 'Invest Now'}</span>
+                  <span>{investingId ? 'Processing…' : balancesLoading ? 'Loading balance…' : 'Invest Now'}</span>
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
@@ -243,25 +280,28 @@ export default function InvestPage({ ctx = {} }) {
       <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-slate-950">Choose your plan</h1>
+          <p className="mt-2 text-sm text-slate-600">
+            Available balance — USD: <span className="font-semibold text-slate-900">{displayUsd}</span>
+            {' · '}
+            ETB: <span className="font-semibold text-slate-900">{displayEtb}</span>
+          </p>
         </div>
 
-        {/* Currency Toggle */}
         <div className="flex gap-2 mb-8">
-          <button 
-            onClick={() => setCurrency('USD')} 
+          <button
+            onClick={() => setCurrency('USD')}
             className={`flex-1 px-4 py-3 rounded-xl font-semibold transition-all ${currency === 'USD' ? 'bg-[#84CC16] text-white shadow-lg shadow-[#84CC16]/30' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'}`}
           >
             USD ($)
           </button>
-          <button 
-            onClick={() => setCurrency('ETB')} 
+          <button
+            onClick={() => setCurrency('ETB')}
             className={`flex-1 px-4 py-3 rounded-xl font-semibold transition-all ${currency === 'ETB' ? 'bg-[#84CC16] text-white shadow-lg shadow-[#84CC16]/30' : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'}`}
           >
             ETB (Br)
           </button>
         </div>
 
-        {/* Cards Grid */}
         {renderCards()}
       </div>
     </div>
