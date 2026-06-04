@@ -107,122 +107,257 @@
 }
 
 /* ==========================================================================
-   Home Dashboard — stable layout (#84CC16)
+   Home Dashboard — premium mobile (glassmorphism + gold)
    ========================================================================== */
 
-.home-page {
+.home-page--premium {
+  --home-charcoal: #1a1d24;
+  --home-charcoal-soft: #2d3340;
+  --home-gold: #d4af37;
+  --home-gold-bright: #ffd700;
+  --home-gold-muted: #b8962e;
   width: 100%;
-  background-color: #ffffff;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  background:
+    radial-gradient(ellipse 120% 80% at 50% -20%, rgba(212, 175, 55, 0.12), transparent 55%),
+    linear-gradient(180deg, #f8f9fc 0%, #eef1f7 50%, #e6eaf2 100%);
 }
 
 .home-dashboard-stack {
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 1.25rem;
+  gap: 1.35rem;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
+  padding-bottom: 0.5rem;
 }
 
-.home-subtitle {
-  font-size: 0.875rem;
-  color: #64748b;
-  margin-top: 0.5rem;
+/* —— Header —— */
+.home-header-premium {
+  text-align: center;
+  padding: 0.25rem 0 0.5rem;
 }
 
-.home-balance-card {
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
-  overflow: hidden;
-  background-color: #84CC16;
-  box-shadow: 0 12px 28px rgba(132, 204, 22, 0.22);
-  padding: 1rem 0.875rem;
-}
-
-.home-referral-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-  margin-top: 0.625rem;
-  padding-top: 0.625rem;
-  width: 100%;
-  border-top: 1px solid rgba(255, 255, 255, 0.25);
-}
-
-.home-referral-card {
-  min-width: 0;
-  border-radius: 10px;
-  background-color: rgba(255, 255, 255, 0.15);
-  padding: 8px 6px;
-  backdrop-filter: blur(4px);
-}
-
-.home-referral-label {
+.home-header-eyebrow {
+  margin: 0 0 0.35rem;
   font-size: 0.7rem;
-  font-weight: 600;
-  line-height: 1.3;
-  color: #ffffff;
-  opacity: 0.95;
-  word-wrap: break-word;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #8b7355;
 }
 
-.home-referral-value {
-  margin-top: 0.35rem;
-  font-size: 1rem;
-  font-weight: 700;
-  line-height: 1.25;
-  color: #ffffff;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
-  word-break: break-word;
+.welcome-premium {
+  position: relative;
+  display: inline-block;
+  margin: 0;
+  padding: 0 0.25rem;
+  font-size: clamp(1.35rem, 6.5vw, 2rem);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: clamp(0.04em, 0.35vw, 0.08em);
+  text-transform: uppercase;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  background: linear-gradient(
+    135deg,
+    #1a1d24 0%,
+    #3d4454 35%,
+    #c9a227 65%,
+    #ffd700 85%,
+    #8b6914 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 4px rgba(26, 29, 36, 0.15));
+  text-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.9),
+    0 2px 3px rgba(26, 29, 36, 0.2),
+    0 4px 8px rgba(26, 29, 36, 0.25),
+    0 8px 16px rgba(139, 105, 20, 0.2);
+}
+
+.welcome-premium::before {
+  content: attr(data-text);
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: -1;
+  width: 100%;
+  transform: translate(2px, 3px);
+  background: linear-gradient(180deg, rgba(26, 29, 36, 0.35), rgba(26, 29, 36, 0.08));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  opacity: 0.85;
+}
+
+.welcome-premium::after {
+  content: attr(data-text);
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 1;
+  pointer-events: none;
+  width: 100%;
+  background: radial-gradient(
+    circle at 28% 18%,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(255, 248, 220, 0.4) 18%,
+    transparent 42%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  mix-blend-mode: overlay;
+  opacity: 0.75;
+}
+
+/* —— Wallet panel (dark glass shell) —— */
+.home-wallets-panel {
+  width: 100%;
+  padding: 1rem 0.875rem;
+  border-radius: 1.35rem;
+  background: linear-gradient(
+    155deg,
+    rgba(26, 29, 36, 0.88) 0%,
+    rgba(35, 42, 58, 0.82) 50%,
+    rgba(26, 29, 36, 0.9) 100%
+  );
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow:
+    0 20px 50px rgba(15, 23, 42, 0.22),
+    0 4px 12px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .home-wallet-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
-  margin-top: 0;
   width: 100%;
 }
 
-.home-wallet-card {
+.home-glass-card {
   min-width: 0;
-  border-radius: 10px;
-  background-color: rgba(0, 0, 0, 0.18);
-  padding: 10px 8px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  padding: 12px 10px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow:
+    0 8px 28px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.home-glass-card:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+}
+
+.home-glass-card--subtle {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 .home-wallet-header {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   min-width: 0;
 }
 
-.home-wallet-coin-icon {
-  color: #ffd700;
-  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.25));
+.home-icon-orb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+  border-radius: 12px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.home-icon-orb--gold {
+  width: 38px;
+  height: 38px;
+  background: linear-gradient(145deg, rgba(255, 215, 0, 0.45), rgba(180, 140, 30, 0.25));
+  border: 1px solid rgba(255, 215, 0, 0.5);
+  box-shadow:
+    0 4px 14px rgba(212, 175, 55, 0.45),
+    inset 0 2px 6px rgba(255, 255, 255, 0.4),
+    inset 0 -2px 4px rgba(120, 90, 10, 0.25);
+}
+
+.home-icon-orb--gold svg {
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.35));
+}
+
+.home-icon-orb--action {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0.12));
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  color: #ffffff;
+  box-shadow:
+    0 3px 10px rgba(0, 0, 0, 0.12),
+    inset 0 2px 4px rgba(255, 255, 255, 0.5);
 }
 
 .home-wallet-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.95);
-  opacity: 1;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: rgba(255, 255, 255, 0.85);
+  text-transform: uppercase;
 }
 
 .home-wallet-value {
-  margin-top: 0.25rem;
-  font-size: 0.95rem;
-  font-weight: 700;
-  line-height: 1.25;
+  margin-top: 0.5rem;
+  font-size: clamp(1.05rem, 4.5vw, 1.25rem);
+  font-weight: 800;
+  line-height: 1.2;
   color: #ffffff;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  letter-spacing: -0.02em;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
 
+.home-referral-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  width: 100%;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.home-referral-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: rgba(255, 255, 255, 0.72);
+  word-wrap: break-word;
+}
+
+.home-referral-value {
+  margin-top: 0.4rem;
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1.25;
+  color: var(--home-gold-bright);
+  text-shadow: 0 1px 6px rgba(255, 215, 0, 0.35);
+  word-break: break-word;
+}
+
+/* —— Action buttons (3D pop) —— */
 .home-action-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -230,68 +365,112 @@
   width: 100%;
 }
 
-.home-action-btn {
+.home-action-btn--premium {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 0.5rem;
   min-width: 0;
   width: 100%;
-  min-height: 52px;
-  padding: 1rem 0.75rem;
+  min-height: 76px;
+  padding: 0.875rem 0.625rem;
   border: none;
-  border-radius: 15px;
-  background-color: #84CC16;
+  border-radius: 18px;
+  font-family: inherit;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
   color: #ffffff;
-  font-size: 0.9375rem;
-  font-weight: 700;
-  text-align: center;
-  box-shadow: 0 10px 24px rgba(132, 204, 22, 0.35);
-  transition: background-color 0.2s ease, transform 0.15s ease;
+  cursor: pointer;
+  background: linear-gradient(180deg, #a8e063 0%, #84cc16 42%, #6fad14 100%);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow:
+    0 5px 0 #4d8010,
+    0 8px 20px rgba(90, 146, 20, 0.4),
+    inset 0 2px 0 rgba(255, 255, 255, 0.45),
+    inset 0 -2px 6px rgba(60, 100, 10, 0.35);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    filter 0.15s ease;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
 
-.home-action-btn:hover {
-  background-color: #6bb01a;
+.home-action-btn--premium:hover {
+  transform: translateY(-3px);
+  filter: brightness(1.05);
+  box-shadow:
+    0 7px 0 #4d8010,
+    0 14px 28px rgba(90, 146, 20, 0.45),
+    inset 0 2px 0 rgba(255, 255, 255, 0.5);
 }
 
-.home-action-btn:active {
-  transform: scale(0.98);
+.home-action-btn--premium:active {
+  transform: translateY(2px);
+  box-shadow:
+    0 2px 0 #4d8010,
+    0 4px 12px rgba(90, 146, 20, 0.35),
+    inset 0 3px 8px rgba(60, 100, 10, 0.4);
 }
 
+.home-action-label {
+  line-height: 1.2;
+}
+
+/* —— Metric cards (light glass) —— */
 .home-metrics-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
   width: 100%;
-  margin-top: 0.25rem;
 }
 
-.home-metric-card {
+.home-metric-card--premium {
   min-width: 0;
-  width: 100%;
-  min-height: 0;
-  border-radius: 12px;
-  border: 1px solid rgba(132, 204, 22, 0.25);
-  background-color: #ffffff;
-  padding: 12px 10px;
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+  padding: 14px 12px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow:
+    0 8px 24px rgba(15, 23, 42, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.home-metric-card--premium:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.1);
 }
 
 .home-metric-label {
-  font-size: 0.7rem;
-  font-weight: 600;
+  font-size: 0.68rem;
+  font-weight: 700;
   color: #64748b;
-  line-height: 1.25;
+  line-height: 1.3;
+  letter-spacing: 0.02em;
 }
 
 .home-metric-value {
-  margin-top: 0.5rem;
-  font-size: 1.125rem;
+  margin-top: 0.45rem;
+  font-size: clamp(1rem, 4vw, 1.15rem);
   font-weight: 800;
-  color: #14532d;
+  color: var(--home-charcoal);
   line-height: 1.2;
   word-break: break-word;
+  background: linear-gradient(135deg, #1a1d24, #3d4454);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.home-subtitle {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin-top: 0.5rem;
 }
 
 .home-invite-card {
@@ -340,25 +519,9 @@
   font-weight: 700;
 }
 
-/* 3D welcome header */
-.welcome-3d {
-  color: #2e7d32;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: clamp(0.5px, 0.35vw, 2px);
-  margin: 0 0 0.25rem;
-  font-size: clamp(1.75rem, 7vw, 3.25rem);
-  line-height: 1.1;
-  text-align: center;
-  text-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.7),
-    1px 1px 2px rgba(46, 125, 50, 0.35),
-    3px 3px 6px rgba(0, 0, 0, 0.4);
-}
-
 @media (min-width: 1024px) {
-  .welcome-3d {
-    font-size: clamp(2.5rem, 5vw, 3.75rem);
+  .welcome-premium {
+    font-size: clamp(1.75rem, 4vw, 2.35rem);
   }
 }
 
@@ -378,87 +541,69 @@
     font-size: 0.65rem !important;
   }
 
-  .home-page {
+  .home-page--premium {
     padding-bottom: 0.5rem !important;
   }
 
   .home-dashboard-stack {
-    gap: 1.25rem;
+    gap: 1.2rem;
     padding: 0;
   }
 
-  .welcome-3d {
-    font-size: clamp(1.35rem, 6vw, 1.85rem);
-    letter-spacing: 0.5px;
-    padding: 0 0.25rem;
-    margin-bottom: 0.25rem;
+  .welcome-premium {
+    font-size: clamp(1.2rem, 5.8vw, 1.65rem);
+    letter-spacing: 0.06em;
   }
 
-  .home-balance-card {
+  .home-wallets-panel {
     padding: 0.875rem 0.75rem;
-    border-radius: 1rem;
+    border-radius: 1.15rem;
   }
 
   .home-wallet-grid,
   .home-referral-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
   }
 
-  .home-metrics-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
-    margin-top: 0.5rem;
-  }
-
-  .home-wallet-card,
-  .home-referral-card {
-    padding: 10px 8px;
+  .home-glass-card {
+    padding: 11px 9px;
   }
 
   .home-wallet-label,
   .home-referral-label {
-    font-size: 0.7rem;
-    font-weight: 600;
-    line-height: 1.25;
+    font-size: 0.65rem;
   }
 
   .home-wallet-value,
   .home-referral-value {
-    font-size: 1.15rem;
-    font-weight: 800;
-    margin-top: 0.4rem;
+    font-size: 1.1rem;
   }
 
-  .home-action-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
+  .home-action-btn--premium {
+    min-height: 72px;
+    font-size: 0.78rem;
   }
 
-  .home-action-btn {
-    min-height: 52px;
-    padding: 1rem 0.625rem;
-    font-size: 0.875rem;
-    font-weight: 700;
-    flex-direction: column;
-    gap: 0.35rem;
+  .home-icon-orb--gold {
+    width: 34px;
+    height: 34px;
   }
 
-  .home-metric-card {
-    padding: 14px 12px;
+  .home-icon-orb--action {
+    width: 36px;
+    height: 36px;
+  }
+
+  .home-metric-card--premium {
+    padding: 13px 11px;
   }
 
   .home-metric-label {
-    font-size: 0.7rem;
-    font-weight: 600;
-    color: #64748b;
+    font-size: 0.65rem;
   }
 
   .home-metric-value {
-    font-size: 1.125rem;
-    font-weight: 800;
-    margin-top: 0.5rem;
-    color: #14532d;
+    font-size: 1.05rem;
   }
 
   .home-invite-card {
@@ -487,22 +632,28 @@
 }
 
 @media (max-width: 375px) {
+  .welcome-premium {
+    font-size: 1.1rem;
+  }
+
   .home-wallet-label,
   .home-referral-label,
   .home-metric-label {
-    font-size: 0.65rem;
+    font-size: 0.6rem;
   }
 
   .home-wallet-value,
-  .home-referral-value,
-  .home-metric-value {
-    font-size: 1.05rem;
-    font-weight: 800;
+  .home-referral-value {
+    font-size: 1rem;
   }
 
-  .home-action-btn {
-    min-height: 50px;
-    padding: 0.875rem 0.5rem;
+  .home-metric-value {
+    font-size: 0.95rem;
+  }
+
+  .home-action-btn--premium {
+    min-height: 68px;
+    padding: 0.75rem 0.5rem;
   }
 
   .home-invite-url {

@@ -1,6 +1,6 @@
 import { TrendingUp, Wallet, ArrowDownRight, Users, Coins } from 'lucide-react'
 
-const GOLD_COIN = '#FFD700'
+const GOLD = '#FFD700'
 
 export default function HomePage({ ctx }) {
   const {
@@ -36,88 +36,79 @@ export default function HomePage({ ctx }) {
   ]
 
   const statCards = [
-    {
-      label: 'Daily ETB Profit',
-      value: `${etbDailyProfit.toFixed(2)} Br`,
-    },
-    {
-      label: 'Daily USD Profit',
-      value: `$${usdDailyProfit.toFixed(2)}`,
-    },
-    {
-      label: 'Active Investment ETB',
-      value: `${activeInvestmentEtb.toLocaleString()} Br`,
-    },
-    {
-      label: 'Active Investment USD',
-      value: `$${activeInvestmentUsd.toFixed(2)}`,
-    },
+    { label: 'Daily ETB Profit', value: `${etbDailyProfit.toFixed(2)} Br` },
+    { label: 'Daily USD Profit', value: `$${usdDailyProfit.toFixed(2)}` },
+    { label: 'Active Investment ETB', value: `${activeInvestmentEtb.toLocaleString()} Br` },
+    { label: 'Active Investment USD', value: `$${activeInvestmentUsd.toFixed(2)}` },
   ]
 
   return (
-    <div className="home-page box-border min-h-0 w-full max-w-full overflow-x-hidden bg-white px-4">
-      <div className="home-dashboard-stack mx-auto flex w-full max-w-lg flex-col gap-5 sm:gap-6">
-        <header className="text-center">
-          <h1 className="welcome-3d">Welcome to Blackrock</h1>
+    <div className="home-page home-page--premium box-border min-h-0 w-full max-w-full overflow-x-hidden px-4">
+      <div className="home-dashboard-stack mx-auto flex w-full max-w-lg flex-col">
+        <header className="home-header-premium">
+          <p className="home-header-eyebrow">Your portfolio</p>
+          <h1 className="welcome-premium" data-text="WELCOME TO BLACKROCK">
+            Welcome to Blackrock
+          </h1>
         </header>
 
-        <div className="home-balance-card rounded-3xl text-white">
+        <section className="home-wallets-panel" aria-label="Wallet balances">
           <div className="home-wallet-grid">
-            <div className="home-wallet-card">
+            <article className="home-wallet-card home-glass-card">
               <div className="home-wallet-header">
-                <Coins size={18} className="home-wallet-coin-icon shrink-0" style={{ color: GOLD_COIN }} />
-                <p className="home-wallet-label text-[0.7rem] sm:text-xs">USD Wallet</p>
+                <span className="home-icon-orb home-icon-orb--gold" aria-hidden="true">
+                  <Coins size={20} strokeWidth={2.25} style={{ color: GOLD }} />
+                </span>
+                <p className="home-wallet-label">USD Wallet</p>
               </div>
               <p className="home-wallet-value">${Number(usdBalance).toFixed(2)}</p>
-            </div>
-            <div className="home-wallet-card">
+            </article>
+            <article className="home-wallet-card home-glass-card">
               <div className="home-wallet-header">
-                <Coins size={18} className="home-wallet-coin-icon shrink-0" style={{ color: GOLD_COIN }} />
-                <p className="home-wallet-label text-[0.7rem] sm:text-xs">ETB Wallet</p>
+                <span className="home-icon-orb home-icon-orb--gold" aria-hidden="true">
+                  <Coins size={20} strokeWidth={2.25} style={{ color: GOLD }} />
+                </span>
+                <p className="home-wallet-label">ETB Wallet</p>
               </div>
-              <p className="home-wallet-value">
-                {Number(etbBalance).toLocaleString()} Br
-              </p>
-            </div>
+              <p className="home-wallet-value">{Number(etbBalance).toLocaleString()} Br</p>
+            </article>
           </div>
           <div className="home-referral-grid">
-            <div className="home-referral-card">
-              <p className="home-referral-label text-[0.7rem] sm:text-xs">USD Referral Bonus</p>
-              <p className="home-referral-value">
-                ${Number(referralEarningsUsd).toFixed(2)}
-              </p>
-            </div>
-            <div className="home-referral-card">
-              <p className="home-referral-label text-[0.7rem] sm:text-xs">ETB Referral Bonus</p>
-              <p className="home-referral-value">
-                {Number(referralEarningsEtb).toLocaleString()} Br
-              </p>
-            </div>
+            <article className="home-referral-card home-glass-card home-glass-card--subtle">
+              <p className="home-referral-label">USD Referral Bonus</p>
+              <p className="home-referral-value">${Number(referralEarningsUsd).toFixed(2)}</p>
+            </article>
+            <article className="home-referral-card home-glass-card home-glass-card--subtle">
+              <p className="home-referral-label">ETB Referral Bonus</p>
+              <p className="home-referral-value">{Number(referralEarningsEtb).toLocaleString()} Br</p>
+            </article>
           </div>
-        </div>
+        </section>
 
-        <div className="home-action-grid gap-3 sm:gap-4">
+        <nav className="home-action-grid" aria-label="Quick actions">
           {actionButtons.map(({ label, page, icon: Icon }) => (
             <button
               key={page}
               type="button"
               onClick={() => setActivePage?.(page)}
-              className="home-action-btn flex w-full min-h-[52px] flex-col items-center justify-center gap-2 py-4 text-sm font-bold sm:min-h-[56px] sm:text-base"
+              className="home-action-btn home-action-btn--premium"
             >
-              <Icon size={22} strokeWidth={2.25} />
-              <span>{label}</span>
+              <span className="home-icon-orb home-icon-orb--action" aria-hidden="true">
+                <Icon size={20} strokeWidth={2.25} />
+              </span>
+              <span className="home-action-label">{label}</span>
             </button>
           ))}
-        </div>
+        </nav>
 
-        <div className="home-metrics-grid gap-3 sm:gap-4">
+        <section className="home-metrics-grid" aria-label="Investment metrics">
           {statCards.map(({ label, value }) => (
-            <div key={label} className="home-metric-card">
-              <p className="home-metric-label text-[0.7rem] leading-snug sm:text-xs">{label}</p>
-              <p className="home-metric-value text-base font-extrabold sm:text-lg">{value}</p>
-            </div>
+            <article key={label} className="home-metric-card home-metric-card--premium">
+              <p className="home-metric-label">{label}</p>
+              <p className="home-metric-value">{value}</p>
+            </article>
           ))}
-        </div>
+        </section>
       </div>
     </div>
   )
