@@ -17,14 +17,18 @@ export default function HistoryPage({ ctx }) {
 
   useEffect(() => {
     if (!userEmail) return
-    const updated = ensureSignupBonusHistoryRecords(userEmail)
-    if (updated && setTransactions) {
-      setTransactions(updated)
+    ensureSignupBonusHistoryRecords(userEmail)
+    const txns = JSON.parse(localStorage.getItem('user_transactions') || '[]')
+    if (setTransactions) {
+      setTransactions(txns)
     }
   }, [userEmail, setTransactions])
 
   const filteredHistory = useMemo(() => {
     if (historyFilter === 'All') return transactions
+    if (historyFilter === 'Bonuses') {
+      return transactions.filter((item) => item.type === 'Bonus')
+    }
     return transactions.filter((item) => item.type === historyFilter.slice(0, -1))
   }, [historyFilter, transactions])
 
@@ -41,8 +45,8 @@ export default function HistoryPage({ ctx }) {
   }
 
   return (
-    <div className="bg-white pb-4">
-      <div className="space-y-5">
+    <div className="bg-white pb-2">
+      <div className="space-y-3">
         {/* Header */}
         <div>
           <p className="text-xs font-semibold text-slate-500">Activity</p>

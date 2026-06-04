@@ -89,8 +89,8 @@ export default function HomePage({ ctx }) {
   ]
 
   return (
-    <div className="home-page min-h-screen w-full max-w-full overflow-x-hidden bg-white pb-20">
-      <div className="home-dashboard-stack mx-auto w-full max-w-lg px-4 py-5 sm:px-3 sm:py-6">
+    <div className="home-page min-h-0 w-full max-w-full overflow-x-hidden bg-white">
+      <div className="home-dashboard-stack mx-auto w-full max-w-lg">
         <header className="text-center">
           <h1 className="welcome-3d">Welcome to Blackrock</h1>
         </header>

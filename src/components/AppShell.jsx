@@ -6,6 +6,7 @@ import {
   TrendingUp,
   ArrowDownRight,
   HelpCircle,
+  Clock4,
 } from 'lucide-react'
 import supabase from '../lib/supabase'
 import { getSession } from '../lib/authService'
@@ -78,7 +79,7 @@ const etbTiers = [
 ]
 
 const withdrawMethods = ['CBE', 'Dashen Bank', 'M-Pesa', 'Telebirr', 'USDT (TRC20)']
-const historyFilters = ['All', 'Deposits', 'Withdrawals', 'Investments', 'Claims']
+const historyFilters = ['All', 'Bonuses', 'Deposits', 'Withdrawals', 'Investments', 'Claims']
 
 const marketData = [
   { title: 'Bitcoin', symbol: 'BTC', price: '$38,290', change: '+3.9%', trend: 'up' },
@@ -192,6 +193,7 @@ export default function AppShell({ children, activePage, setActivePage }) {
     { id: 'deposit', label: 'Deposit', icon: Wallet },
     { id: 'invest', label: 'Invest', icon: TrendingUp },
     { id: 'withdraw', label: 'Withdraw', icon: ArrowDownRight },
+    { id: 'history', label: 'History', icon: Clock4 },
     { id: 'support', label: 'Support', icon: HelpCircle },
   ]
 
@@ -242,7 +244,7 @@ export default function AppShell({ children, activePage, setActivePage }) {
   }
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 pb-28">
+    <div className="min-h-screen bg-white text-slate-900">
       {/* Top Header */}
       <div className="fixed top-0 inset-x-0 z-40 bg-white border-b border-slate-200 shadow-sm">
         <div className="mx-auto max-w-7xl px-4 py-4 flex items-center justify-between">
@@ -279,16 +281,17 @@ export default function AppShell({ children, activePage, setActivePage }) {
       </div>
 
       {/* Page Content */}
-      <div className="mx-auto max-w-7xl pt-24 px-4 pb-36">
+      <div className="app-main-content mx-auto max-w-7xl px-4 pb-36 pt-24">
         {children(appContext)}
       </div>
 
       {/* Bottom Navigation */}
-      <div className="fixed inset-x-0 bottom-0 z-50 bg-white border-t border-slate-200 shadow-xl">
-        <div className="mx-auto max-w-7xl px-3 py-3 flex items-center justify-between gap-2">
+      <div className="app-bottom-nav fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white shadow-xl">
+        <div className="app-bottom-nav-inner mx-auto flex max-w-7xl items-stretch justify-between gap-1 px-1 py-2">
           {visibleNavItems.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
+              type="button"
               onClick={() => {
                 if (id === 'support') {
                   navigate('/support')
@@ -296,14 +299,16 @@ export default function AppShell({ children, activePage, setActivePage }) {
                 }
                 setActivePage(id)
               }}
-              className={`relative flex-1 rounded-3xl border border-slate-200 px-3 py-3 text-center text-xs font-semibold transition-all ${
+              className={`app-nav-btn relative min-w-0 flex-1 rounded-2xl border px-1 py-2 text-center transition-all ${
                 activePage === id
-                  ? 'bg-[#84CC16] text-white shadow-lg shadow-[#84CC16]/20'
-                  : 'bg-white text-slate-600 hover:bg-slate-100 hover:text-slate-950'
+                  ? 'border-[#84CC16] bg-[#84CC16] text-white shadow-md shadow-[#84CC16]/20'
+                  : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
               }`}
             >
-              <Icon size={22} className="mx-auto mb-1" />
-              <span>{label}</span>
+              <Icon size={18} className="mx-auto" />
+              <span className="app-nav-label mt-0.5 block truncate text-[10px] font-semibold leading-tight sm:text-xs">
+                {label}
+              </span>
             </button>
           ))}
         </div>
