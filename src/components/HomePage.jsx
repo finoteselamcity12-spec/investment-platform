@@ -1,5 +1,9 @@
 import { useState } from 'react'
 import { TrendingUp, Wallet, ArrowDownRight, Users, Copy, Check } from 'lucide-react'
+import {
+  REGISTRATION_BONUS_USD,
+  REGISTRATION_BONUS_ETB,
+} from '../lib/platformConfig'
 
 export default function HomePage({ ctx }) {
   const {
@@ -8,10 +12,16 @@ export default function HomePage({ ctx }) {
     myActiveInvestmentsList = [],
     setActivePage,
     referralLink = '',
+    referralEarningsUsd = 0,
+    referralEarningsEtb = 0,
     showToast,
     copied,
     setCopied,
   } = ctx
+
+  const spendableUsd = Math.max(0, Number(usdBalance) - REGISTRATION_BONUS_USD)
+  const spendableEtb = Math.max(0, Number(etbBalance) - REGISTRATION_BONUS_ETB)
+  const totalBalance = spendableUsd + spendableEtb
 
   const [linkCopied, setLinkCopied] = useState(false)
 
@@ -87,9 +97,7 @@ export default function HomePage({ ctx }) {
 
         <div className="home-balance-card rounded-3xl text-white">
           <p className="home-balance-title">Total Balance</p>
-          <p className="home-balance-total">
-            ${(Number(usdBalance) + Number(etbBalance)).toFixed(2)}
-          </p>
+          <p className="home-balance-total">${totalBalance.toFixed(2)}</p>
           <div className="home-wallet-grid">
             <div className="home-wallet-card">
               <p className="home-wallet-label">USD Wallet</p>
@@ -99,6 +107,20 @@ export default function HomePage({ ctx }) {
               <p className="home-wallet-label">ETB Wallet</p>
               <p className="home-wallet-value">
                 {Number(etbBalance).toLocaleString()} Br
+              </p>
+            </div>
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-3 border-t border-white/25 pt-4">
+            <div className="rounded-xl bg-white/15 px-3 py-2.5 backdrop-blur-sm">
+              <p className="text-xs font-semibold text-white/85">USD Referral Bonus</p>
+              <p className="mt-1 text-lg font-bold text-white">
+                ${Number(referralEarningsUsd).toFixed(2)}
+              </p>
+            </div>
+            <div className="rounded-xl bg-white/15 px-3 py-2.5 backdrop-blur-sm">
+              <p className="text-xs font-semibold text-white/85">ETB Referral Bonus</p>
+              <p className="mt-1 text-lg font-bold text-white">
+                {Number(referralEarningsEtb).toLocaleString()} Br
               </p>
             </div>
           </div>
