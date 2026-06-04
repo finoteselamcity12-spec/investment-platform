@@ -75,7 +75,7 @@ export default function InvitePage({ ctx = {} }) {
             <p className="text-lg font-bold text-slate-950">${referralEarningsUsd.toFixed(2)}</p>
           </div>
           <div className="rounded-2xl border border-slate-200 bg-white p-4 text-center">
-            <Coins className="mx-auto text-[#84CC16]" size={22} />
+            <Coins className="mx-auto" size={22} style={{ color: '#FFD700' }} />
             <p className="mt-2 text-xs text-slate-500">ETB earned</p>
             <p className="text-lg font-bold text-slate-950">{referralEarningsEtb.toLocaleString()} Br</p>
           </div>

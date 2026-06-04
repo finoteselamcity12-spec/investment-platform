@@ -321,6 +321,24 @@ function historyRowToTransactions(row) {
   ]
 }
 
+/** All bonus/history rows for one user — .eq('user_id', userId) only */
+export async function fetchBonusHistory(userId) {
+  if (!userId || !isSupabaseConfigured()) return []
+
+  const { data, error } = await supabase
+    .from(HISTORY_TABLE)
+    .select(HISTORY_DISPLAY_COLUMNS)
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    console.warn(`[${HISTORY_TABLE}] fetch failed:`, error.message)
+    return []
+  }
+
+  return data || []
+}
+
 /**
  * History page: current user only, welcome_bonus rows only.
  * .eq('user_id', userId).eq('action', 'welcome_bonus')
@@ -343,7 +361,97 @@ export async function fetchWelcomeBonusHistory(userId) {
   return dedupeTransactions((data || []).flatMap(historyRowToTransactions))
 }
 
-/** @deprecated Use fetchWelcomeBonusHistory for the history page */
-export async function fetchUserHistory(userId) {
-  return fetchWelcomeBonusHistory(userId)
+function depositWithdrawalStatusLabel(status) {
+  if (status === 'approved') return 'Completed'
+  if (status === 'pending') return 'Pending Admin Approval'
+  if (status === 'rejected') return 'Rejected'
+  return status || 'Pending'
+}
+
+async function fetchUserDepositsAndWithdrawals(userId) {
+  if (!userId || !isSupabaseConfigured()) return []
+
+  const [depositsRes, withdrawalsRes] = await Promise.all([
+    supabase
+      .from('deposits')
+      .select('id, currency, amount, status, created_at')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('withdrawals')
+      .select('id, currency, amount, status, created_at')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false }),
+  ])
+
+  if (depositsRes.error) {
+    console.warn('[deposits] user fetch failed:', depositsRes.error.message)
+  }
+  if (withdrawalsRes.error) {
+    console.warn('[withdrawals] user fetch failed:', withdrawalsRes.error.message)
+  }
+
+  const items = []
+
+  for (const row of depositsRes.data || []) {
+    const currency = row.currency === 'USDT' ? 'USD' : row.currency || 'ETB'
+    items.push({
+      id: `deposit-${row.id}`,
+      userId,
+      type: 'Deposit',
+      category: 'Deposits',
+      title: `Deposit (${currency})`,
+      amount: Number(row.amount) || 0,
+      currency,
+      status: depositWithdrawalStatusLabel(row.status),
+      date: row.created_at,
+    })
+  }
+
+  for (const row of withdrawalsRes.data || []) {
+    const currency = row.currency === 'USDT' ? 'USD' : row.currency || 'ETB'
+    items.push({
+      id: `withdrawal-${row.id}`,
+      userId,
+      type: 'Withdrawal',
+      category: 'Withdrawals',
+      title: `Withdrawal (${currency})`,
+      amount: Number(row.amount) || 0,
+      currency,
+      status: depositWithdrawalStatusLabel(row.status),
+      date: row.created_at,
+    })
+  }
+
+  return items
+}
+
+/**
+ * Personal transaction history for the signed-in user only.
+ * Supabase: history, deposits, withdrawals — all filtered with .eq('user_id', userId).
+ */
+export async function fetchUserHistory(userId, email) {
+  if (!userId) {
+    return loadLocalTransactionsForUser(null, email)
+  }
+
+  const [remoteRows, depositWithdrawalRows] = await Promise.all([
+    fetchBonusHistory(userId),
+    fetchUserDepositsAndWithdrawals(userId),
+  ])
+
+  const fromServer = remoteRows.flatMap(historyRowToTransactions)
+  const serverIds = new Set([
+    ...fromServer.map((t) => t.id),
+    ...depositWithdrawalRows.map((t) => t.id),
+  ])
+
+  const localOnly = loadLocalTransactionsForUser(userId, email).filter((t) => {
+    if (t.userId && t.userId !== userId) return false
+    return !serverIds.has(t.id)
+  })
+
+  const merged = dedupeTransactions([...fromServer, ...depositWithdrawalRows, ...localOnly])
+  merged.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
+  return merged
 }

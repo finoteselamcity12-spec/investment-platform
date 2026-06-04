@@ -1,8 +1,7 @@
-import { TrendingUp, Wallet, ArrowDownRight, Users } from 'lucide-react'
-import {
-  REGISTRATION_BONUS_USD,
-  REGISTRATION_BONUS_ETB,
-} from '../lib/platformConfig'
+import { TrendingUp, Wallet, ArrowDownRight, Users, Coins } from 'lucide-react'
+import { computeTotalBalanceUsd } from '../lib/platformConfig'
+
+const GOLD_COIN = '#FFD700'
 
 export default function HomePage({ ctx }) {
   const {
@@ -14,9 +13,7 @@ export default function HomePage({ ctx }) {
     referralEarningsEtb = 0,
   } = ctx
 
-  const spendableUsd = Math.max(0, Number(usdBalance) - REGISTRATION_BONUS_USD)
-  const spendableEtb = Math.max(0, Number(etbBalance) - REGISTRATION_BONUS_ETB)
-  const totalBalance = spendableUsd + spendableEtb
+  const totalBalance = computeTotalBalanceUsd(usdBalance, etbBalance)
 
   const usdDailyProfit = myActiveInvestmentsList
     .filter((item) => item.currency === 'USD')
@@ -72,11 +69,17 @@ export default function HomePage({ ctx }) {
           <p className="home-balance-total">${totalBalance.toFixed(2)}</p>
           <div className="home-wallet-grid">
             <div className="home-wallet-card">
-              <p className="home-wallet-label text-[0.7rem] sm:text-xs">USD Wallet</p>
+              <div className="home-wallet-header">
+                <Coins size={18} className="home-wallet-coin-icon shrink-0" style={{ color: GOLD_COIN }} />
+                <p className="home-wallet-label text-[0.7rem] sm:text-xs">USD Wallet</p>
+              </div>
               <p className="home-wallet-value">${Number(usdBalance).toFixed(2)}</p>
             </div>
             <div className="home-wallet-card">
-              <p className="home-wallet-label text-[0.7rem] sm:text-xs">ETB Wallet</p>
+              <div className="home-wallet-header">
+                <Coins size={18} className="home-wallet-coin-icon shrink-0" style={{ color: GOLD_COIN }} />
+                <p className="home-wallet-label text-[0.7rem] sm:text-xs">ETB Wallet</p>
+              </div>
               <p className="home-wallet-value">
                 {Number(etbBalance).toLocaleString()} Br
               </p>
