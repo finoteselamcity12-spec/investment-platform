@@ -7,6 +7,12 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.warn('VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY is not set. Supabase will run in demo/local mode.')
 }
 
-const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '')
+const supabase = createClient(supabaseUrl || '', supabaseAnonKey || '', {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+  },
+})
 
 export default supabase

@@ -12,9 +12,11 @@ export const HISTORY_TABLE = 'history'
 
 /** Columns loaded for the history page (no select *) */
 export const HISTORY_DISPLAY_COLUMNS =
-  'id, user_id, action, currency, amount, reference_id, metadata, created_at'
+  'id,user_id,action,currency,amount,reference_id,metadata,created_at'
 
 const LEGACY_SIGNUP_ACTION = 'signup_bonus'
+
+const WELCOME_BONUS_ACTION_FILTER = `action.eq.${WELCOME_BONUS_ACTION},action.eq.${LEGACY_SIGNUP_ACTION}`
 
 const SIGNUP_BONUS_ETB_ID = 'signup-bonus-etb'
 const SIGNUP_BONUS_USD_ID = 'signup-bonus-usd'
@@ -28,9 +30,9 @@ export async function countWelcomeBonusHistory(userId) {
 
   const { count, error } = await supabase
     .from(HISTORY_TABLE)
-    .select(HISTORY_DISPLAY_COLUMNS, { count: 'exact', head: true })
+    .select('id', { count: 'exact', head: true })
     .eq('user_id', userId)
-    .in('action', [WELCOME_BONUS_ACTION, LEGACY_SIGNUP_ACTION])
+    .or(WELCOME_BONUS_ACTION_FILTER)
 
   if (error) {
     console.warn(`[${HISTORY_TABLE}] welcome_bonus count failed:`, error.message)
@@ -44,7 +46,7 @@ export async function countHistoryByAction(userId, action, referenceId = null) {
 
   let query = supabase
     .from(HISTORY_TABLE)
-    .select(HISTORY_DISPLAY_COLUMNS, { count: 'exact', head: true })
+    .select('id', { count: 'exact', head: true })
     .eq('user_id', userId)
     .eq('action', action)
 

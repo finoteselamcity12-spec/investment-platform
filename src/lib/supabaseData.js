@@ -394,16 +394,24 @@ export async function submitPendingDeposit({
     })
   }
 
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser()
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+  let authUser = sessionData?.session?.user ?? null
 
-  if (authError || !user?.id) {
-    return { ok: false, error: 'Please sign in again to submit a deposit.' }
+  if (!authUser) {
+    const { data: userData, error: authError } = await supabase.auth.getUser()
+    if (authError || !userData?.user?.id) {
+      const detail = sessionError?.message || authError?.message
+      return {
+        ok: false,
+        error: detail
+          ? `Please sign in again to submit a deposit. (${detail})`
+          : 'Please sign in again to submit a deposit.',
+      }
+    }
+    authUser = userData.user
   }
 
-  const authUserId = user.id
+  const authUserId = authUser.id
   let proofUrl = await uploadDepositProof(authUserId, compressedFile)
 
   const { data, error } = await supabase
