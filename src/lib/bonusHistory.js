@@ -431,12 +431,12 @@ async function fetchUserDepositsAndWithdrawals(userId) {
   const [depositsRes, withdrawalsRes] = await Promise.all([
     supabase
       .from('deposits')
-      .select('id, currency, amount, status, created_at')
+      .select('id, currency, amount_etb, amount_usd, status, created_at')
       .eq('user_id', userId)
       .order('created_at', { ascending: false }),
     supabase
       .from('withdrawals')
-      .select('id, currency, amount, status, created_at')
+      .select('id, currency, amount_etb, amount_usd, status, created_at')
       .eq('user_id', userId)
       .order('created_at', { ascending: false }),
   ])
@@ -458,7 +458,7 @@ async function fetchUserDepositsAndWithdrawals(userId) {
       type: 'Deposit',
       category: 'Deposits',
       title: `Deposit (${currency})`,
-      amount: Number(row.amount) || 0,
+      amount: Number(row.amount_usd ?? row.amount_etb ?? row.amount) || 0,
       currency,
       status: depositWithdrawalStatusLabel(row.status),
       date: row.created_at,
@@ -473,7 +473,7 @@ async function fetchUserDepositsAndWithdrawals(userId) {
       type: 'Withdrawal',
       category: 'Withdrawals',
       title: `Withdrawal (${currency})`,
-      amount: Number(row.amount) || 0,
+      amount: Number(row.amount_usd ?? row.amount_etb ?? row.amount) || 0,
       currency,
       status: depositWithdrawalStatusLabel(row.status),
       date: row.created_at,

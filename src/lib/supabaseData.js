@@ -242,12 +242,19 @@ export async function recordDepositForReferral({ userId, currency, amount }) {
   const normalizedCurrency =
     currency === 'USDT' || currency === 'USD' ? 'USD' : 'ETB'
 
-  const { error } = await supabase.from('deposits').insert({
+  // Insert using amount_etb / amount_usd to match DB schema
+  const depositPayload = {
     user_id: userId,
     currency: normalizedCurrency === 'USD' ? 'USD' : 'ETB',
-    amount: Number(amount),
     status: 'approved',
-  })
+  }
+  if (normalizedCurrency === 'USD') {
+    depositPayload.amount_usd = Number(amount)
+  } else {
+    depositPayload.amount_etb = Number(amount)
+  }
+
+  const { error } = await supabase.from('deposits').insert(depositPayload)
 
   if (error) {
     console.error('Deposit record failed:', error)
