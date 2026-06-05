@@ -392,35 +392,39 @@ AS $$
   SELECT id, email, created_at FROM auth.users;
 $$;
 
--- admin_approve_withdrawal(withdrawal_id UUID)
+-- admin_approve_withdrawal(p_withdrawal_id UUID)
 DROP FUNCTION IF EXISTS public.admin_approve_withdrawal(UUID) CASCADE;
-CREATE OR REPLACE FUNCTION public.admin_approve_withdrawal(withdrawal_id UUID)
+CREATE OR REPLACE FUNCTION public.admin_approve_withdrawal(p_withdrawal_id UUID)
 RETURNS JSON
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
 AS $$
 DECLARE
-  w RECORD;
+  v_user_id UUID;
+  v_amount NUMERIC;
 BEGIN
   IF NOT public.is_admin() THEN
     RAISE EXCEPTION 'not_admin';
   END IF;
 
-  SELECT * INTO w FROM public.withdrawals WHERE id = withdrawal_id FOR UPDATE;
+  SELECT user_id, amount INTO v_user_id, v_amount
+  FROM public.withdrawals
+  WHERE id = p_withdrawal_id
+  FOR UPDATE;
+
   IF NOT FOUND THEN
     RAISE EXCEPTION 'withdrawal_not_found';
   END IF;
 
-  IF w.status = 'approved' THEN
-    RETURN json_build_object('ok', true, 'already_approved', true, 'withdrawal_id', withdrawal_id);
-  END IF;
-
   UPDATE public.withdrawals
   SET status = 'approved', updated_at = NOW()
-  WHERE id = withdrawal_id;
+  WHERE id = p_withdrawal_id;
 
-  RETURN json_build_object('ok', true, 'withdrawal_id', withdrawal_id);
+  INSERT INTO public.history (user_id, action, amount, reference_id, metadata)
+  VALUES (v_user_id, 'withdrawal', v_amount, p_withdrawal_id, jsonb_build_object('status', 'successful'));
+
+  RETURN json_build_object('ok', true, 'status', 'approved');
 EXCEPTION WHEN OTHERS THEN
   RETURN json_build_object('ok', false, 'error', SQLERRM);
 END;
