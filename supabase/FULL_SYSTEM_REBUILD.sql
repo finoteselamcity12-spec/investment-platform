@@ -607,6 +607,20 @@ EXCEPTION WHEN OTHERS THEN
 END;
 $$;
 
+-- Dynamic view for per-user active investment and daily profit summary.
+CREATE OR REPLACE VIEW public.user_financial_summary AS
+SELECT
+  p.id AS user_id,
+  COALESCE(SUM(CASE WHEN i.currency IN ('USD','USDT') THEN i.amount END), 0) AS active_investment_usd,
+  COALESCE(SUM(CASE WHEN i.currency = 'ETB' THEN i.amount END), 0) AS active_investment_etb,
+  COALESCE(SUM(CASE WHEN i.currency IN ('USD','USDT') THEN i.amount * i.daily_interest_rate END), 0) AS daily_profit_usd,
+  COALESCE(SUM(CASE WHEN i.currency = 'ETB' THEN i.amount * i.daily_interest_rate END), 0) AS daily_profit_etb
+FROM public.profiles p
+LEFT JOIN public.investments i ON i.user_id = p.id AND i.status = 'active'
+GROUP BY p.id;
+
+GRANT SELECT ON public.user_financial_summary TO authenticated;
+
 -- Automatically build profile and balance record when a new auth user is created.
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER
