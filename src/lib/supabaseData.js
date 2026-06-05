@@ -368,7 +368,7 @@ export async function submitPendingDeposit({
   userEmail,
   amount,
   currency,
-  paymentMethodId,
+  payment_method_id,
   paymentMethod,
   transactionId,
   receiptFile,
@@ -424,7 +424,7 @@ export async function submitPendingDeposit({
   const authUserId = authUser.id
   let proofUrl = await uploadDepositProof(authUserId, compressedFile)
 
-  const paymentMethodIdentifier = paymentMethodId ?? paymentMethod
+  const paymentMethodIdentifier = payment_method_id ?? paymentMethod
 
   const insertPayload = {
     user_id: authUserId,

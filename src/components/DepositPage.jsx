@@ -131,7 +131,7 @@ export default function DepositPage({ ctx = {} }) {
         userEmail: activeUserEmail,
         amount: depositAmount,
         currency: depositCurrency,
-        paymentMethodId: selectedPaymentData.id,
+        payment_method_id: selectedPaymentData.id,
         transactionId: trimmedTxId,
         receiptFile,
       })
