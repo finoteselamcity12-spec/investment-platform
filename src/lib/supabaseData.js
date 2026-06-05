@@ -285,4 +285,225 @@ export async function testSupabaseConnection() {
   }
 }
 
+export const DEPOSIT_RECEIPT_MAX_BYTES = 5 * 1024 * 1024
+export const DEPOSIT_PROOFS_BUCKET = 'deposit-proofs'
+
+/**
+ * Compress receipt images so localStorage fallback stays under quota.
+ */
+export async function compressReceiptImage(file, maxBytes = 350_000) {
+  if (!file?.type?.startsWith('image/')) return file
+  if (file.size <= maxBytes) return file
+
+  const bitmap = await createImageBitmap(file)
+  const maxDim = 1280
+  const scale = Math.min(1, maxDim / Math.max(bitmap.width, bitmap.height))
+  const width = Math.max(1, Math.round(bitmap.width * scale))
+  const height = Math.max(1, Math.round(bitmap.height * scale))
+
+  const canvas = document.createElement('canvas')
+  canvas.width = width
+  canvas.height = height
+  const ctx = canvas.getContext('2d')
+  ctx.drawImage(bitmap, 0, 0, width, height)
+  bitmap.close()
+
+  let quality = 0.82
+  let blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', quality))
+  while (blob && blob.size > maxBytes && quality > 0.35) {
+    quality -= 0.12
+    blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', quality))
+  }
+
+  if (!blob) return file
+  const baseName = (file.name || 'receipt').replace(/\.[^.]+$/, '')
+  return new File([blob], `${baseName}.jpg`, { type: 'image/jpeg' })
+}
+
+function normalizeDepositCurrency(currency) {
+  const c = String(currency || '').toUpperCase()
+  return c === 'USD' || c === 'USDT' ? 'USD' : 'ETB'
+}
+
+function appendLocalPendingDeposit(record) {
+  const pendingDeposits = JSON.parse(localStorage.getItem('admin_pending_deposits') || '[]')
+  pendingDeposits.push(record)
+  localStorage.setItem('admin_pending_deposits', JSON.stringify(pendingDeposits))
+}
+
+async function uploadDepositProof(authUserId, receiptFile) {
+  const safeExt = (receiptFile.name?.split('.').pop() || 'jpg').replace(/[^a-z0-9]/gi, '') || 'jpg'
+  const path = `${authUserId}/${Date.now()}-receipt.${safeExt}`
+
+  const { error: uploadError } = await supabase.storage
+    .from(DEPOSIT_PROOFS_BUCKET)
+    .upload(path, receiptFile, {
+      contentType: receiptFile.type || 'image/jpeg',
+      upsert: false,
+    })
+
+  if (uploadError) {
+    console.warn('[deposit] proof upload failed:', uploadError.message)
+    return null
+  }
+
+  const { data: urlData } = supabase.storage.from(DEPOSIT_PROOFS_BUCKET).getPublicUrl(path)
+  return urlData?.publicUrl || null
+}
+
+/**
+ * Submit a pending deposit: upload receipt to Storage, insert row in public.deposits.
+ */
+export async function submitPendingDeposit({
+  userId,
+  userEmail,
+  amount,
+  currency,
+  paymentMethod,
+  transactionId,
+  receiptFile,
+}) {
+  const txId = String(transactionId || '').trim()
+  if (!txId) {
+    return { ok: false, error: 'Transaction ID is required.' }
+  }
+  if (!receiptFile || !(receiptFile instanceof File)) {
+    return { ok: false, error: 'Receipt image is required.' }
+  }
+  if (receiptFile.size > DEPOSIT_RECEIPT_MAX_BYTES) {
+    return { ok: false, error: 'Receipt must be 5MB or smaller.' }
+  }
+
+  const depositAmount = Number(amount)
+  if (!Number.isFinite(depositAmount) || depositAmount <= 0) {
+    return { ok: false, error: 'Enter a valid deposit amount.' }
+  }
+
+  const normCurrency = normalizeDepositCurrency(currency)
+  const compressedFile = await compressReceiptImage(receiptFile)
+
+  if (!isSupabaseConfigured()) {
+    return submitPendingDepositLocal({
+      userId: userId || userEmail,
+      userEmail,
+      amount: depositAmount,
+      currency: normCurrency,
+      paymentMethod,
+      transactionId: txId,
+      receiptFile: compressedFile,
+    })
+  }
+
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser()
+
+  if (authError || !user?.id) {
+    return { ok: false, error: 'Please sign in again to submit a deposit.' }
+  }
+
+  const authUserId = user.id
+  let proofUrl = await uploadDepositProof(authUserId, compressedFile)
+
+  const { data, error } = await supabase
+    .from('deposits')
+    .insert({
+      user_id: authUserId,
+      currency: normCurrency,
+      amount: depositAmount,
+      status: 'pending',
+      payment_method: paymentMethod || null,
+      transaction_id: txId,
+      proof_url: proofUrl,
+      screenshot_url: proofUrl,
+    })
+    .select('id')
+    .single()
+
+  if (error) {
+    console.error('[deposit] insert failed:', error.message)
+    return { ok: false, error: error.message || 'Could not save deposit.' }
+  }
+
+  const localRecord = {
+    id: data.id,
+    supabaseId: data.id,
+    userId: authUserId,
+    userEmail: userEmail || user.email,
+    amount: depositAmount,
+    currency: normCurrency,
+    paymentMethod: paymentMethod || null,
+    transactionId: txId,
+    screenshot: proofUrl,
+    proofUrl,
+    status: 'Pending',
+    createdAt: new Date().toISOString(),
+    source: 'supabase',
+  }
+
+  try {
+    appendLocalPendingDeposit(localRecord)
+  } catch (storageErr) {
+    console.warn('[deposit] local cache skipped:', storageErr?.message || storageErr)
+  }
+
+  return { ok: true, depositId: data.id, proofUrl }
+}
+
+async function submitPendingDepositLocal({
+  userId,
+  userEmail,
+  amount,
+  currency,
+  paymentMethod,
+  transactionId,
+  receiptFile,
+}) {
+  let proofPreview = null
+  try {
+    proofPreview = await new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(reader.result)
+      reader.onerror = () => reject(reader.error)
+      reader.readAsDataURL(receiptFile)
+    })
+    if (typeof proofPreview === 'string' && proofPreview.length > 120_000) {
+      proofPreview = null
+    }
+  } catch {
+    proofPreview = null
+  }
+
+  const pendingDeposit = {
+    id: `deposit-${Date.now()}`,
+    userId: userId || userEmail,
+    userEmail: userEmail || userId,
+    amount,
+    currency,
+    paymentMethod,
+    transactionId,
+    screenshot: proofPreview,
+    screenshotName: receiptFile.name,
+    status: 'Pending',
+    createdAt: new Date().toISOString(),
+  }
+
+  try {
+    appendLocalPendingDeposit(pendingDeposit)
+  } catch (err) {
+    const isQuota =
+      err?.name === 'QuotaExceededError' ||
+      String(err?.message || '').toLowerCase().includes('quota')
+    return {
+      ok: false,
+      error: isQuota
+        ? 'Storage is full. Clear browser data or connect Supabase to submit deposits.'
+        : 'Could not save deposit locally.',
+    }
+  }
+
+  return { ok: true, depositId: pendingDeposit.id, proofUrl: proofPreview }
+}
+
 export { REFERRAL_BONUS_USD, REFERRAL_BONUS_ETB }

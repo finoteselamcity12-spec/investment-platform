@@ -339,7 +339,7 @@ export default function AppShell({ children, activePage, setActivePage }) {
               className={`app-nav-btn${activePage === id ? ' app-nav-btn--active' : ''}`}
               aria-current={activePage === id ? 'page' : undefined}
             >
-              <Icon size={28} strokeWidth={2.25} className="app-nav-icon" aria-hidden="true" />
+              <Icon strokeWidth={2.1} className="app-nav-icon" aria-hidden="true" />
               <span className="app-nav-label">{label}</span>
             </button>
           ))}

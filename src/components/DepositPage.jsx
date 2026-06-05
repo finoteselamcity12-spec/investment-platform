@@ -1,5 +1,10 @@
 import { useState } from 'react'
 import { Upload, Copy, Check } from 'lucide-react'
+import { getSession } from '../lib/authService'
+import {
+  DEPOSIT_RECEIPT_MAX_BYTES,
+  submitPendingDeposit,
+} from '../lib/supabaseData'
 
 export default function DepositPage({ ctx = {} }) {
   const { 
@@ -16,6 +21,7 @@ export default function DepositPage({ ctx = {} }) {
   const [paymentMethod, setPaymentMethod] = useState('Telebirr (Merchant)')
   const [amount, setAmount] = useState('')
   const [transactionId, setTransactionId] = useState('')
+  const [receiptFile, setReceiptFile] = useState(null)
   const [screenshot, setScreenshot] = useState({ name: '', preview: '' })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [copiedField, setCopiedField] = useState('')
@@ -45,13 +51,33 @@ export default function DepositPage({ ctx = {} }) {
   const handleReceiptChange = (e) => {
     const file = e.target.files?.[0]
     if (!file) {
+      setReceiptFile(null)
       setScreenshot({ name: '', preview: '' })
       return
     }
 
+    if (!file.type.startsWith('image/')) {
+      displayToast('Please upload a JPG or PNG image.', 'error')
+      e.target.value = ''
+      return
+    }
+
+    if (file.size > DEPOSIT_RECEIPT_MAX_BYTES) {
+      displayToast('Receipt must be 5MB or smaller.', 'error')
+      e.target.value = ''
+      return
+    }
+
+    setReceiptFile(file)
+
     const reader = new FileReader()
     reader.onload = () => {
       setScreenshot({ name: file.name, preview: reader.result })
+    }
+    reader.onerror = () => {
+      displayToast('Could not read the receipt file.', 'error')
+      setReceiptFile(null)
+      setScreenshot({ name: '', preview: '' })
     }
     reader.readAsDataURL(file)
   }
@@ -84,58 +110,72 @@ export default function DepositPage({ ctx = {} }) {
       return
     }
     
-    if (!amount || !transactionId || !screenshot.preview) {
-      displayToast('Please fill all fields and upload a receipt', 'error')
+    const trimmedTxId = transactionId.trim()
+    if (!trimmedTxId) {
+      displayToast('Transaction ID is required.', 'error')
+      return
+    }
+
+    if (!receiptFile) {
+      displayToast('Please upload a receipt image before submitting.', 'error')
       return
     }
 
     setIsSubmitting(true)
 
     try {
-      // Create pending deposit record
       const depositCurrency = currency === 'USD' ? 'USDT' : currency
-      const pendingDeposit = {
-        id: `deposit-${Date.now()}`,
-        userId: activeUserEmail,
+      const session = getSession()
+      const result = await submitPendingDeposit({
+        userId: session?.user?.id,
         userEmail: activeUserEmail,
-        amount: parseFloat(amount),
+        amount: depositAmount,
         currency: depositCurrency,
         paymentMethod: selectedPaymentData.label,
-        transactionId,
-        screenshot: screenshot.preview,
-        screenshotName: screenshot.name,
-        status: 'Pending',
-        createdAt: new Date().toISOString(),
-      }
-
-      // Store in admin pending deposits
-      const pendingDeposits = JSON.parse(localStorage.getItem('admin_pending_deposits') || '[]')
-      pendingDeposits.push(pendingDeposit)
-      localStorage.setItem('admin_pending_deposits', JSON.stringify(pendingDeposits))
-
-      // Add transaction record
-      addTransaction({
-        id: `tx-${Date.now()}`,
-        type: 'Deposit',
-        category: 'Deposits',
-        title: `Deposit Submitted: ${currency === 'USD' ? '$' : ''}${amount} ${currency === 'USD' ? 'USDT' : currency}`,
-        amount: parseFloat(amount),
-        currency: depositCurrency,
-        status: 'Pending Admin Approval',
-        date: new Date().toISOString(),
+        transactionId: trimmedTxId,
+        receiptFile,
       })
 
+      if (!result.ok) {
+        displayToast(result.error || 'Error submitting deposit. Please try again.', 'error')
+        return
+      }
+
+      if (typeof addTransaction === 'function') {
+        try {
+          addTransaction({
+            id: `tx-${Date.now()}`,
+            type: 'Deposit',
+            category: 'Deposits',
+            title: `Deposit Submitted: ${currency === 'USD' ? '$' : ''}${amount} ${currency === 'USD' ? 'USDT' : currency}`,
+            amount: depositAmount,
+            currency: depositCurrency,
+            status: 'Pending Admin Approval',
+            date: new Date().toISOString(),
+          })
+        } catch (txErr) {
+          console.warn('[deposit] local transaction log failed:', txErr)
+        }
+      }
+
       displayToast('Deposit submitted! Waiting for admin approval.', 'success')
-      
-      // Reset form
+
       setAmount('')
       setTransactionId('')
+      setReceiptFile(null)
       setScreenshot({ name: '', preview: '' })
-      
-      // Store pending state
-      localStorage.setItem(`user_pending_deposit_${activeUserEmail}`, pendingDeposit.id)
+
+      const receiptInput = document.getElementById('receipt-upload')
+      if (receiptInput) receiptInput.value = ''
+
+      localStorage.setItem(`user_pending_deposit_${activeUserEmail}`, result.depositId)
     } catch (error) {
-      displayToast('Error submitting deposit. Please try again.', 'error')
+      console.error('[deposit] submit failed:', error)
+      const message =
+        error?.name === 'QuotaExceededError'
+          ? 'Browser storage is full. Try a smaller image or clear site data.'
+          : 'Error submitting deposit. Please try again.'
+      displayToast(message, 'error')
     } finally {
       setIsSubmitting(false)
     }
@@ -297,7 +337,7 @@ export default function DepositPage({ ctx = {} }) {
         {/* Submit Button */}
         <button
           type="submit"
-          disabled={isSubmitting}
+          disabled={isSubmitting || !receiptFile || !transactionId.trim() || !amount}
           className="w-full rounded-2xl bg-[#84CC16] px-4 py-4 font-bold text-white shadow-lg shadow-[#84CC16]/30 transition-all hover:bg-lime-500 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSubmitting ? 'Submitting...' : 'Submit Deposit'}
