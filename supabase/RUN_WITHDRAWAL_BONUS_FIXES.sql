@@ -155,27 +155,26 @@ CREATE TRIGGER tr_log_withdrawal_history
   EXECUTE FUNCTION public.log_withdrawal_to_history();
 
 -- ─── submit_user_withdrawal: balance check + deduct + pending row ─────────────
+DROP FUNCTION IF EXISTS public.submit_user_withdrawal(numeric, text, text, text, text);
+DROP FUNCTION IF EXISTS public.submit_user_withdrawal(numeric, text, text, text, text, text);
+
 CREATE OR REPLACE FUNCTION public.submit_user_withdrawal(
   p_amount NUMERIC,
   p_currency TEXT,
-  p_bank TEXT DEFAULT NULL,
-  p_payment_method TEXT DEFAULT NULL,
-  p_account_name TEXT DEFAULT NULL,
-  p_account_number TEXT DEFAULT NULL
+  p_bank TEXT,
+  p_account_name TEXT,
+  p_account_number TEXT,
+  p_payment_method TEXT
 )
-RETURNS JSON
+RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public
 AS $$
 DECLARE
   v_user_id UUID;
   v_bal RECORD;
   v_currency TEXT;
-  v_withdrawal_id UUID;
-  v_payment_method TEXT;
 BEGIN
-  v_payment_method := COALESCE(NULLIF(TRIM(p_payment_method), ''), 'Telebirr');
   v_user_id := auth.uid();
   IF v_user_id IS NULL THEN
     RAISE EXCEPTION 'not_authenticated';
@@ -209,25 +208,16 @@ BEGIN
     WHERE user_id = v_user_id;
   END IF;
 
-  INSERT INTO public.withdrawals (
-    user_id, currency, amount, status, bank, payment_method, account_name, account_number
-  ) VALUES (
+  INSERT INTO public.withdrawals (user_id, amount, currency, bank, account_name, account_number, payment_method, status)
+  VALUES (
     v_user_id,
-    v_currency,
     p_amount,
-    'pending',
+    v_currency,
     NULLIF(TRIM(p_bank), ''),
-    v_payment_method,
     NULLIF(TRIM(p_account_name), ''),
-    NULLIF(TRIM(p_account_number), '')
-  )
-  RETURNING id INTO v_withdrawal_id;
-
-  RETURN json_build_object(
-    'ok', true,
-    'withdrawal_id', v_withdrawal_id,
-    'currency', v_currency,
-    'amount', p_amount
+    NULLIF(TRIM(p_account_number), ''),
+    NULLIF(TRIM(p_payment_method), ''),
+    'pending'
   );
 END;
 $$;

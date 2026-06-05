@@ -19,7 +19,9 @@ export default function Withdraw({ ctx = {}, embedded = false }) {
   } = ctx
 
   const [amount, setAmount] = useState('')
-  const [paymentMethod, setPaymentMethod] = useState('CBE')
+  const [currency, setCurrency] = useState('ETB')
+  const [bank, setBank] = useState('CBE')
+  const [paymentMethod, setPaymentMethod] = useState('Telebirr')
   const [accountName, setAccountName] = useState('')
   const [accountNumber, setAccountNumber] = useState('')
   const [toast, setToast] = useState('')
@@ -28,11 +30,18 @@ export default function Withdraw({ ctx = {}, embedded = false }) {
   const [loading, setLoading] = useState(false)
 
   const paymentMethods = ['Telebirr', 'CBE', 'Bank Transfer', 'M-Pesa', 'USDT']
+  const currencies = ['ETB', 'USD']
 
   useEffect(() => {
     const session = getSession()
     setUserEmail(ctxEmail || session?.user?.email || '')
   }, [ctxEmail])
+
+  useEffect(() => {
+    if (paymentMethod === 'USDT') {
+      setCurrency('USD')
+    }
+  }, [paymentMethod])
 
   function showToast(msg, type = 'success') {
     if (typeof ctxShowToast === 'function') {
@@ -47,28 +56,35 @@ export default function Withdraw({ ctx = {}, embedded = false }) {
   async function handleSubmit(e) {
     e.preventDefault()
     const value = Number(amount)
+    const trimmedCurrency = currency.trim().toUpperCase()
+    const trimmedBank = bank.trim()
     const trimmedPaymentMethod = paymentMethod.trim()
     const trimmedName = accountName.trim()
     const trimmedAccount = accountNumber.trim()
 
-    if (!trimmedPaymentMethod || !trimmedName || !trimmedAccount || !value || value <= 0) {
+    if (!trimmedCurrency || !trimmedBank || !trimmedPaymentMethod || !trimmedName || !trimmedAccount || !value || value <= 0) {
       showToast('Complete every withdrawal field.', 'error')
       return
     }
 
-    const currency = paymentMethod === 'USDT' ? 'USD' : 'ETB'
-    if (currency === 'ETB' && value < WITHDRAWAL_MIN_ETB) {
+    if (trimmedPaymentMethod === 'USDT' && trimmedCurrency !== 'USD') {
+      showToast('USDT withdrawals must use USD currency.', 'error')
+      return
+    }
+
+    const currencyValue = trimmedCurrency === 'USD' ? 'USD' : 'ETB'
+    if (currencyValue === 'ETB' && value < WITHDRAWAL_MIN_ETB) {
       showToast(`Minimum withdrawal is ${WITHDRAWAL_MIN_ETB} Birr.`, 'error')
       return
     }
-    if (currency === 'USD' && value < WITHDRAWAL_MIN_USD) {
+    if (currencyValue === 'USD' && value < WITHDRAWAL_MIN_USD) {
       showToast(`Minimum withdrawal is $${WITHDRAWAL_MIN_USD}.`, 'error')
       return
     }
 
-    const available = currency === 'USD' ? Number(usdBalance) : Number(etbBalance)
+    const available = currencyValue === 'USD' ? Number(usdBalance) : Number(etbBalance)
     if (value > available) {
-      showToast(`Insufficient ${currency} balance for this withdrawal.`, 'error')
+      showToast(`Insufficient ${currencyValue} balance for this withdrawal.`, 'error')
       return
     }
 
@@ -80,7 +96,8 @@ export default function Withdraw({ ctx = {}, embedded = false }) {
         userId: session?.user?.id,
         userEmail: userEmail || session?.user?.email,
         amount: value,
-        currency,
+        currency: currencyValue,
+        bank: trimmedBank,
         paymentMethod: trimmedPaymentMethod,
         accountName: trimmedName,
         accountNumber: trimmedAccount,
@@ -100,9 +117,9 @@ export default function Withdraw({ ctx = {}, embedded = false }) {
             id: `tx-withdrawal-${Date.now()}`,
             type: 'Withdrawal',
             category: 'Withdrawals',
-            title: `Withdrawal Submitted: ${currency === 'USD' ? '$' : ''}${value} ${currency}`,
+            title: `Withdrawal Submitted: ${currencyValue === 'USD' ? '$' : ''}${value} ${currencyValue}`,
             amount: value,
-            currency,
+            currency: currencyValue,
             status: 'Pending Admin Approval',
             date: new Date().toISOString(),
           })
@@ -114,9 +131,11 @@ export default function Withdraw({ ctx = {}, embedded = false }) {
       showToast('Withdrawal request submitted successfully!', 'success')
 
       setAmount('')
+      setCurrency('ETB')
+      setBank('CBE')
       setAccountName('')
       setAccountNumber('')
-      setPaymentMethod('CBE')
+      setPaymentMethod('Telebirr')
 
       if (embedded) {
         setTimeout(() => setActivePage?.('home'), 1200)
@@ -153,6 +172,30 @@ export default function Withdraw({ ctx = {}, embedded = false }) {
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
                 placeholder="Enter withdrawal amount"
+                className="w-full bg-slate-100 border border-slate-200 rounded-3xl px-4 py-3 text-slate-950 placeholder-slate-400 focus:outline-none focus:border-[#84CC16] focus:ring-2 focus:ring-[#84CC16]/20"
+              />
+            </div>
+
+            <div className="rounded-[1.75rem] bg-white border border-slate-200 p-5 shadow-sm">
+              <label className="block text-sm font-semibold text-slate-950 mb-2">Currency</label>
+              <select
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value)}
+                className="w-full bg-slate-100 border border-slate-200 rounded-3xl px-4 py-3 text-slate-950 focus:outline-none focus:border-[#84CC16] focus:ring-2 focus:ring-[#84CC16]/20"
+              >
+                {currencies.map((option) => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="rounded-[1.75rem] bg-white border border-slate-200 p-5 shadow-sm">
+              <label className="block text-sm font-semibold text-slate-950 mb-2">Bank</label>
+              <input
+                type="text"
+                value={bank}
+                onChange={(e) => setBank(e.target.value)}
+                placeholder="Enter bank name or branch"
                 className="w-full bg-slate-100 border border-slate-200 rounded-3xl px-4 py-3 text-slate-950 placeholder-slate-400 focus:outline-none focus:border-[#84CC16] focus:ring-2 focus:ring-[#84CC16]/20"
               />
             </div>
