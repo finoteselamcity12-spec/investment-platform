@@ -222,7 +222,9 @@ BEGIN
     NULLIF(TRIM(p_payment_method), ''),
     p_account_details,
     'pending'
-  )
+  ) RETURNING id INTO v_withdrawal_id;
+
+  -- history insertion is handled by trigger public.log_withdrawal_to_history
   RETURNING id INTO v_withdrawal_id;
 
   -- mirror into public.history for user-facing history

@@ -78,6 +78,122 @@ ALTER TABLE public.withdrawals
   ADD CONSTRAINT withdrawals_status_check
   CHECK (status IN ('pending', 'approved', 'rejected'));
 
+-- ---------------------------------------------------------------------------
+-- Investments and daily profit tables + RPCs
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.user_investments (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  currency TEXT NOT NULL CHECK (currency IN ('USD','USDT','ETB')),
+  amount NUMERIC(18,4) NOT NULL,
+  status TEXT NOT NULL DEFAULT 'active',
+  daily_interest_rate NUMERIC(10,6) DEFAULT 0.05,
+  started_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  days INTEGER,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.daily_profit (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  amount_usd NUMERIC(18,4) DEFAULT 0,
+  amount_etb NUMERIC(18,4) DEFAULT 0,
+  can_claim BOOLEAN NOT NULL DEFAULT FALSE,
+  last_calculated TIMESTAMPTZ,
+  last_claimed TIMESTAMPTZ
+);
+
+-- Calculate and upsert daily profit for a user — sums active investments and computes daily returns
+CREATE OR REPLACE FUNCTION public.calculate_daily_profit(p_user_id UUID)
+RETURNS JSON
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_usd NUMERIC := 0;
+  v_etb NUMERIC := 0;
+BEGIN
+  IF p_user_id IS NULL THEN
+    RETURN json_build_object('ok', false, 'error', 'invalid_user_id');
+  END IF;
+
+  SELECT COALESCE(SUM(amount * COALESCE(daily_interest_rate, 0.05)),0) 
+    INTO v_usd
+  FROM public.user_investments
+  WHERE user_id = p_user_id AND status = 'active' AND (currency = 'USD' OR currency = 'USDT');
+
+  SELECT COALESCE(SUM(amount * COALESCE(daily_interest_rate, 0.05)),0) 
+    INTO v_etb
+  FROM public.user_investments
+  WHERE user_id = p_user_id AND status = 'active' AND currency = 'ETB';
+
+  -- Upsert into daily_profit table
+  INSERT INTO public.daily_profit (user_id, amount_usd, amount_etb, can_claim, last_calculated)
+  VALUES (p_user_id, v_usd, v_etb, true, NOW())
+  ON CONFLICT (user_id) DO UPDATE
+  SET amount_usd = EXCLUDED.amount_usd,
+      amount_etb = EXCLUDED.amount_etb,
+      can_claim = true,
+      last_calculated = NOW();
+
+  RETURN json_build_object('ok', true, 'amount_usd', v_usd, 'amount_etb', v_etb);
+EXCEPTION WHEN OTHERS THEN
+  RETURN json_build_object('ok', false, 'error', SQLERRM);
+END;
+$$;
+
+-- Claim daily profit: can be invoked by user; moves daily_profit amounts to balances if allowed (24h rule enforced by last_claimed)
+CREATE OR REPLACE FUNCTION public.claim_daily_profit(p_user_id UUID)
+RETURNS JSON
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  dp RECORD;
+BEGIN
+  IF p_user_id IS NULL THEN
+    RETURN json_build_object('ok', false, 'error', 'invalid_user_id');
+  END IF;
+
+  SELECT * INTO dp FROM public.daily_profit WHERE user_id = p_user_id FOR UPDATE;
+
+  IF NOT FOUND OR (COALESCE(dp.amount_usd,0) = 0 AND COALESCE(dp.amount_etb,0) = 0) THEN
+    RETURN json_build_object('ok', true, 'claimed', false, 'reason', 'no_profit');
+  END IF;
+
+  IF dp.last_claimed IS NOT NULL AND dp.last_claimed > NOW() - INTERVAL '24 hours' THEN
+    RETURN json_build_object('ok', false, 'error', 'claim_too_soon');
+  END IF;
+
+  -- ensure balances row exists
+  INSERT INTO public.balances (user_id, etb_balance, usd_balance)
+  VALUES (p_user_id, 0, 0)
+  ON CONFLICT (user_id) DO NOTHING;
+
+  IF COALESCE(dp.amount_usd,0) > 0 THEN
+    UPDATE public.balances
+    SET usd_balance = usd_balance + dp.amount_usd, updated_at = NOW()
+    WHERE user_id = p_user_id;
+  END IF;
+
+  IF COALESCE(dp.amount_etb,0) > 0 THEN
+    UPDATE public.balances
+    SET etb_balance = etb_balance + dp.amount_etb, updated_at = NOW()
+    WHERE user_id = p_user_id;
+  END IF;
+
+  UPDATE public.daily_profit
+  SET amount_usd = 0, amount_etb = 0, can_claim = false, last_claimed = NOW()
+  WHERE user_id = p_user_id;
+
+  RETURN json_build_object('ok', true, 'claimed', true, 'amount_usd', COALESCE(dp.amount_usd,0), 'amount_etb', COALESCE(dp.amount_etb,0));
+EXCEPTION WHEN OTHERS THEN
+  RETURN json_build_object('ok', false, 'error', SQLERRM);
+END;
+$$;
+
 -- Referral trigger on deposit approval (only if bonus function exists)
 DO $migrate$
 BEGIN
@@ -288,6 +404,10 @@ SET search_path = public
 AS $$
 DECLARE
   dep RECORD;
+  bonus_amt NUMERIC(18,4);
+  norm_currency TEXT;
+  bonus_row_id UUID;
+  v_deposit_bonus_count INTEGER;
 BEGIN
   IF NOT public.is_admin() THEN
     RAISE EXCEPTION 'not_admin';
@@ -307,7 +427,14 @@ BEGIN
     RAISE EXCEPTION 'deposit_already_rejected';
   END IF;
 
-  IF dep.currency IN ('USD', 'USDT') THEN
+  norm_currency := CASE WHEN upper(dep.currency) IN ('USD','USDT') THEN 'USD' ELSE 'ETB' END;
+  bonus_amt := ROUND(dep.amount * 0.10, 4);
+
+  INSERT INTO public.balances (user_id, etb_balance, usd_balance)
+  VALUES (dep.user_id, 0, 0)
+  ON CONFLICT (user_id) DO NOTHING;
+
+  IF norm_currency = 'USD' THEN
     UPDATE public.balances
     SET usd_balance = usd_balance + dep.amount, updated_at = NOW()
     WHERE user_id = dep.user_id;
@@ -317,11 +444,52 @@ BEGIN
     WHERE user_id = dep.user_id;
   END IF;
 
+  SELECT COUNT(*)::INTEGER INTO v_deposit_bonus_count
+  FROM public.history
+  WHERE user_id = dep.user_id
+    AND action = 'deposit_bonus'
+    AND reference_id = deposit_id;
+
+  IF v_deposit_bonus_count = 0 THEN
+    INSERT INTO public.history (user_id, action, currency, amount, reference_id, metadata)
+    VALUES (
+      dep.user_id,
+      'deposit_bonus',
+      norm_currency,
+      bonus_amt,
+      deposit_id,
+      jsonb_build_object('deposit_amount', dep.amount, 'rate', 0.10)
+    )
+    ON CONFLICT DO NOTHING
+    RETURNING id INTO bonus_row_id;
+  END IF;
+
+  IF bonus_row_id IS NOT NULL AND bonus_amt > 0 THEN
+    IF norm_currency = 'USD' THEN
+      UPDATE public.balances
+      SET usd_balance = usd_balance + bonus_amt, updated_at = NOW()
+      WHERE user_id = dep.user_id;
+    ELSE
+      UPDATE public.balances
+      SET etb_balance = etb_balance + bonus_amt, updated_at = NOW()
+      WHERE user_id = dep.user_id;
+    END IF;
+  END IF;
+
   UPDATE public.deposits
   SET status = 'approved', updated_at = NOW()
   WHERE id = deposit_id;
 
-  RETURN json_build_object('ok', true, 'deposit_id', deposit_id);
+  RETURN json_build_object(
+    'ok', true,
+    'p_deposit_id', deposit_id,
+    'deposit_amount', dep.amount,
+    'deposit_bonus', COALESCE(bonus_amt, 0),
+    'bonus_applied', bonus_row_id IS NOT NULL,
+    'currency', norm_currency
+  );
+EXCEPTION WHEN OTHERS THEN
+  RETURN json_build_object('ok', false, 'error', SQLERRM);
 END;
 $$;
 
@@ -396,6 +564,7 @@ SET search_path = public
 AS $$
 DECLARE
   w RECORD;
+  v_history_count INTEGER;
 BEGIN
   IF NOT public.is_admin() THEN
     RAISE EXCEPTION 'not_admin';
@@ -408,14 +577,32 @@ BEGIN
   END IF;
 
   IF w.status = 'approved' THEN
-    RETURN json_build_object('ok', true, 'already_approved', true);
+    RETURN json_build_object('ok', true, 'already_approved', true, 'withdrawal_id', withdrawal_id);
   END IF;
 
+  -- Approve withdrawal and update balances/refunds are handled elsewhere for rejects
   UPDATE public.withdrawals
   SET status = 'approved', updated_at = NOW()
   WHERE id = withdrawal_id;
 
-  RETURN json_build_object('ok', true, 'withdrawal_id', withdrawal_id);
+  -- Update any existing history row for this withdrawal, or insert one if missing
+  SELECT COUNT(*)::INTEGER INTO v_history_count
+  FROM public.history
+  WHERE reference_id = withdrawal_id AND action = 'withdrawal';
+
+  IF v_history_count > 0 THEN
+    UPDATE public.history
+    SET metadata = jsonb_set(coalesce(metadata, '{}'::jsonb), '{status}', to_jsonb('successful'::text), true),
+        created_at = NOW()
+    WHERE reference_id = withdrawal_id AND action = 'withdrawal';
+  ELSE
+    INSERT INTO public.history (user_id, action, currency, amount, reference_id, metadata, created_at)
+    VALUES (w.user_id, 'withdrawal', w.currency, w.amount, withdrawal_id, jsonb_build_object('status', 'successful'), NOW());
+  END IF;
+
+  RETURN json_build_object('ok', true, 'withdrawal_id', withdrawal_id, 'logged', true);
+EXCEPTION WHEN OTHERS THEN
+  RETURN json_build_object('ok', false, 'error', SQLERRM);
 END;
 $$;
 

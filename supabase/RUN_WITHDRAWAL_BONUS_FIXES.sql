@@ -223,18 +223,6 @@ BEGIN
     'pending'
   )
   RETURNING id INTO v_withdrawal_id;
-
-  -- Log to public.history as a successful withdrawal record
-  INSERT INTO public.history (user_id, action, amount, currency, reference_id, metadata, created_at)
-  VALUES (
-    v_user_id,
-    'withdrawal',
-    p_amount,
-    v_currency,
-    v_withdrawal_id::text,
-    json_build_object('status', 'successful'),
-    NOW()
-  );
 END;
 $$;
 
