@@ -92,6 +92,13 @@ export default function Withdraw({ ctx = {}, embedded = false }) {
 
     try {
       const session = getSession()
+      const accountDetails = {
+        bank: trimmedBank,
+        payment_method: trimmedPaymentMethod,
+        account_name: trimmedName,
+        account_number: trimmedAccount,
+      }
+
       const result = await submitPendingWithdrawal({
         userId: session?.user?.id,
         userEmail: userEmail || session?.user?.email,
@@ -99,6 +106,7 @@ export default function Withdraw({ ctx = {}, embedded = false }) {
         currency: currencyValue,
         bank: trimmedBank,
         paymentMethod: trimmedPaymentMethod,
+        accountDetails: JSON.stringify(accountDetails),
         accountName: trimmedName,
         accountNumber: trimmedAccount,
       })

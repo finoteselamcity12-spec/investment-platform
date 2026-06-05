@@ -546,6 +546,7 @@ export async function submitPendingWithdrawal({
   paymentMethod,
   accountName,
   accountNumber,
+  accountDetails,
 }) {
   const withdrawAmount = Number(amount)
   if (!Number.isFinite(withdrawAmount) || withdrawAmount <= 0) {
@@ -557,6 +558,7 @@ export async function submitPendingWithdrawal({
   const trimmedPaymentMethod = String(paymentMethod || '').trim()
   const trimmedName = String(accountName || '').trim()
   const trimmedAccount = String(accountNumber || '').trim()
+  const providedAccountDetails = accountDetails || null
 
   if (!trimmedBank || !trimmedPaymentMethod || !trimmedName || !trimmedAccount) {
     return { ok: false, error: 'Bank, payment method, account name, and account number are required.' }
@@ -572,6 +574,7 @@ export async function submitPendingWithdrawal({
       paymentMethod: trimmedPaymentMethod,
       accountName: trimmedName,
       accountNumber: trimmedAccount,
+      accountDetails: providedAccountDetails,
     })
   }
 
@@ -586,6 +589,13 @@ export async function submitPendingWithdrawal({
     }
   }
 
+  const accountDetailsJson = providedAccountDetails || JSON.stringify({
+    bank: trimmedBank,
+    payment_method: trimmedPaymentMethod,
+    account_name: trimmedName,
+    account_number: trimmedAccount,
+  })
+
   const { data, error } = await supabase.rpc('submit_user_withdrawal', {
     p_amount: withdrawAmount,
     p_currency: normCurrency,
@@ -593,6 +603,7 @@ export async function submitPendingWithdrawal({
     p_account_name: trimmedName,
     p_account_number: trimmedAccount,
     p_payment_method: trimmedPaymentMethod || null,
+    p_account_details: accountDetailsJson || null,
   })
 
   if (error) {
@@ -617,6 +628,7 @@ export async function submitPendingWithdrawal({
     currency: normCurrency,
     bank: trimmedBank,
     paymentMethod: trimmedPaymentMethod,
+    accountDetails: accountDetailsJson,
     accountName: trimmedName,
     accountNumber: trimmedAccount,
     status: 'Pending',
@@ -644,9 +656,11 @@ function submitPendingWithdrawalLocal({
   userEmail,
   amount,
   currency,
+  bank,
   paymentMethod,
   accountName,
   accountNumber,
+  accountDetails,
 }) {
   const users = JSON.parse(localStorage.getItem('admin_user_data') || '{}')
   const email = userEmail || userId
@@ -671,7 +685,9 @@ function submitPendingWithdrawalLocal({
     userEmail: email,
     amount,
     currency,
+    bank,
     paymentMethod,
+    accountDetails,
     accountName,
     accountNumber,
     status: 'Pending',

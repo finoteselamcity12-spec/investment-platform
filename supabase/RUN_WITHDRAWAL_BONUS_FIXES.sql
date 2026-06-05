@@ -164,7 +164,8 @@ CREATE OR REPLACE FUNCTION public.submit_user_withdrawal(
   p_bank TEXT,
   p_account_name TEXT,
   p_account_number TEXT,
-  p_payment_method TEXT
+  p_payment_method TEXT,
+  p_account_details TEXT
 )
 RETURNS void
 LANGUAGE plpgsql
@@ -208,7 +209,7 @@ BEGIN
     WHERE user_id = v_user_id;
   END IF;
 
-  INSERT INTO public.withdrawals (user_id, amount, currency, bank, account_name, account_number, payment_method, status)
+  INSERT INTO public.withdrawals (user_id, amount, currency, bank, account_name, account_number, payment_method, account_details, status)
   VALUES (
     v_user_id,
     p_amount,
@@ -217,11 +218,12 @@ BEGIN
     NULLIF(TRIM(p_account_name), ''),
     NULLIF(TRIM(p_account_number), ''),
     NULLIF(TRIM(p_payment_method), ''),
+    p_account_details,
     'pending'
   );
 END;
 $$;
 
-GRANT EXECUTE ON FUNCTION public.submit_user_withdrawal(NUMERIC, TEXT, TEXT, TEXT, TEXT, TEXT) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.submit_user_withdrawal(NUMERIC, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT) TO authenticated;
 
 NOTIFY pgrst, 'reload schema';
