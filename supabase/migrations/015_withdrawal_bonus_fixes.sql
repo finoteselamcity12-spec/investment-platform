@@ -160,6 +160,7 @@ CREATE OR REPLACE FUNCTION public.submit_user_withdrawal(
   p_amount NUMERIC,
   p_currency TEXT,
   p_bank TEXT DEFAULT NULL,
+  p_payment_method TEXT DEFAULT NULL,
   p_account_name TEXT DEFAULT NULL,
   p_account_number TEXT DEFAULT NULL
 )
@@ -173,7 +174,9 @@ DECLARE
   v_bal RECORD;
   v_currency TEXT;
   v_withdrawal_id UUID;
+  v_payment_method TEXT;
 BEGIN
+  v_payment_method := COALESCE(NULLIF(TRIM(p_payment_method), ''), 'Telebirr');
   v_user_id := auth.uid();
   IF v_user_id IS NULL THEN
     RAISE EXCEPTION 'not_authenticated';
@@ -208,13 +211,14 @@ BEGIN
   END IF;
 
   INSERT INTO public.withdrawals (
-    user_id, currency, amount, status, bank, account_name, account_number
+    user_id, currency, amount, status, bank, payment_method, account_name, account_number
   ) VALUES (
     v_user_id,
     v_currency,
     p_amount,
     'pending',
     NULLIF(TRIM(p_bank), ''),
+    v_payment_method,
     NULLIF(TRIM(p_account_name), ''),
     NULLIF(TRIM(p_account_number), '')
   )
@@ -229,6 +233,6 @@ BEGIN
 END;
 $$;
 
-GRANT EXECUTE ON FUNCTION public.submit_user_withdrawal(NUMERIC, TEXT, TEXT, TEXT, TEXT) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.submit_user_withdrawal(NUMERIC, TEXT, TEXT, TEXT, TEXT, TEXT) TO authenticated;
 
 NOTIFY pgrst, 'reload schema';

@@ -542,7 +542,7 @@ export async function submitPendingWithdrawal({
   userEmail,
   amount,
   currency,
-  bank,
+  paymentMethod,
   accountName,
   accountNumber,
 }) {
@@ -552,12 +552,12 @@ export async function submitPendingWithdrawal({
   }
 
   const normCurrency = normalizeDepositCurrency(currency)
-  const trimmedBank = String(bank || '').trim()
+  const trimmedPaymentMethod = String(paymentMethod || '').trim()
   const trimmedName = String(accountName || '').trim()
   const trimmedAccount = String(accountNumber || '').trim()
 
-  if (!trimmedName || !trimmedAccount) {
-    return { ok: false, error: 'Account name and number are required.' }
+  if (!trimmedPaymentMethod || !trimmedName || !trimmedAccount) {
+    return { ok: false, error: 'Account name, number, and payment method are required.' }
   }
 
   if (!isSupabaseConfigured()) {
@@ -566,7 +566,7 @@ export async function submitPendingWithdrawal({
       userEmail,
       amount: withdrawAmount,
       currency: normCurrency,
-      bank: trimmedBank,
+      paymentMethod: trimmedPaymentMethod,
       accountName: trimmedName,
       accountNumber: trimmedAccount,
     })
@@ -586,7 +586,8 @@ export async function submitPendingWithdrawal({
   const { data, error } = await supabase.rpc('submit_user_withdrawal', {
     p_amount: withdrawAmount,
     p_currency: normCurrency,
-    p_bank: trimmedBank || null,
+    p_bank: trimmedPaymentMethod || null,
+    p_payment_method: trimmedPaymentMethod || null,
     p_account_name: trimmedName,
     p_account_number: trimmedAccount,
   })
@@ -611,7 +612,7 @@ export async function submitPendingWithdrawal({
     userEmail: userEmail || authUser.email,
     amount: withdrawAmount,
     currency: normCurrency,
-    bank: trimmedBank,
+    paymentMethod: trimmedPaymentMethod,
     accountName: trimmedName,
     accountNumber: trimmedAccount,
     status: 'Pending',
@@ -639,7 +640,7 @@ function submitPendingWithdrawalLocal({
   userEmail,
   amount,
   currency,
-  bank,
+  paymentMethod,
   accountName,
   accountNumber,
 }) {
@@ -666,7 +667,7 @@ function submitPendingWithdrawalLocal({
     userEmail: email,
     amount,
     currency,
-    bank,
+    paymentMethod,
     accountName,
     accountNumber,
     status: 'Pending',

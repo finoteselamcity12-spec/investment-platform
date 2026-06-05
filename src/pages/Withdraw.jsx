@@ -19,7 +19,7 @@ export default function Withdraw({ ctx = {}, embedded = false }) {
   } = ctx
 
   const [amount, setAmount] = useState('')
-  const [bank, setBank] = useState('CBE')
+  const [paymentMethod, setPaymentMethod] = useState('CBE')
   const [accountName, setAccountName] = useState('')
   const [accountNumber, setAccountNumber] = useState('')
   const [toast, setToast] = useState('')
@@ -27,7 +27,7 @@ export default function Withdraw({ ctx = {}, embedded = false }) {
   const [userEmail, setUserEmail] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const banks = ['CBE', 'Dashen Bank', 'Telebirr', 'M-Pesa', 'USDT']
+  const paymentMethods = ['Telebirr', 'CBE', 'Bank Transfer', 'M-Pesa', 'USDT']
 
   useEffect(() => {
     const session = getSession()
@@ -47,13 +47,16 @@ export default function Withdraw({ ctx = {}, embedded = false }) {
   async function handleSubmit(e) {
     e.preventDefault()
     const value = Number(amount)
+    const trimmedPaymentMethod = paymentMethod.trim()
+    const trimmedName = accountName.trim()
+    const trimmedAccount = accountNumber.trim()
 
-    if (!accountName.trim() || !accountNumber.trim() || !value || value <= 0) {
+    if (!trimmedPaymentMethod || !trimmedName || !trimmedAccount || !value || value <= 0) {
       showToast('Complete every withdrawal field.', 'error')
       return
     }
 
-    const currency = bank === 'USDT' ? 'USD' : 'ETB'
+    const currency = paymentMethod === 'USDT' ? 'USD' : 'ETB'
     if (currency === 'ETB' && value < WITHDRAWAL_MIN_ETB) {
       showToast(`Minimum withdrawal is ${WITHDRAWAL_MIN_ETB} Birr.`, 'error')
       return
@@ -78,9 +81,9 @@ export default function Withdraw({ ctx = {}, embedded = false }) {
         userEmail: userEmail || session?.user?.email,
         amount: value,
         currency,
-        bank,
-        accountName: accountName.trim(),
-        accountNumber: accountNumber.trim(),
+        paymentMethod: trimmedPaymentMethod,
+        accountName: trimmedName,
+        accountNumber: trimmedAccount,
       })
 
       if (!result.ok) {
@@ -113,7 +116,7 @@ export default function Withdraw({ ctx = {}, embedded = false }) {
       setAmount('')
       setAccountName('')
       setAccountNumber('')
-      setBank('CBE')
+      setPaymentMethod('CBE')
 
       if (embedded) {
         setTimeout(() => setActivePage?.('home'), 1200)
@@ -137,7 +140,7 @@ export default function Withdraw({ ctx = {}, embedded = false }) {
               <Wallet size={32} className="text-emerald-600" />
               <h1 className="text-4xl font-bold text-slate-950">Withdraw</h1>
             </div>
-            <p className="mt-3 text-slate-500">Select your bank, enter account details, and submit a withdrawal request.</p>
+            <p className="mt-3 text-slate-500">Select your payment method, enter account details, and submit a withdrawal request.</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -155,14 +158,14 @@ export default function Withdraw({ ctx = {}, embedded = false }) {
             </div>
 
             <div className="rounded-[1.75rem] bg-white border border-slate-200 p-5 shadow-sm">
-              <label className="block text-sm font-semibold text-slate-950 mb-2">Bank / Method</label>
+              <label className="block text-sm font-semibold text-slate-950 mb-2">Payment Method</label>
               <select
-                value={bank}
-                onChange={(e) => setBank(e.target.value)}
+                value={paymentMethod}
+                onChange={(e) => setPaymentMethod(e.target.value)}
                 className="w-full bg-slate-100 border border-slate-200 rounded-3xl px-4 py-3 text-slate-950 focus:outline-none focus:border-[#84CC16] focus:ring-2 focus:ring-[#84CC16]/20"
               >
-                {banks.map((b) => (
-                  <option key={b} value={b}>{b}</option>
+                {paymentMethods.map((method) => (
+                  <option key={method} value={method}>{method}</option>
                 ))}
               </select>
             </div>
@@ -180,13 +183,13 @@ export default function Withdraw({ ctx = {}, embedded = false }) {
 
             <div className="rounded-[1.75rem] bg-white border border-slate-200 p-5 shadow-sm">
               <label className="block text-sm font-semibold text-slate-950 mb-2">
-                {bank === 'USDT' ? 'TRC20 Address' : 'Account Number'}
+                {paymentMethod === 'USDT' ? 'TRC20 Address' : 'Account Number'}
               </label>
               <input
                 type="text"
                 value={accountNumber}
                 onChange={(e) => setAccountNumber(e.target.value)}
-                placeholder={bank === 'USDT' ? 'T...' : 'Account/Phone number'}
+                placeholder={paymentMethod === 'USDT' ? 'T...' : 'Account/Phone number'}
                 className="w-full bg-slate-100 border border-slate-200 rounded-3xl px-4 py-3 text-slate-950 placeholder-slate-400 focus:outline-none focus:border-[#84CC16] focus:ring-2 focus:ring-[#84CC16]/20"
               />
             </div>
