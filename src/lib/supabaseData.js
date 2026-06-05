@@ -56,8 +56,10 @@ export async function syncProfileAfterSignup({
   const { error: balanceError } = await supabase.from('balances').upsert(
     {
       user_id: userId,
-      etb_balance: REGISTRATION_BONUS_ETB,
-      usd_balance: REGISTRATION_BONUS_USD,
+      etb_wallet: REGISTRATION_BONUS_ETB,
+      usd_wallet: REGISTRATION_BONUS_USD,
+      etb_referral_bonus: 0,
+      usd_referral_bonus: 0,
     },
     { onConflict: 'user_id', ignoreDuplicates: true }
   )
@@ -96,7 +98,7 @@ export async function fetchUserBalances(userId) {
 
   const { data, error } = await supabase
     .from('balances')
-    .select('etb_balance, usd_balance')
+    .select('etb_wallet, usd_wallet')
     .eq('user_id', resolvedUserId)
     .maybeSingle()
 
@@ -110,8 +112,8 @@ export async function fetchUserBalances(userId) {
   }
 
   return {
-    etbBalance: Number(data.etb_balance) || 0,
-    usdBalance: Number(data.usd_balance) || 0,
+    etbBalance: Number(data.etb_wallet) || 0,
+    usdBalance: Number(data.usd_wallet) || 0,
     fromDatabase: true,
     empty: false,
   }
@@ -192,12 +194,12 @@ export async function deductBalanceForInvestment(userId, currency, amount) {
   const { data, error } = await supabase
     .from('balances')
     .update({
-      usd_balance: nextUsd,
-      etb_balance: nextEtb,
+      usd_wallet: nextUsd,
+      etb_wallet: nextEtb,
       updated_at: new Date().toISOString(),
     })
     .eq('user_id', resolvedUserId)
-    .select('usd_balance, etb_balance')
+    .select('usd_wallet, etb_wallet')
     .maybeSingle()
 
   if (error) {
@@ -206,8 +208,8 @@ export async function deductBalanceForInvestment(userId, currency, amount) {
   }
 
   const balances = {
-    usdBalance: Number(data?.usd_balance ?? nextUsd) || 0,
-    etbBalance: Number(data?.etb_balance ?? nextEtb) || 0,
+    usdBalance: Number(data?.usd_wallet ?? nextUsd) || 0,
+    etbBalance: Number(data?.etb_wallet ?? nextEtb) || 0,
     fromDatabase: true,
   }
 
