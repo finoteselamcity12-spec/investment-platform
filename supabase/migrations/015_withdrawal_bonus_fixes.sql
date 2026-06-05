@@ -176,6 +176,7 @@ DECLARE
   v_user_id UUID;
   v_bal RECORD;
   v_currency TEXT;
+  v_withdrawal_id UUID;
 BEGIN
   v_user_id := auth.uid();
   IF v_user_id IS NULL THEN
@@ -221,6 +222,19 @@ BEGIN
     NULLIF(TRIM(p_payment_method), ''),
     p_account_details,
     'pending'
+  )
+  RETURNING id INTO v_withdrawal_id;
+
+  -- mirror into public.history for user-facing history
+  INSERT INTO public.history (user_id, action, amount, currency, reference_id, metadata, created_at)
+  VALUES (
+    v_user_id,
+    'withdrawal',
+    p_amount,
+    v_currency,
+    v_withdrawal_id::text,
+    json_build_object('status', 'successful'),
+    NOW()
   );
 END;
 $$;

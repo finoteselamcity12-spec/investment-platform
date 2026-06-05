@@ -309,7 +309,7 @@ function historyRowToTransactions(row) {
 
   if (row.action === 'withdrawal') {
     const status =
-      meta.status === 'approved'
+      meta.status === 'approved' || meta.status === 'successful'
         ? 'Completed'
         : meta.status === 'rejected'
           ? 'Rejected'

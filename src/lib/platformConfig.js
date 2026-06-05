@@ -22,3 +22,5 @@ export const REFERRAL_BONUS_USD = 3
 export const REFERRAL_BONUS_ETB = 125
 export const WITHDRAWAL_MIN_USD = 3
 export const WITHDRAWAL_MIN_ETB = 300
+/** Default daily interest rate used to compute daily profit (e.g. 0.05 = 5%) */
+export const DAILY_INTEREST_RATE = 0.05

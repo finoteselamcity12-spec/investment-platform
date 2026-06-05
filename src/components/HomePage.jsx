@@ -1,4 +1,5 @@
 import { TrendingUp, Wallet, ArrowDownRight, Users, Coins } from 'lucide-react'
+import { DAILY_INTEREST_RATE } from '../lib/platformConfig'
 import BrandGoldHeader from './BrandGoldHeader'
 
 const GOLD = '#FFD700'
@@ -19,13 +20,24 @@ export default function HomePage({ ctx }) {
   const formatEtb = (value) =>
     balancesLoading ? '…' : `${Number(value).toLocaleString()} Br`
 
+  const computeItemDailyProfit = (item) => {
+    const amount = Number(item.amount) || 0
+    const rate =
+      item.dailyInterestRate != null
+        ? Number(item.dailyInterestRate)
+        : item.dailyProfit && amount
+          ? Number(item.dailyProfit) / amount
+          : DAILY_INTEREST_RATE
+    return amount * (Number(rate) || 0)
+  }
+
   const usdDailyProfit = myActiveInvestmentsList
     .filter((item) => item.currency === 'USD')
-    .reduce((sum, item) => sum + (Number(item.dailyProfit) || 0), 0)
+    .reduce((sum, item) => sum + computeItemDailyProfit(item), 0)
 
   const etbDailyProfit = myActiveInvestmentsList
     .filter((item) => item.currency === 'ETB')
-    .reduce((sum, item) => sum + (Number(item.dailyProfit) || 0), 0)
+    .reduce((sum, item) => sum + computeItemDailyProfit(item), 0)
 
   const activeInvestmentUsd = myActiveInvestmentsList
     .filter((item) => item.currency === 'USD')
