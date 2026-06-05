@@ -129,7 +129,9 @@ export default function DepositPage({ ctx = {} }) {
       const result = await submitPendingDeposit({
         userId: session?.user?.id,
         userEmail: activeUserEmail,
-        amount: depositAmount,
+        ...(currency === 'USD'
+          ? { amount_usd: depositAmount }
+          : { amount_etb: depositAmount }),
         currency: depositCurrency,
         payment_method_id: selectedPaymentData.id,
         transactionId: trimmedTxId,
