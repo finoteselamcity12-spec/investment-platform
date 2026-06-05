@@ -344,12 +344,64 @@ EXCEPTION WHEN OTHERS THEN
 END;
 $$;
 
+-- admin_get_dashboard_stats()
+DROP FUNCTION IF EXISTS public.admin_get_dashboard_stats() CASCADE;
+CREATE OR REPLACE FUNCTION public.admin_get_dashboard_stats()
+RETURNS JSON
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  RETURN json_build_object(
+    'total_users', (SELECT count(*) FROM auth.users),
+    'pending_deposits', (SELECT count(*) FROM public.deposits WHERE status = 'pending'),
+    'pending_withdrawals', (SELECT count(*) FROM public.withdrawals WHERE status = 'pending'),
+    'active_investments', (SELECT count(*) FROM public.user_investments WHERE status = 'active')
+  );
+END;
+$$;
+
+-- admin_list_pending_deposits()
+DROP FUNCTION IF EXISTS public.admin_list_pending_deposits() CASCADE;
+CREATE OR REPLACE FUNCTION public.admin_list_pending_deposits()
+RETURNS SETOF public.deposits
+LANGUAGE sql
+SECURITY DEFINER
+AS $$
+  SELECT * FROM public.deposits WHERE status = 'pending';
+$$;
+
+-- admin_list_withdrawals()
+DROP FUNCTION IF EXISTS public.admin_list_withdrawals() CASCADE;
+CREATE OR REPLACE FUNCTION public.admin_list_withdrawals()
+RETURNS SETOF public.withdrawals
+LANGUAGE sql
+SECURITY DEFINER
+AS $$
+  SELECT * FROM public.withdrawals;
+$$;
+
+-- admin_list_users()
+DROP FUNCTION IF EXISTS public.admin_list_users() CASCADE;
+CREATE OR REPLACE FUNCTION public.admin_list_users()
+RETURNS TABLE(id UUID, email TEXT, created_at TIMESTAMPTZ)
+LANGUAGE sql
+SECURITY DEFINER
+AS $$
+  SELECT id, email, created_at FROM auth.users;
+$$;
+
 -- Grants
 GRANT EXECUTE ON FUNCTION public.admin_approve_deposit(UUID) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.admin_reject_deposit(UUID) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.submit_user_withdrawal(NUMERIC, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.calculate_daily_profit(UUID) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.claim_daily_profit(UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.admin_get_dashboard_stats() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.admin_list_pending_deposits() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.admin_list_withdrawals() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.admin_list_users() TO authenticated;
 
 -- Schema refresh
 NOTIFY pgrst, 'reload schema';
