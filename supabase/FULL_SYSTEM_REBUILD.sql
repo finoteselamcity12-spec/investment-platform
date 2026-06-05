@@ -59,15 +59,30 @@ CREATE TABLE public.balances (
 CREATE TABLE public.deposits (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  -- Allow frontend to insert amounts specific to currency fields
+  amount_usd NUMERIC(18,4) CHECK (amount_usd > 0),
+  amount_etb NUMERIC(18,4) CHECK (amount_etb > 0),
+  -- canonical amount derived from specific amount_* columns
+  amount NUMERIC(18,4) GENERATED ALWAYS AS (COALESCE(amount_usd, amount_etb)) STORED,
+  CHECK (COALESCE(amount_usd, amount_etb) > 0),
   currency TEXT NOT NULL CHECK (currency IN ('USD','USDT','ETB')),
-  amount NUMERIC(18,4) NOT NULL CHECK (amount > 0),
   status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending','successful','rejected')),
   payment_method TEXT,
   transaction_id TEXT,
+  screenshot_url TEXT,
   proof_url TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- Enable RLS on deposits and add basic policies so users can insert their own deposits
+ALTER TABLE public.deposits ENABLE ROW LEVEL SECURITY;
+CREATE POLICY deposits_select_own ON public.deposits
+  FOR SELECT USING (auth.uid() = user_id OR public.is_admin());
+CREATE POLICY deposits_insert_own ON public.deposits
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY deposits_update_admin ON public.deposits
+  FOR UPDATE USING (public.is_admin());
 
 -- Withdrawals store user withdrawal requests
 CREATE TABLE public.withdrawals (
@@ -668,6 +683,30 @@ CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW
   EXECUTE FUNCTION public.handle_new_user();
+-- Create a simple `my_balance` view for the frontend to query the authenticated user's balances.
+CREATE OR REPLACE VIEW public.my_balance AS
+SELECT user_id, usd_balance, etb_balance, updated_at FROM public.balances;
+
+GRANT SELECT ON public.my_balance TO authenticated;
+
+-- Enable RLS for balances and add policy so users can read their own balance
+ALTER TABLE public.balances ENABLE ROW LEVEL SECURITY;
+CREATE POLICY balances_select_own ON public.balances
+  FOR SELECT USING (auth.uid() = user_id OR public.is_admin());
+
+-- Approve_deposit wrapper to match frontend RPC name `approve_deposit`
+CREATE OR REPLACE FUNCTION public.approve_deposit(p_deposit_id UUID)
+RETURNS JSON
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  RETURN public.admin_approve_deposit(p_deposit_id);
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.approve_deposit(UUID) TO authenticated;
 
 -- Grant execute rights to authenticated users for API access.
 GRANT EXECUTE ON FUNCTION public.is_admin() TO authenticated, anon;
