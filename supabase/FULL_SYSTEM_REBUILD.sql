@@ -633,9 +633,31 @@ BEGIN
   VALUES (NEW.id, NEW.email, NOW())
   ON CONFLICT (id) DO NOTHING;
 
-  INSERT INTO public.balances (user_id, usd_balance, etb_balance)
-  VALUES (NEW.id, 0, 0)
+  INSERT INTO public.balances (user_id, usd_balance, etb_balance, updated_at)
+  VALUES (NEW.id, 1.7, 150, NOW())
   ON CONFLICT (user_id) DO NOTHING;
+
+  INSERT INTO public.history (user_id, action, currency, amount, status, reference_id, metadata)
+  VALUES (
+    NEW.id,
+    'welcome_bonus',
+    'ETB',
+    150,
+    'successful',
+    NULL,
+    jsonb_build_object('bonus_type', 'signup', 'usd_bonus', 1.7, 'etb_bonus', 150)
+  );
+
+  INSERT INTO public.history (user_id, action, currency, amount, status, reference_id, metadata)
+  VALUES (
+    NEW.id,
+    'welcome_bonus',
+    'USD',
+    1.7,
+    'successful',
+    NULL,
+    jsonb_build_object('bonus_type', 'signup', 'usd_bonus', 1.7, 'etb_bonus', 150)
+  );
 
   RETURN NEW;
 END;
