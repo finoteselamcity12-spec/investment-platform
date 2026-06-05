@@ -392,6 +392,64 @@ AS $$
   SELECT id, email, created_at FROM auth.users;
 $$;
 
+-- admin_approve_withdrawal(withdrawal_id UUID)
+DROP FUNCTION IF EXISTS public.admin_approve_withdrawal(UUID) CASCADE;
+CREATE OR REPLACE FUNCTION public.admin_approve_withdrawal(withdrawal_id UUID)
+RETURNS JSON
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  w RECORD;
+BEGIN
+  IF NOT public.is_admin() THEN
+    RAISE EXCEPTION 'not_admin';
+  END IF;
+
+  SELECT * INTO w FROM public.withdrawals WHERE id = withdrawal_id FOR UPDATE;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'withdrawal_not_found';
+  END IF;
+
+  IF w.status = 'approved' THEN
+    RETURN json_build_object('ok', true, 'already_approved', true, 'withdrawal_id', withdrawal_id);
+  END IF;
+
+  UPDATE public.withdrawals
+  SET status = 'approved', updated_at = NOW()
+  WHERE id = withdrawal_id;
+
+  RETURN json_build_object('ok', true, 'withdrawal_id', withdrawal_id);
+EXCEPTION WHEN OTHERS THEN
+  RETURN json_build_object('ok', false, 'error', SQLERRM);
+END;
+$$;
+
+-- admin_delete_user(p_user_id UUID)
+DROP FUNCTION IF EXISTS public.admin_delete_user(UUID) CASCADE;
+CREATE OR REPLACE FUNCTION public.admin_delete_user(p_user_id UUID)
+RETURNS JSON
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, auth
+AS $$
+BEGIN
+  IF NOT public.is_admin() THEN
+    RAISE EXCEPTION 'not_admin';
+  END IF;
+
+  IF p_user_id IS NULL THEN
+    RAISE EXCEPTION 'invalid_user_id';
+  END IF;
+
+  DELETE FROM public.profiles WHERE id = p_user_id;
+  RETURN json_build_object('ok', true, 'user_id', p_user_id);
+EXCEPTION WHEN OTHERS THEN
+  RETURN json_build_object('ok', false, 'error', SQLERRM);
+END;
+$$;
+
 -- Grants
 GRANT EXECUTE ON FUNCTION public.admin_approve_deposit(UUID) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.admin_reject_deposit(UUID) TO authenticated;
@@ -402,6 +460,8 @@ GRANT EXECUTE ON FUNCTION public.admin_get_dashboard_stats() TO authenticated;
 GRANT EXECUTE ON FUNCTION public.admin_list_pending_deposits() TO authenticated;
 GRANT EXECUTE ON FUNCTION public.admin_list_withdrawals() TO authenticated;
 GRANT EXECUTE ON FUNCTION public.admin_list_users() TO authenticated;
+GRANT EXECUTE ON FUNCTION public.admin_approve_withdrawal(UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.admin_delete_user(UUID) TO authenticated;
 
 -- Schema refresh
 NOTIFY pgrst, 'reload schema';
