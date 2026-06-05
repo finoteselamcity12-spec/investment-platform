@@ -68,19 +68,19 @@ export async function hasBonusHistoryAction(userId, action, referenceId = null) 
 }
 
 /**
- * Login guard: if signup_bonus count > 0, do not grant again.
+ * One-time signup bonus history record — call ONLY after registration, never on login.
  */
-export async function handleLoginSignupBonusCheck(userId, email) {
+export async function ensureSignupBonusHistoryOnce(userId, email) {
   if (!userId) return { skipped: true, reason: 'no_user_id' }
 
   const signupCount = await countWelcomeBonusHistory(userId)
   if (signupCount > 0) {
-    console.log('[Auth] welcome_bonus history count:', signupCount, '— skipping grant')
     mirrorSignupBonusToLocalHistory(email, userId)
     return { skipped: true, reason: 'history_exists', count: signupCount }
   }
 
   if (!isSupabaseConfigured()) {
+    mirrorSignupBonusToLocalHistory(email, userId)
     return { skipped: true, reason: 'supabase_not_configured' }
   }
 
@@ -99,6 +99,11 @@ export async function handleLoginSignupBonusCheck(userId, email) {
   }
 
   return { skipped, granted: !skipped, data }
+}
+
+/** @deprecated Use ensureSignupBonusHistoryOnce on signup only — not on login. */
+export async function handleLoginSignupBonusCheck(userId, email) {
+  return ensureSignupBonusHistoryOnce(userId, email)
 }
 
 export async function hasDepositBonusForDeposit(userId, depositId) {
@@ -300,6 +305,56 @@ function historyRowToTransactions(row) {
     if (items.length > 0) return items
   }
 
+  const currency = row.currency === 'USDT' ? 'USD' : row.currency || 'ETB'
+
+  if (row.action === 'withdrawal') {
+    const status =
+      meta.status === 'approved'
+        ? 'Completed'
+        : meta.status === 'rejected'
+          ? 'Rejected'
+          : 'Pending Admin Approval'
+    return [
+      {
+        id: row.id,
+        userId: row.user_id,
+        action: row.action,
+        referenceId: row.reference_id,
+        type: 'Withdrawal',
+        category: 'Withdrawals',
+        title: `Withdrawal (${currency})`,
+        amount: Number(row.amount) || 0,
+        currency,
+        status,
+        date: createdAt,
+      },
+    ]
+  }
+
+  if (row.action === 'deposit') {
+    const status =
+      meta.status === 'approved'
+        ? 'Completed'
+        : meta.status === 'rejected'
+          ? 'Rejected'
+          : 'Pending Admin Approval'
+    return [
+      {
+        id: row.id,
+        userId: row.user_id,
+        action: row.action,
+        referenceId: row.reference_id,
+        type: 'Deposit',
+        category: 'Deposits',
+        title: `Deposit (${currency})`,
+        amount: Number(row.amount) || 0,
+        currency,
+        status,
+        date: createdAt,
+      },
+    ]
+  }
+
   const titleByAction = {
     [WELCOME_BONUS_ACTION]: 'Welcome Bonus',
     [LEGACY_SIGNUP_ACTION]: 'Welcome Bonus',
@@ -447,9 +502,30 @@ export async function fetchUserHistory(userId, email) {
   ])
 
   const fromServer = remoteRows.flatMap(historyRowToTransactions)
+  const historyWithdrawalRefs = new Set(
+    remoteRows
+      .filter((r) => r.action === 'withdrawal' && r.reference_id)
+      .map((r) => String(r.reference_id))
+  )
+  const historyDepositRefs = new Set(
+    remoteRows
+      .filter((r) => r.action === 'deposit' && r.reference_id)
+      .map((r) => String(r.reference_id))
+  )
+  const dedupedDepositWithdrawalRows = depositWithdrawalRows.filter((t) => {
+    if (t.type === 'Withdrawal') {
+      const ref = String(t.id).replace(/^withdrawal-/, '')
+      return !historyWithdrawalRefs.has(ref)
+    }
+    if (t.type === 'Deposit') {
+      const ref = String(t.id).replace(/^deposit-/, '')
+      return !historyDepositRefs.has(ref)
+    }
+    return true
+  })
   const serverIds = new Set([
     ...fromServer.map((t) => t.id),
-    ...depositWithdrawalRows.map((t) => t.id),
+    ...dedupedDepositWithdrawalRows.map((t) => t.id),
   ])
 
   const localTxns = loadLocalTransactionsForUser(userId, email).filter((t) => {
@@ -462,7 +538,7 @@ export async function fetchUserHistory(userId, email) {
     return true
   })
 
-  const merged = dedupeTransactions([...fromServer, ...depositWithdrawalRows, ...localTxns])
+  const merged = dedupeTransactions([...fromServer, ...dedupedDepositWithdrawalRows, ...localTxns])
   merged.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
   return merged
 }

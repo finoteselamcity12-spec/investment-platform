@@ -514,4 +514,172 @@ async function submitPendingDepositLocal({
   return { ok: true, depositId: pendingDeposit.id, proofUrl: proofPreview }
 }
 
+async function resolveSupabaseAuthUser() {
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+  if (sessionData?.session?.user) {
+    return { user: sessionData.session.user, error: null }
+  }
+
+  const { data: userData, error: authError } = await supabase.auth.getUser()
+  if (userData?.user) {
+    return { user: userData.user, error: null }
+  }
+
+  return { user: null, error: sessionError || authError }
+}
+
+function appendLocalPendingWithdrawal(record) {
+  const pending = JSON.parse(localStorage.getItem('admin_pending_withdrawals') || '[]')
+  pending.push(record)
+  localStorage.setItem('admin_pending_withdrawals', JSON.stringify(pending))
+}
+
+/**
+ * Submit a pending withdrawal: server-side balance check, deduct, log to history.
+ */
+export async function submitPendingWithdrawal({
+  userId,
+  userEmail,
+  amount,
+  currency,
+  bank,
+  accountName,
+  accountNumber,
+}) {
+  const withdrawAmount = Number(amount)
+  if (!Number.isFinite(withdrawAmount) || withdrawAmount <= 0) {
+    return { ok: false, error: 'Enter a valid withdrawal amount.' }
+  }
+
+  const normCurrency = normalizeDepositCurrency(currency)
+  const trimmedBank = String(bank || '').trim()
+  const trimmedName = String(accountName || '').trim()
+  const trimmedAccount = String(accountNumber || '').trim()
+
+  if (!trimmedName || !trimmedAccount) {
+    return { ok: false, error: 'Account name and number are required.' }
+  }
+
+  if (!isSupabaseConfigured()) {
+    return submitPendingWithdrawalLocal({
+      userId: userId || userEmail,
+      userEmail,
+      amount: withdrawAmount,
+      currency: normCurrency,
+      bank: trimmedBank,
+      accountName: trimmedName,
+      accountNumber: trimmedAccount,
+    })
+  }
+
+  const { user: authUser, error: authError } = await resolveSupabaseAuthUser()
+  if (!authUser?.id) {
+    const detail = authError?.message
+    return {
+      ok: false,
+      error: detail
+        ? `Please sign in again to withdraw. (${detail})`
+        : 'Please sign in again to withdraw.',
+    }
+  }
+
+  const { data, error } = await supabase.rpc('submit_user_withdrawal', {
+    p_amount: withdrawAmount,
+    p_currency: normCurrency,
+    p_bank: trimmedBank || null,
+    p_account_name: trimmedName,
+    p_account_number: trimmedAccount,
+  })
+
+  if (error) {
+    const msg = error.message || ''
+    if (msg.includes('insufficient_balance')) {
+      return { ok: false, error: `Insufficient ${normCurrency} balance for this withdrawal.` }
+    }
+    if (msg.includes('not_authenticated')) {
+      return { ok: false, error: 'Please sign in again to withdraw.' }
+    }
+    console.error('[withdrawal] RPC failed:', msg)
+    return { ok: false, error: msg || 'Could not submit withdrawal.' }
+  }
+
+  const withdrawalId = data?.withdrawal_id
+  const localRecord = {
+    id: withdrawalId || `withdrawal-${Date.now()}`,
+    supabaseId: withdrawalId,
+    userId: authUser.id,
+    userEmail: userEmail || authUser.email,
+    amount: withdrawAmount,
+    currency: normCurrency,
+    bank: trimmedBank,
+    accountName: trimmedName,
+    accountNumber: trimmedAccount,
+    status: 'Pending',
+    createdAt: new Date().toISOString(),
+    source: 'supabase',
+  }
+
+  try {
+    appendLocalPendingWithdrawal(localRecord)
+  } catch (storageErr) {
+    console.warn('[withdrawal] local cache skipped:', storageErr?.message || storageErr)
+  }
+
+  const balances = await fetchUserBalances(authUser.id)
+  return {
+    ok: true,
+    withdrawalId,
+    usdBalance: balances?.usdBalance,
+    etbBalance: balances?.etbBalance,
+  }
+}
+
+function submitPendingWithdrawalLocal({
+  userId,
+  userEmail,
+  amount,
+  currency,
+  bank,
+  accountName,
+  accountNumber,
+}) {
+  const users = JSON.parse(localStorage.getItem('admin_user_data') || '{}')
+  const email = userEmail || userId
+  if (!users[email]) users[email] = { usdBalance: 0, etbBalance: 0, email }
+
+  const balance =
+    currency === 'USD' ? Number(users[email].usdBalance || 0) : Number(users[email].etbBalance || 0)
+  if (amount > balance) {
+    return { ok: false, error: `Insufficient ${currency} balance for this withdrawal.` }
+  }
+
+  if (currency === 'USD') {
+    users[email].usdBalance = balance - amount
+  } else {
+    users[email].etbBalance = balance - amount
+  }
+  localStorage.setItem('admin_user_data', JSON.stringify(users))
+
+  const record = {
+    id: `withdrawal-${Date.now()}`,
+    userName: users[email].fullName || email,
+    userEmail: email,
+    amount,
+    currency,
+    bank,
+    accountName,
+    accountNumber,
+    status: 'Pending',
+    createdAt: new Date().toISOString(),
+  }
+  appendLocalPendingWithdrawal(record)
+
+  return {
+    ok: true,
+    withdrawalId: record.id,
+    usdBalance: users[email].usdBalance,
+    etbBalance: users[email].etbBalance,
+  }
+}
+
 export { REFERRAL_BONUS_USD, REFERRAL_BONUS_ETB }

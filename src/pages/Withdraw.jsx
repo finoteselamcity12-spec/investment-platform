@@ -3,15 +3,21 @@ import { useNavigate } from 'react-router-dom'
 import { ArrowUpCircle, Wallet } from 'lucide-react'
 import { getSession } from '../lib/authService'
 import { WITHDRAWAL_MIN_ETB, WITHDRAWAL_MIN_USD } from '../lib/platformConfig'
-
-function formatCurrency(amount, currency) {
-  if (currency === 'USD') return `$${Number(amount).toFixed(2)}`
-  return `${Number(amount).toLocaleString()} Birr`
-}
+import { submitPendingWithdrawal } from '../lib/supabaseData'
 
 export default function Withdraw({ ctx = {}, embedded = false }) {
   const navigate = useNavigate()
-  const { setUsdBalance, setEtbBalance, showToast: ctxShowToast, userEmail: ctxEmail } = ctx
+  const {
+    usdBalance = 0,
+    etbBalance = 0,
+    setUsdBalance,
+    setEtbBalance,
+    addTransaction,
+    showToast: ctxShowToast,
+    userEmail: ctxEmail,
+    setActivePage,
+  } = ctx
+
   const [amount, setAmount] = useState('')
   const [bank, setBank] = useState('CBE')
   const [accountName, setAccountName] = useState('')
@@ -38,16 +44,15 @@ export default function Withdraw({ ctx = {}, embedded = false }) {
     setTimeout(() => setToast(''), 3000)
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
     const value = Number(amount)
-    
+
     if (!accountName.trim() || !accountNumber.trim() || !value || value <= 0) {
       showToast('Complete every withdrawal field.', 'error')
       return
     }
 
-    // Enforce minimum withdrawal amounts
     const currency = bank === 'USDT' ? 'USD' : 'ETB'
     if (currency === 'ETB' && value < WITHDRAWAL_MIN_ETB) {
       showToast(`Minimum withdrawal is ${WITHDRAWAL_MIN_ETB} Birr.`, 'error')
@@ -58,62 +63,65 @@ export default function Withdraw({ ctx = {}, embedded = false }) {
       return
     }
 
+    const available = currency === 'USD' ? Number(usdBalance) : Number(etbBalance)
+    if (value > available) {
+      showToast(`Insufficient ${currency} balance for this withdrawal.`, 'error')
+      return
+    }
+
     setLoading(true)
 
     try {
-      const currency = bank === 'USDT' ? 'USD' : 'ETB'
-
-      // Load user balances from admin_user_data
-      const users = JSON.parse(localStorage.getItem('admin_user_data') || '{}')
-      if (!users[userEmail]) users[userEmail] = { usdBalance: 0, etbBalance: 0, email: userEmail }
-
-      const balance = currency === 'USD' ? (users[userEmail].usdBalance || 0) : (users[userEmail].etbBalance || 0)
-      if (value > balance) {
-        showToast(`Insufficient ${currency} balance for this withdrawal.`, 'error')
-        setLoading(false)
-        return
-      }
-
-      // Deduct immediately
-      if (currency === 'USD') {
-        users[userEmail].usdBalance = Number((users[userEmail].usdBalance || 0) - value)
-      } else {
-        users[userEmail].etbBalance = Number((users[userEmail].etbBalance || 0) - value)
-      }
-      localStorage.setItem('admin_user_data', JSON.stringify(users))
-      setUsdBalance?.(users[userEmail].usdBalance)
-      setEtbBalance?.(users[userEmail].etbBalance)
-
-      // Add to admin pending withdrawals
-      const pendingWithdrawals = JSON.parse(localStorage.getItem('admin_pending_withdrawals') || '[]')
-      pendingWithdrawals.push({
-        id: `withdrawal-${Date.now()}`,
-        userName: users[userEmail].fullName || userEmail,
-        userEmail: userEmail,
+      const session = getSession()
+      const result = await submitPendingWithdrawal({
+        userId: session?.user?.id,
+        userEmail: userEmail || session?.user?.email,
         amount: value,
         currency,
         bank,
-        accountName,
-        accountNumber,
-        status: 'Pending',
-        createdAt: new Date().toISOString(),
+        accountName: accountName.trim(),
+        accountNumber: accountNumber.trim(),
       })
-      localStorage.setItem('admin_pending_withdrawals', JSON.stringify(pendingWithdrawals))
+
+      if (!result.ok) {
+        showToast(result.error || 'Error processing withdrawal. Please try again.', 'error')
+        return
+      }
+
+      if (result.usdBalance != null) setUsdBalance?.(result.usdBalance)
+      if (result.etbBalance != null) setEtbBalance?.(result.etbBalance)
+
+      if (typeof addTransaction === 'function') {
+        try {
+          addTransaction({
+            id: `tx-withdrawal-${Date.now()}`,
+            type: 'Withdrawal',
+            category: 'Withdrawals',
+            title: `Withdrawal Submitted: ${currency === 'USD' ? '$' : ''}${value} ${currency}`,
+            amount: value,
+            currency,
+            status: 'Pending Admin Approval',
+            date: new Date().toISOString(),
+          })
+        } catch (txErr) {
+          console.warn('[withdrawal] local transaction log failed:', txErr)
+        }
+      }
 
       showToast('Withdrawal request submitted successfully!', 'success')
-      
-      // Reset form
+
       setAmount('')
       setAccountName('')
       setAccountNumber('')
       setBank('CBE')
-      
+
       if (embedded) {
-        setTimeout(() => ctx.setActivePage?.('home'), 1200)
+        setTimeout(() => setActivePage?.('home'), 1200)
       } else {
         setTimeout(() => navigate('/dashboard'), 1500)
       }
     } catch (error) {
+      console.error('[withdrawal] submit failed:', error)
       showToast('Error processing withdrawal. Please try again.', 'error')
     } finally {
       setLoading(false)
@@ -133,7 +141,6 @@ export default function Withdraw({ ctx = {}, embedded = false }) {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Amount Input */}
             <div className="rounded-[1.75rem] bg-white border border-slate-200 p-5 shadow-sm">
               <label className="block text-sm font-semibold text-slate-950 mb-2">Amount</label>
               <input
@@ -147,7 +154,6 @@ export default function Withdraw({ ctx = {}, embedded = false }) {
               />
             </div>
 
-            {/* Bank Selection */}
             <div className="rounded-[1.75rem] bg-white border border-slate-200 p-5 shadow-sm">
               <label className="block text-sm font-semibold text-slate-950 mb-2">Bank / Method</label>
               <select
@@ -161,7 +167,6 @@ export default function Withdraw({ ctx = {}, embedded = false }) {
               </select>
             </div>
 
-            {/* Account Name */}
             <div className="rounded-[1.75rem] bg-white border border-slate-200 p-5 shadow-sm">
               <label className="block text-sm font-semibold text-slate-950 mb-2">Account Name</label>
               <input
@@ -173,7 +178,6 @@ export default function Withdraw({ ctx = {}, embedded = false }) {
               />
             </div>
 
-            {/* Account Number */}
             <div className="rounded-[1.75rem] bg-white border border-slate-200 p-5 shadow-sm">
               <label className="block text-sm font-semibold text-slate-950 mb-2">
                 {bank === 'USDT' ? 'TRC20 Address' : 'Account Number'}
@@ -187,7 +191,6 @@ export default function Withdraw({ ctx = {}, embedded = false }) {
               />
             </div>
 
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading || !accountName.trim() || !accountNumber.trim() || !amount || Number(amount) <= 0}
@@ -198,8 +201,7 @@ export default function Withdraw({ ctx = {}, embedded = false }) {
             </button>
           </form>
 
-          {/* Info Card */}
-          <div className="rounded-[1.75rem] bg-slate-50 border border-slate-200 p-5 shadow-sm">
+          <div className="rounded-[1.75rem] bg-slate-50 border border-slate-200 p-5 shadow-sm mt-6">
             <p className="text-sm text-slate-600">
               ✓ <strong>Your withdrawal will be processed within 24 hours</strong>
             </p>
@@ -207,7 +209,6 @@ export default function Withdraw({ ctx = {}, embedded = false }) {
         </div>
       </div>
 
-      {/* Toast Notification */}
       {toast && (
         <div className={`fixed bottom-8 left-4 right-4 z-50 rounded-lg px-5 py-4 text-sm font-bold shadow-xl ${
           toastType === 'success'

@@ -12,7 +12,7 @@ import {
   refreshUserBalancesFromAuth,
   persistUserBalances,
 } from '../lib/supabaseData'
-import { handleLoginSignupBonusCheck } from '../lib/bonusHistory'
+import { ensureSignupBonusHistoryOnce } from '../lib/bonusHistory'
 import TermsAndConditionsPanel from '../components/TermsAndConditionsPanel'
 import BrandGoldHeader from '../components/BrandGoldHeader'
 
@@ -265,7 +265,7 @@ export default function Auth() {
         }
 
         if (authUserId) {
-          await handleLoginSignupBonusCheck(authUserId, sanitizedEmail)
+          await ensureSignupBonusHistoryOnce(authUserId, sanitizedEmail)
         }
 
         setFeedback(
@@ -325,9 +325,6 @@ export default function Auth() {
       let etbBalance = 0
 
       if (user?.id) {
-        const bonusCheck = await handleLoginSignupBonusCheck(user.id, sanitizedEmail)
-        console.log('[Auth] signup bonus check:', bonusCheck)
-
         const remote = await refreshUserBalancesFromAuth(user.id, sanitizedEmail)
         if (remote?.fromDatabase) {
           usdBalance = remote.usdBalance

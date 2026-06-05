@@ -24,7 +24,6 @@ import {
   testSupabaseConnection,
 } from '../lib/supabaseData'
 import {
-  handleLoginSignupBonusCheck,
   dedupeTransactions,
   saveLocalTransactionsForUser,
 } from '../lib/bonusHistory'
@@ -129,7 +128,6 @@ export default function AppShell({ children, activePage, setActivePage }) {
 
     setBalancesLoading(true)
     try {
-      await handleLoginSignupBonusCheck(supabaseUserId, profileEmail)
       const result = await refreshUserBalancesFromAuth(supabaseUserId, profileEmail)
       if (result?.fromDatabase) {
         setUsdBalance(result.usdBalance)
