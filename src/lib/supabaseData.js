@@ -421,18 +421,25 @@ export async function submitPendingDeposit({
   const authUserId = authUser.id
   let proofUrl = await uploadDepositProof(authUserId, compressedFile)
 
+  const insertPayload = {
+    user_id: authUserId,
+    currency: normCurrency,
+    status: 'pending',
+    payment_method: paymentMethod || null,
+    transaction_id: txId,
+    proof_url: proofUrl,
+    screenshot_url: proofUrl,
+  }
+
+  if (normCurrency === 'USD') {
+    insertPayload.amount_usd = depositAmount
+  } else {
+    insertPayload.amount_etb = depositAmount
+  }
+
   const { data, error } = await supabase
     .from('deposits')
-    .insert({
-      user_id: authUserId,
-      currency: normCurrency,
-      amount: depositAmount,
-      status: 'pending',
-      payment_method: paymentMethod || null,
-      transaction_id: txId,
-      proof_url: proofUrl,
-      screenshot_url: proofUrl,
-    })
+    .insert(insertPayload)
     .select('id')
     .single()
 
