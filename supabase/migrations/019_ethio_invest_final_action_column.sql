@@ -19,9 +19,20 @@ SET client_min_messages TO WARNING;
 DROP INDEX IF EXISTS idx_history_user_id_type;
 DROP INDEX IF EXISTS idx_history_type_status;
 
--- Rename 'type' to 'action' if it exists
-ALTER TABLE IF EXISTS public.history
-RENAME COLUMN type TO action;
+-- Rename legacy history column to action if it exists
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = 'history'
+      AND column_name = 'type'
+  ) THEN
+    ALTER TABLE public.history RENAME COLUMN type TO action;
+  END IF;
+END;
+$$;
 
 -- Add 'action' column if it doesn't exist
 ALTER TABLE public.history
@@ -54,12 +65,6 @@ CREATE INDEX IF NOT EXISTS idx_history_reference ON public.history(reference_id,
 -- =====================================================================
 -- SECTION 2: admin_approve_deposit FUNCTION
 -- =====================================================================
--- Purpose: Approve a pending deposit and credit 10% welcome bonus
--- - Locks the deposit row to prevent race conditions
--- - Updates both etb_balance and etb_wallet with deposit amount
--- - Calculates and adds 10% bonus to both balance columns
--- - Records two history entries: one for deposit, one for bonus
--- - Updates deposit status to 'successful'
 
 DROP FUNCTION IF EXISTS public.admin_approve_deposit(UUID);
 
@@ -70,159 +75,40 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 DECLARE
-  v_deposit RECORD;
   v_user_id UUID;
   v_amount_etb NUMERIC(18,2);
-  v_bonus_amount NUMERIC(18,2);
-  v_total_amount NUMERIC(18,2);
-  c_bonus_percentage CONSTANT NUMERIC := 0.10;
+  v_bonus NUMERIC(18,2);
 BEGIN
-  -- Fetch and lock the deposit row
-  SELECT 
-    id, 
-    user_id, 
-    amount_etb, 
-    status
-  INTO v_deposit
-  FROM public.deposits
-  WHERE id = p_deposit_id
+  SELECT d.user_id, d.amount_etb
+  INTO v_user_id, v_amount_etb
+  FROM public.deposits AS d
+  WHERE d.id = p_deposit_id
   FOR UPDATE;
 
-  -- Verify deposit exists
-  IF v_deposit IS NULL THEN
-    RETURN jsonb_build_object(
-      'success', false,
-      'error', 'Deposit not found',
-      'deposit_id', p_deposit_id
-    );
+  IF v_user_id IS NULL THEN
+    RAISE EXCEPTION 'Deposit not found in public.deposits for id=%', p_deposit_id;
   END IF;
 
-  -- Verify deposit is in pending status
-  IF v_deposit.status != 'pending' THEN
-    RETURN jsonb_build_object(
-      'success', false,
-      'error', 'Deposit is not in pending status',
-      'current_status', v_deposit.status,
-      'deposit_id', p_deposit_id
-    );
-  END IF;
+  v_bonus := ROUND(v_amount_etb * 0.10, 2);
 
-  v_user_id := v_deposit.user_id;
-  v_amount_etb := v_deposit.amount_etb;
-
-  -- Calculate 10% welcome bonus
-  v_bonus_amount := ROUND(v_amount_etb * c_bonus_percentage, 2);
-  v_total_amount := v_amount_etb + v_bonus_amount;
-
-  -- Update user balance: Add deposit amount to both etb_balance and etb_wallet
   UPDATE public.balances
-  SET 
-    etb_balance = etb_balance + v_amount_etb,
-    etb_wallet = COALESCE(etb_wallet, 0) + v_amount_etb,
+  SET
+    etb_balance = etb_balance + v_amount_etb + v_bonus,
+    etb_wallet = etb_wallet + v_amount_etb + v_bonus,
     updated_at = NOW()
   WHERE user_id = v_user_id;
 
-  -- Insert deposit history record with action = 'deposit'
-  INSERT INTO public.history (
-    user_id,
-    action,
-    amount_etb,
-    amount_usd,
-    currency,
-    status,
-    reference_id,
-    reference_type,
-    note,
-    metadata,
-    created_at
-  )
-  VALUES (
-    v_user_id,
-    'deposit',
-    v_amount_etb,
-    0,
-    'ETB',
-    'success',
-    v_deposit.id,
-    'deposit',
-    'Deposit approved by admin',
-    jsonb_build_object(
-      'deposit_id', v_deposit.id,
-      'deposit_amount', v_amount_etb,
-      'approved_at', NOW()
-    ),
-    NOW()
-  );
+  INSERT INTO public.history (user_id, action, amount_etb, reference_id, created_at)
+  VALUES (v_user_id, 'deposit', v_amount_etb, p_deposit_id, NOW());
 
-  -- Add bonus to balance
-  UPDATE public.balances
-  SET 
-    etb_balance = etb_balance + v_bonus_amount,
-    etb_wallet = COALESCE(etb_wallet, 0) + v_bonus_amount,
-    updated_at = NOW()
-  WHERE user_id = v_user_id;
+  INSERT INTO public.history (user_id, action, amount_etb, reference_id, created_at)
+  VALUES (v_user_id, 'deposit_bonus', v_bonus, p_deposit_id, NOW());
 
-  -- Insert deposit bonus history record with action = 'deposit_bonus'
-  INSERT INTO public.history (
-    user_id,
-    action,
-    amount_etb,
-    amount_usd,
-    currency,
-    status,
-    reference_id,
-    reference_type,
-    note,
-    metadata,
-    created_at
-  )
-  VALUES (
-    v_user_id,
-    'deposit_bonus',
-    v_bonus_amount,
-    0,
-    'ETB',
-    'success',
-    v_deposit.id,
-    'deposit',
-    '10% welcome bonus on deposit',
-    jsonb_build_object(
-      'deposit_id', v_deposit.id,
-      'bonus_percentage', 10,
-      'bonus_amount', v_bonus_amount,
-      'bonus_calculated_at', NOW()
-    ),
-    NOW()
-  );
-
-  -- Update deposit status to 'successful'
   UPDATE public.deposits
-  SET 
-    status = 'successful',
-    reviewed_by = auth.uid(),
-    reviewed_at = NOW(),
-    updated_at = NOW()
+  SET status = 'successful', updated_at = NOW()
   WHERE id = p_deposit_id;
 
-  -- Return success response
-  RETURN jsonb_build_object(
-    'success', true,
-    'message', 'Deposit approved successfully',
-    'deposit_id', p_deposit_id,
-    'user_id', v_user_id,
-    'deposit_amount', v_amount_etb,
-    'bonus_amount', v_bonus_amount,
-    'total_credited', v_total_amount,
-    'timestamp', NOW()
-  );
-
-EXCEPTION WHEN OTHERS THEN
-  RETURN jsonb_build_object(
-    'success', false,
-    'error', SQLERRM,
-    'detail', SQLSTATE,
-    'deposit_id', p_deposit_id
-  );
+  RETURN jsonb_build_object('success', true, 'deposit_id', p_deposit_id, 'bonus_amount', v_bonus);
 END;
 $$;
 
