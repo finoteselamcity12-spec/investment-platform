@@ -53,7 +53,7 @@ function logAdminError(label, error) {
 export function isSupabaseConfigured() {
   const url = import.meta.env.VITE_SUPABASE_URL
   const key = import.meta.env.VITE_SUPABASE_ANON_KEY
-  let urlHost = null
+  let urlHost
   try {
     urlHost = url ? new URL(url).host : null
   } catch {
@@ -398,6 +398,17 @@ function normalizeRpcUuid(value, label) {
   return str
 }
 
+function parseRpcJsonData(data) {
+  if (typeof data === 'string') {
+    try {
+      return JSON.parse(data)
+    } catch (err) {
+      adminLog('rpc_parse_json_failed', { data, error: err?.message })
+    }
+  }
+  return data
+}
+
 async function callAdminRpc(fnName, params = {}) {
   if (typeof params === 'string') {
     console.error('[Admin Supabase] INVALID RPC PAYLOAD — must be object, not string:', params)
@@ -456,10 +467,12 @@ export async function approveDepositInSupabase(deposit) {
     if (error) {
       return { ok: false, error: logAdminError(ADMIN_RPC.approveDeposit, error) }
     }
-    if (data?.user_id) {
-      await fetchUserBalances(data.user_id)
-    }
-    return { ok: true, data }
+    const parsedData = parseRpcJsonData(data)
+    const rpcUserId = normalizeRpcUuid(parsedData?.user_id ?? parsedData?.userId, 'user_id')
+    const requestUserId = normalizeRpcUuid(deposit.userId, 'user_id')
+    const resolvedUserId = rpcUserId || requestUserId || (await resolveUserId(deposit.userEmail || deposit.userId))
+    const balances = resolvedUserId ? await fetchUserBalances(resolvedUserId) : null
+    return { ok: true, data: parsedData, userId: resolvedUserId, balances }
   }
 
   const userId =
@@ -490,10 +503,11 @@ export async function approveDepositInSupabase(deposit) {
   if (error) {
     return { ok: false, error: logAdminError(ADMIN_RPC.approveDepositManual, error) }
   }
-  if (data?.user_id) {
-    await fetchUserBalances(data.user_id)
-  }
-  return { ok: true, data }
+  const parsedData = parseRpcJsonData(data)
+  const rpcUserId = normalizeRpcUuid(parsedData?.user_id ?? parsedData?.userId, 'user_id')
+  const resolvedUserId = rpcUserId || userId
+  const balances = resolvedUserId ? await fetchUserBalances(resolvedUserId) : null
+  return { ok: true, data: parsedData, userId: resolvedUserId, balances }
 }
 
 export async function rejectDepositInSupabase(deposit) {
