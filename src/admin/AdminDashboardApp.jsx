@@ -55,6 +55,28 @@ export default function AdminDashboardApp() {
   const [loading, setLoading] = useState(false)
   const [, setDeposits] = useState([])
 
+  const emptySnapshot = {
+    users: [],
+    usersByKey: {},
+    pendingDeposits: [],
+    pendingDepositsLocal: [],
+    approvedDeposits: [],
+    rejectedDeposits: [],
+    pendingWithdrawals: [],
+    approvedWithdrawals: [],
+    rejectedWithdrawals: [],
+    registrationCount: 0,
+    activeInvestments: 0,
+    dailyTransactions: 0,
+  }
+
+  const safeSnapshot = snapshot || emptySnapshot
+  const safePendingDeposits = Array.isArray(safeSnapshot.pendingDeposits) ? safeSnapshot.pendingDeposits : []
+  const safePendingWithdrawals = Array.isArray(safeSnapshot.pendingWithdrawals) ? safeSnapshot.pendingWithdrawals : []
+  const safeUsers = Array.isArray(safeSnapshot.users) ? safeSnapshot.users : []
+  const safeApprovedDeposits = Array.isArray(safeSnapshot.approvedDeposits) ? safeSnapshot.approvedDeposits : []
+  const safeFetchErrors = Array.isArray(fetchErrors) ? fetchErrors : []
+
   const showToast = useCallback((message, type = 'success') => {
     setToast({ message, type })
     const t = setTimeout(() => setToast({ message: '', type }), 3200)
@@ -88,7 +110,7 @@ export default function AdminDashboardApp() {
     return () => { mounted = false }
   }, [])
 
-  const refresh = useCallback(async () => {
+  async function refresh() {
     setIsRefreshing(true)
     const local = loadAdminSnapshot()
     console.log('[Admin Dashboard] refresh start', { localUsers: local.users?.length })
@@ -142,7 +164,7 @@ export default function AdminDashboardApp() {
     } finally {
       setIsRefreshing(false)
     }
-  }, [])
+  }
 
   useEffect(() => {
     const stored = JSON.parse(sessionStorage.getItem('admin_session') || 'null')
@@ -165,38 +187,46 @@ export default function AdminDashboardApp() {
       refresh()
     }
     setAuthChecked(true)
-  }, [refresh])
+  }, [])
 
   const metrics = useMemo(
     () => [
       {
         label: 'Total Users',
-        value: stats.totalUsers ?? remoteStats?.totalUsers ?? snapshot.registrationCount ?? 0,
+        value: stats.totalUsers ?? remoteStats?.totalUsers ?? safeSnapshot.registrationCount ?? 0,
       },
       {
         label: 'Daily Transactions',
-        value: stats.dailyTransactions ?? remoteStats?.dailyTransactions ?? snapshot.dailyTransactions ?? 0,
+        value: stats.dailyTransactions ?? remoteStats?.dailyTransactions ?? safeSnapshot.dailyTransactions ?? 0,
       },
       {
         label: 'Active Investments',
-        value: snapshot.activeInvestments ?? 0,
+        value: safeSnapshot.activeInvestments ?? 0,
       },
       {
         label: 'Pending Deposits',
-        value: stats.pendingDeposits ?? remoteStats?.pendingDeposits ?? snapshot.pendingDeposits.length ?? 0,
+        value: stats.pendingDeposits ?? remoteStats?.pendingDeposits ?? safePendingDeposits.length,
       },
     ],
-    [snapshot, remoteStats]
+    [safeSnapshot, safePendingDeposits, remoteStats, stats]
   )
 
   async function fetchDeposits() {
     console.log('[Admin Dashboard] fetchDeposits start')
-    const { data, error } = await supabase
-      .from('deposits')
-      .select('*, profiles(email)')
-      .order('created_at', { ascending: false })
-    console.log('Deposits loaded:', data?.length, error)
-    setDeposits(data || [])
+    try {
+      const { data, error } = await supabase
+        .from('deposits')
+        .select('*, profiles(email)')
+        .order('created_at', { ascending: false })
+      if (error) {
+        console.error('[Admin Dashboard] fetchDeposits error:', error)
+      }
+      console.log('Deposits loaded:', data?.length, error)
+      setDeposits(Array.isArray(data) ? data : [])
+    } catch (e) {
+      console.error('[Admin Dashboard] fetchDeposits exception:', e)
+      setDeposits([])
+    }
   }
 
   async function approveDeposit(depositId) {
@@ -301,7 +331,7 @@ export default function AdminDashboardApp() {
 
   const depositRows = useMemo(
     () =>
-      snapshot.pendingDeposits.map((d) => (
+      safePendingDeposits.map((d) => (
         <tr key={d.supabaseId || d.id}>
           <td>
             <div style={{ fontWeight: 600 }}>{d.userEmail || '—'}</div>
@@ -359,12 +389,12 @@ export default function AdminDashboardApp() {
           </td>
         </tr>
       )),
-    [snapshot.pendingDeposits, busyId, handleApproveDeposit, handleRejectDeposit]
+    [safePendingDeposits, busyId, loading, approveDeposit, handleRejectDeposit]
   )
 
   const withdrawalRows = useMemo(
     () =>
-      snapshot.pendingWithdrawals.map((w) => (
+      safePendingWithdrawals.map((w) => (
         <tr key={w.id}>
           <td>
             <div style={{ fontWeight: 600 }}>{w.userName || w.userEmail}</div>
@@ -384,12 +414,12 @@ export default function AdminDashboardApp() {
           </td>
         </tr>
       )),
-    [snapshot.pendingWithdrawals, handleApproveWithdrawal, handleRejectWithdrawal]
+    [safePendingWithdrawals, handleApproveWithdrawal, handleRejectWithdrawal]
   )
 
   const userRows = useMemo(
     () =>
-      snapshot.users.map((u) => (
+      safeUsers.map((u) => (
         <tr key={u.id || u.email}>
           <td>
             <div style={{ fontWeight: 600 }}>{u.fullName || '—'}</div>
@@ -404,7 +434,7 @@ export default function AdminDashboardApp() {
           </td>
         </tr>
       )),
-    [snapshot.users, handleDeleteUser]
+    [safeUsers, handleDeleteUser]
   )
 
   if (!authChecked) {
@@ -457,7 +487,7 @@ export default function AdminDashboardApp() {
               <p>
                 {remoteStats
                   ? `Supabase · ${remoteStats.totalUsers ?? 0} users · ${remoteStats.pendingDeposits ?? 0} pending deposits`
-                  : fetchErrors.length
+                  : safeFetchErrors.length
                     ? 'Supabase stats unavailable — see error below'
                     : 'Loading Supabase stats…'}
               </p>
@@ -467,11 +497,11 @@ export default function AdminDashboardApp() {
             </button>
           </header>
 
-          {fetchErrors.length > 0 && (
+          {safeFetchErrors.length > 0 && (
             <div className="admin-error-banner" role="alert">
               <strong>Supabase error (check F12 → Console / Network):</strong>
               <ul>
-                {fetchErrors.map((err) => (
+                {safeFetchErrors.map((err) => (
                   <li key={err}>{err}</li>
                 ))}
               </ul>
@@ -483,7 +513,7 @@ export default function AdminDashboardApp() {
             </div>
           )}
 
-          {fetchErrors.length === 0 && remoteStats?.totalUsers === 0 && snapshot.users.length === 0 && (
+          {safeFetchErrors.length === 0 && remoteStats?.totalUsers === 0 && safeUsers.length === 0 && (
             <div className="admin-error-banner" role="alert" style={{ borderColor: '#b45309', background: '#451a03', color: '#fde68a' }}>
               <strong>Connected but no data returned.</strong>
               <p style={{ marginTop: '0.5rem', fontSize: '0.75rem' }}>
@@ -505,9 +535,9 @@ export default function AdminDashboardApp() {
                 ))}
               </div>
               <p style={{ fontSize: '0.8125rem', color: '#64748b' }}>
-                Pending withdrawals: <strong style={{ color: '#e2e8f0' }}>{remoteStats?.pendingWithdrawals ?? snapshot.pendingWithdrawals.length}</strong>
+                Pending withdrawals: <strong style={{ color: '#e2e8f0' }}>{remoteStats?.pendingWithdrawals ?? safePendingWithdrawals.length}</strong>
                 {' · '}
-                Approved deposits: <strong style={{ color: '#e2e8f0' }}>{snapshot.approvedDeposits.length}</strong>
+                Approved deposits: <strong style={{ color: '#e2e8f0' }}>{safeApprovedDeposits.length}</strong>
               </p>
             </>
           )}
