@@ -49,8 +49,10 @@ ADD CONSTRAINT history_action_check CHECK (action IN (
   'deposit_bonus',
   'withdrawal',
   'welcome_bonus',
+  'bonus',
   'daily_profit',
   'invite_bonus',
+  'referral_bonus',
   'investment',
   'investment_claim',
   'adjustment'
@@ -77,10 +79,12 @@ AS $$
 DECLARE
   v_user_id UUID;
   v_amount_etb NUMERIC(18,2);
-  v_bonus NUMERIC(18,2);
+  v_amount_usd NUMERIC(18,6);
+  v_currency TEXT;
+  v_bonus NUMERIC(18,6);
 BEGIN
-  SELECT d.user_id, d.amount_etb
-  INTO v_user_id, v_amount_etb
+  SELECT d.user_id, d.amount_etb, d.amount_usd, d.currency
+  INTO v_user_id, v_amount_etb, v_amount_usd, v_currency
   FROM public.deposits AS d
   WHERE d.id = p_deposit_id
   FOR UPDATE;
@@ -89,20 +93,65 @@ BEGIN
     RAISE EXCEPTION 'Deposit not found in public.deposits for id=%', p_deposit_id;
   END IF;
 
-  v_bonus := ROUND(v_amount_etb * 0.10, 2);
+  IF upper(v_currency) = 'USD' OR upper(v_currency) = 'USDT' THEN
+    v_bonus := ROUND(v_amount_usd * 0.10, 6);
+    UPDATE public.balances
+    SET
+      usd_balance = usd_balance + v_amount_usd + v_bonus,
+      usd_wallet = usd_wallet + v_amount_usd + v_bonus,
+      updated_at = NOW()
+    WHERE user_id = v_user_id;
+  ELSE
+    v_bonus := ROUND(v_amount_etb * 0.10, 2);
+    UPDATE public.balances
+    SET
+      etb_balance = etb_balance + v_amount_etb + v_bonus,
+      etb_wallet = etb_wallet + v_amount_etb + v_bonus,
+      updated_at = NOW()
+    WHERE user_id = v_user_id;
+  END IF;
 
-  UPDATE public.balances
-  SET
-    etb_balance = etb_balance + v_amount_etb + v_bonus,
-    etb_wallet = etb_wallet + v_amount_etb + v_bonus,
-    updated_at = NOW()
-  WHERE user_id = v_user_id;
+  INSERT INTO public.history (
+    user_id,
+    action,
+    amount_etb,
+    amount_usd,
+    currency,
+    status,
+    reference_id,
+    created_at
+  )
+  VALUES (
+    v_user_id,
+    'deposit',
+    CASE WHEN upper(v_currency) = 'ETB' THEN v_amount_etb ELSE 0 END,
+    CASE WHEN upper(v_currency) IN ('USD','USDT') THEN v_amount_usd ELSE 0 END,
+    v_currency,
+    'success',
+    p_deposit_id,
+    NOW()
+  );
 
-  INSERT INTO public.history (user_id, action, amount_etb, reference_id, created_at)
-  VALUES (v_user_id, 'deposit', v_amount_etb, p_deposit_id, NOW());
-
-  INSERT INTO public.history (user_id, action, amount_etb, reference_id, created_at)
-  VALUES (v_user_id, 'deposit_bonus', v_bonus, p_deposit_id, NOW());
+  INSERT INTO public.history (
+    user_id,
+    action,
+    amount_etb,
+    amount_usd,
+    currency,
+    status,
+    reference_id,
+    created_at
+  )
+  VALUES (
+    v_user_id,
+    'deposit_bonus',
+    CASE WHEN upper(v_currency) = 'ETB' THEN v_bonus ELSE 0 END,
+    CASE WHEN upper(v_currency) IN ('USD','USDT') THEN v_bonus ELSE 0 END,
+    v_currency,
+    'success',
+    p_deposit_id,
+    NOW()
+  );
 
   UPDATE public.deposits
   SET status = 'successful', updated_at = NOW()
@@ -334,7 +383,7 @@ BEGIN
         updated_at = NOW()
       WHERE user_id = v_referrer_id;
 
-      -- Record referral bonus with action = 'invite_bonus'
+      -- Record referral bonus with action = 'referral_bonus'
       INSERT INTO public.history (
         user_id,
         action,
@@ -349,7 +398,7 @@ BEGIN
       )
       VALUES (
         v_referrer_id,
-        'invite_bonus',
+        'referral_bonus',
         c_invite_bonus_etb,
         0,
         'ETB',

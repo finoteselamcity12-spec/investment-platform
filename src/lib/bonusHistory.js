@@ -309,7 +309,7 @@ function historyRowToTransactions(row) {
 
   if (row.action === 'withdrawal') {
     const status =
-      meta.status === 'approved' || meta.status === 'successful'
+      meta.status === 'approved' || meta.status === 'successful' || meta.status === 'success'
         ? 'Completed'
         : meta.status === 'rejected'
           ? 'Rejected'
@@ -333,7 +333,7 @@ function historyRowToTransactions(row) {
 
   if (row.action === 'deposit') {
     const status =
-      meta.status === 'approved'
+      meta.status === 'successful' || meta.status === 'approved' || meta.status === 'success'
         ? 'Completed'
         : meta.status === 'rejected'
           ? 'Rejected'
@@ -360,6 +360,7 @@ function historyRowToTransactions(row) {
     [LEGACY_SIGNUP_ACTION]: 'Welcome Bonus',
     deposit_bonus: 'Deposit Bonus (10%)',
     referral_bonus: 'Referral Bonus',
+    invite_bonus: 'Referral Bonus',
   }
 
   return [
@@ -419,7 +420,7 @@ export async function fetchWelcomeBonusHistory(userId) {
 }
 
 function depositWithdrawalStatusLabel(status) {
-  if (status === 'approved') return 'Completed'
+  if (status === 'approved' || status === 'successful' || status === 'success') return 'Completed'
   if (status === 'pending') return 'Pending Admin Approval'
   if (status === 'rejected') return 'Rejected'
   return status || 'Pending'

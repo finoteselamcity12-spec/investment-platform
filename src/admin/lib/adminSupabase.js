@@ -1,4 +1,5 @@
 import supabase from '../../lib/supabase'
+import { fetchUserBalances } from '../../lib/supabaseData'
 import { ADMIN_EMAIL, ADMIN_CREDENTIALS } from './adminStorage'
 
 const UUID_REGEX =

@@ -223,7 +223,7 @@ export async function countApprovedDeposits(userId) {
     .from('deposits')
     .select('id', { count: 'exact', head: true })
     .eq('user_id', userId)
-    .eq('status', 'approved')
+    .in('status', ['successful', 'approved'])
 
   if (error) {
     console.error('Deposit count failed:', error)
@@ -248,7 +248,7 @@ export async function recordDepositForReferral({ userId, currency, amount }) {
   const depositPayload = {
     user_id: userId,
     currency: normalizedCurrency === 'USD' ? 'USD' : 'ETB',
-    status: 'approved',
+    status: 'successful',
   }
   if (normalizedCurrency === 'USD') {
     depositPayload.amount_usd = Number(amount)
