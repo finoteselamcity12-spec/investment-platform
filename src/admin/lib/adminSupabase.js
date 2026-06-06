@@ -489,6 +489,7 @@ async function requireAdminRpcSession() {
 }
 
 export async function approveDepositInSupabase(deposit) {
+  console.log('deposit:', deposit)
   if (!isSupabaseConfigured()) {
     return { ok: false, error: 'Supabase not configured' }
   }
@@ -496,7 +497,13 @@ export async function approveDepositInSupabase(deposit) {
   const sessionCheck = await requireAdminRpcSession()
   if (!sessionCheck.ok) return sessionCheck
 
-  const depositUuid = normalizeRpcUuid(deposit.supabaseId, 'p_deposit_id')
+  let depositUuid = normalizeRpcUuid(deposit.id, 'p_deposit_id')
+  if (!depositUuid) {
+    depositUuid = normalizeRpcUuid(deposit.supabaseId, 'p_deposit_id')
+    if (depositUuid) {
+      console.warn('[Admin Supabase] used fallback deposit.supabaseId for p_deposit_id')
+    }
+  }
 
   if (depositUuid) {
     const approvePayload = { p_deposit_id: depositUuid }
@@ -504,6 +511,7 @@ export async function approveDepositInSupabase(deposit) {
     const { data, error } = await supabase.rpc(ADMIN_RPC.approveDeposit, approvePayload)
     console.log('approve result:', data, error)
     if (error) {
+      console.log('error:', JSON.stringify(error))
       console.error('Approve error:', error)
       return { ok: false, error: logAdminError(ADMIN_RPC.approveDeposit, error) }
     }
@@ -541,6 +549,7 @@ export async function approveDepositInSupabase(deposit) {
   const { data, error } = await callAdminRpc(ADMIN_RPC.approveDepositManual, manualParams)
 
   if (error) {
+    console.log('error:', JSON.stringify(error))
     console.error('Approve error:', error)
     return { ok: false, error: logAdminError(ADMIN_RPC.approveDepositManual, error) }
   }
@@ -553,7 +562,14 @@ export async function approveDepositInSupabase(deposit) {
 }
 
 export async function rejectDepositInSupabase(deposit) {
-  const depositUuid = normalizeRpcUuid(deposit.supabaseId, 'p_deposit_id')
+  console.log('deposit:', deposit)
+  let depositUuid = normalizeRpcUuid(deposit.id, 'p_deposit_id')
+  if (!depositUuid) {
+    depositUuid = normalizeRpcUuid(deposit.supabaseId, 'p_deposit_id')
+    if (depositUuid) {
+      console.warn('[Admin Supabase] used fallback deposit.supabaseId for p_deposit_id')
+    }
+  }
   if (!depositUuid) {
     adminLog('reject_skipped', { reason: 'local_only_deposit', id: deposit.id })
     return { ok: true, skipped: true }
@@ -566,6 +582,7 @@ export async function rejectDepositInSupabase(deposit) {
   const { error } = await callAdminRpc(ADMIN_RPC.rejectDeposit, rejectPayload)
 
   if (error) {
+    console.log('error:', JSON.stringify(error))
     return { ok: false, error: logAdminError(ADMIN_RPC.rejectDeposit, error) }
   }
   return { ok: true }
@@ -588,15 +605,20 @@ export async function deleteUserInSupabase(userId) {
 }
 
 export async function approveWithdrawalInSupabase(withdrawal) {
-  if (!withdrawal.supabaseId || !UUID_REGEX.test(withdrawal.supabaseId)) {
+  console.log('withdrawal:', withdrawal)
+  let wid = normalizeRpcUuid(withdrawal.id, 'p_withdrawal_id')
+  if (!wid) {
+    wid = normalizeRpcUuid(withdrawal.supabaseId, 'p_withdrawal_id')
+    if (wid) {
+      console.warn('[Admin Supabase] used fallback withdrawal.supabaseId for p_withdrawal_id')
+    }
+  }
+  if (!wid || !UUID_REGEX.test(wid)) {
     return { ok: true, skipped: true }
   }
 
   const sessionCheck = await requireAdminRpcSession()
   if (!sessionCheck.ok) return sessionCheck
-
-  const wid = normalizeRpcUuid(withdrawal.supabaseId, 'p_withdrawal_id')
-  if (!wid) return { ok: true, skipped: true }
 
   // Call admin_approve_withdrawal RPC directly
   const { data, error } = await supabase.rpc(ADMIN_RPC.approveWithdrawal, {
@@ -604,6 +626,7 @@ export async function approveWithdrawalInSupabase(withdrawal) {
   })
   console.log('approve withdrawal result:', data, error)
   if (error) {
+    console.log('error:', JSON.stringify(error))
     console.error('Approve withdrawal error:', error)
     return { ok: false, error: logAdminError(ADMIN_RPC.approveWithdrawal, error) }
   }
@@ -612,15 +635,20 @@ export async function approveWithdrawalInSupabase(withdrawal) {
 }
 
 export async function rejectWithdrawalInSupabase(withdrawal) {
-  if (!withdrawal.supabaseId || !UUID_REGEX.test(withdrawal.supabaseId)) {
+  console.log('withdrawal:', withdrawal)
+  let wid = normalizeRpcUuid(withdrawal.id, 'p_withdrawal_id')
+  if (!wid) {
+    wid = normalizeRpcUuid(withdrawal.supabaseId, 'p_withdrawal_id')
+    if (wid) {
+      console.warn('[Admin Supabase] used fallback withdrawal.supabaseId for p_withdrawal_id')
+    }
+  }
+  if (!wid || !UUID_REGEX.test(wid)) {
     return { ok: true, skipped: true }
   }
 
   const sessionCheck = await requireAdminRpcSession()
   if (!sessionCheck.ok) return sessionCheck
-
-  const wid = normalizeRpcUuid(withdrawal.supabaseId, 'p_withdrawal_id')
-  if (!wid) return { ok: true, skipped: true }
 
   // Refund the user's balance first by calling process_transaction as a deposit
   try {
@@ -649,6 +677,7 @@ export async function rejectWithdrawalInSupabase(withdrawal) {
   })
   console.log('reject withdrawal result:', rejectData, rejectError)
   if (rejectError) {
+    console.log('error:', JSON.stringify(rejectError))
     return { ok: false, error: logAdminError(ADMIN_RPC.rejectWithdrawal, rejectError) }
   }
   console.log('Rejected withdrawal:', wid)
