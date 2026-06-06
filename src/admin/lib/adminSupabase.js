@@ -465,8 +465,10 @@ export async function approveDepositInSupabase(deposit) {
     const approvePayload = { p_deposit_id: depositUuid }
     const { data, error } = await callAdminRpc(ADMIN_RPC.approveDeposit, approvePayload)
     if (error) {
+      console.error('Approve error:', error)
       return { ok: false, error: logAdminError(ADMIN_RPC.approveDeposit, error) }
     }
+    console.log('Approved:', data)
     const parsedData = parseRpcJsonData(data)
     const rpcUserId = normalizeRpcUuid(parsedData?.user_id ?? parsedData?.userId, 'user_id')
     const requestUserId = normalizeRpcUuid(deposit.userId, 'user_id')
@@ -501,8 +503,10 @@ export async function approveDepositInSupabase(deposit) {
   const { data, error } = await callAdminRpc(ADMIN_RPC.approveDepositManual, manualParams)
 
   if (error) {
+    console.error('Approve error:', error)
     return { ok: false, error: logAdminError(ADMIN_RPC.approveDepositManual, error) }
   }
+  console.log('Approved:', data)
   const parsedData = parseRpcJsonData(data)
   const rpcUserId = normalizeRpcUuid(parsedData?.user_id ?? parsedData?.userId, 'user_id')
   const resolvedUserId = rpcUserId || userId

@@ -618,7 +618,8 @@ export async function submitPendingWithdrawal({
     })
   }
 
-  const { user: authUser, error: authError } = await resolveSupabaseAuthUser()
+  // Get fresh authenticated user with session token
+  const { data: { user: authUser }, error: authError } = await supabase.auth.getUser()
   if (!authUser?.id) {
     const detail = authError?.message
     return {
@@ -629,6 +630,34 @@ export async function submitPendingWithdrawal({
     }
   }
 
+  // Call process_transaction directly with explicit user_id
+  const result = await supabase.rpc('process_transaction', {
+    p_user_id: authUser.id,
+    p_type: 'withdrawal',
+    p_amount: withdrawAmount,
+    p_currency: normCurrency,
+    p_reference_id: null,
+  })
+
+  if (result.error) {
+    console.error('[withdrawal] RPC error:', result.error.message, result.error)
+    if (result.error.message?.includes('insufficient_balance')) {
+      return { ok: false, error: `Insufficient ${normCurrency} balance for this withdrawal.` }
+    }
+    return { ok: false, error: result.error.message || 'Could not submit withdrawal.' }
+  }
+
+  const rpcData = result.data
+  console.log('[withdrawal] RPC success:', rpcData)
+
+  if (!rpcData || rpcData.ok === false) {
+    if (rpcData?.error === 'insufficient_balance') {
+      return { ok: false, error: `Insufficient ${normCurrency} balance for this withdrawal.` }
+    }
+    return { ok: false, error: rpcData?.error || 'Could not submit withdrawal.' }
+  }
+
+  const withdrawalId = rpcData.withdrawal_id || rpcData.reference_id
   const accountDetailsJson = providedAccountDetails || JSON.stringify({
     bank: trimmedBank,
     payment_method: trimmedPaymentMethod,
@@ -636,23 +665,6 @@ export async function submitPendingWithdrawal({
     account_number: trimmedAccount,
   })
 
-  // Call RPC function with exact parameters
-  const result = await processTransaction({
-    type: 'withdrawal',
-    amount: withdrawAmount,
-    currency: normCurrency,
-    referenceId: null,
-    userId: authUser.id,
-  })
-
-  if (!result.ok) {
-    if (result.error === 'insufficient_balance') {
-      return { ok: false, error: `Insufficient ${normCurrency} balance for this withdrawal.` }
-    }
-    return { ok: false, error: result.error || 'Could not submit withdrawal.' }
-  }
-
-  const withdrawalId = result.withdrawal_id || result.reference_id
   const localRecord = {
     id: withdrawalId || `withdrawal-${Date.now()}`,
     supabaseId: withdrawalId,
@@ -681,8 +693,8 @@ export async function submitPendingWithdrawal({
     ok: true,
     withdrawalId,
     needsRefresh: true,
-    usdBalance: Number(result.balance_usd || 0),
-    etbBalance: Number(result.balance_etb || 0),
+    usdBalance: Number(rpcData.balance_usd || 0),
+    etbBalance: Number(rpcData.balance_etb || 0),
   }
 }
 
