@@ -127,56 +127,80 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 DECLARE
-  v_user_id UUID;
-  v_amount_etb NUMERIC(18,2);
-  v_status TEXT;
-  v_bonus NUMERIC(18,2);
+  v_deposit public.deposits%ROWTYPE;
+  v_amount NUMERIC(18,6);
+  v_bonus NUMERIC(18,6);
+  v_history_amount_etb NUMERIC(18,6);
 BEGIN
   IF NOT public.is_admin() THEN
     RETURN jsonb_build_object('success', false, 'error', 'Unauthorized');
   END IF;
 
-  SELECT user_id, amount_etb, status
-    INTO v_user_id, v_amount_etb, v_status
-    FROM public.deposits
-    WHERE id = p_deposit_id
-    FOR UPDATE;
+  SELECT * INTO v_deposit
+  FROM public.deposits
+  WHERE id = p_deposit_id
+  FOR UPDATE;
 
-  IF v_user_id IS NULL THEN
+  IF NOT FOUND THEN
     RETURN jsonb_build_object('success', false, 'error', 'Deposit not found');
   END IF;
 
-  IF v_status != 'pending' THEN
+  IF v_deposit.status != 'pending' THEN
     RETURN jsonb_build_object(
       'success', false,
-      'error', 'Already processed: ' || v_status,
-      'status', v_status
+      'error', 'Already processed: ' || v_deposit.status,
+      'status', v_deposit.status
     );
   END IF;
 
-  v_bonus := ROUND(v_amount_etb * 0.10, 2);
+  IF v_deposit.currency = 'ETB' THEN
+    v_amount := v_deposit.amount_etb;
+  ELSIF v_deposit.currency = 'USD' THEN
+    v_amount := v_deposit.amount_usd;
+  ELSE
+    RETURN jsonb_build_object('success', false, 'error', 'Unsupported currency: ' || v_deposit.currency);
+  END IF;
 
-  INSERT INTO public.balances (
-    user_id,
-    etb_balance,
-    etb_wallet,
-    usd_balance,
-    usd_wallet,
-    total_deposited_etb,
-    updated_at
-  ) VALUES (
-    v_user_id,
-    v_amount_etb + v_bonus,
-    v_amount_etb + v_bonus,
-    0,
-    0,
-    v_amount_etb,
-    NOW()
-  ) ON CONFLICT (user_id) DO UPDATE SET
-    etb_balance = COALESCE(etb_balance, 0) + EXCLUDED.etb_balance,
-    etb_wallet = COALESCE(etb_wallet, 0) + EXCLUDED.etb_wallet,
-    total_deposited_etb = COALESCE(total_deposited_etb, 0) + EXCLUDED.total_deposited_etb,
-    updated_at = NOW();
+  v_bonus := ROUND(v_amount * 0.10, 2);
+
+  IF v_deposit.currency = 'ETB' THEN
+    v_history_amount_etb := v_amount;
+
+    INSERT INTO public.balances (
+      user_id,
+      etb_balance,
+      etb_wallet,
+      total_deposited_etb,
+      updated_at
+    ) VALUES (
+      v_deposit.user_id,
+      v_amount + v_bonus,
+      v_amount + v_bonus,
+      v_amount,
+      NOW()
+    ) ON CONFLICT (user_id) DO UPDATE SET
+      etb_balance = COALESCE(etb_balance, 0) + EXCLUDED.etb_balance,
+      etb_wallet = COALESCE(etb_wallet, 0) + EXCLUDED.etb_wallet,
+      total_deposited_etb = COALESCE(total_deposited_etb, 0) + EXCLUDED.total_deposited_etb,
+      updated_at = NOW();
+  ELSE
+    v_history_amount_etb := 0;
+
+    INSERT INTO public.balances (
+      user_id,
+      usd_balance,
+      usd_wallet,
+      updated_at
+    ) VALUES (
+      v_deposit.user_id,
+      v_amount + v_bonus,
+      v_amount + v_bonus,
+      NOW()
+    ) ON CONFLICT (user_id) DO UPDATE SET
+      usd_balance = COALESCE(usd_balance, 0) + EXCLUDED.usd_balance,
+      usd_wallet = COALESCE(usd_wallet, 0) + EXCLUDED.usd_wallet,
+      updated_at = NOW();
+  END IF;
 
   UPDATE public.deposits
   SET status = 'successful',
@@ -192,9 +216,9 @@ BEGIN
     reference_id,
     created_at
   ) VALUES (
-    v_user_id,
+    v_deposit.user_id,
     'deposit',
-    v_amount_etb,
+    v_history_amount_etb,
     p_deposit_id,
     NOW()
   );
@@ -206,9 +230,9 @@ BEGIN
     reference_id,
     created_at
   ) VALUES (
-    v_user_id,
+    v_deposit.user_id,
     'deposit_bonus',
-    v_bonus,
+    CASE WHEN v_deposit.currency = 'ETB' THEN v_bonus ELSE 0 END,
     p_deposit_id,
     NOW()
   );
@@ -216,9 +240,10 @@ BEGIN
   RETURN jsonb_build_object(
     'success', true,
     'deposit_id', p_deposit_id,
-    'user_id', v_user_id,
-    'amount_etb', v_amount_etb,
-    'bonus_etb', v_bonus
+    'user_id', v_deposit.user_id,
+    'currency', v_deposit.currency,
+    'amount', v_amount,
+    'bonus', v_bonus
   );
 
 EXCEPTION WHEN OTHERS THEN
