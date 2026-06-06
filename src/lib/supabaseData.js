@@ -152,8 +152,57 @@ export async function refreshUserBalancesFromAuth(hintUserId, email) {
 }
 
 /**
- * Deduct investment amount using live DB balance (fetch → check → update).
+ * Process a unified transaction through the backend RPC.
  */
+export async function processTransaction({
+  type,
+  amount,
+  currency,
+  referenceId = null,
+  bank = null,
+  accountName = null,
+  accountNumber = null,
+  paymentMethod = null,
+  accountDetails = null,
+}) {
+  if (!isSupabaseConfigured()) {
+    return { ok: false, error: 'not_configured' }
+  }
+
+  const transactionAmount = Number(amount)
+  if (!Number.isFinite(transactionAmount) || transactionAmount <= 0) {
+    return { ok: false, error: 'invalid_amount' }
+  }
+
+  const params = {
+    p_type: type,
+    p_amount: transactionAmount,
+    p_currency: currency,
+    p_reference_id: referenceId,
+    p_bank: bank,
+    p_account_name: accountName,
+    p_account_number: accountNumber,
+    p_payment_method: paymentMethod,
+    p_account_details: accountDetails,
+  }
+
+  const { data, error } = await supabase.rpc('process_transaction', params)
+  if (error) {
+    console.error('[process_transaction] rpc failed:', error.message)
+    return { ok: false, error: error.message || 'transaction_failed' }
+  }
+
+  if (!data || data.ok === false) {
+    return {
+      ok: false,
+      error: data?.error || 'transaction_failed',
+      detail: data?.detail,
+    }
+  }
+
+  return { ok: true, ...data }
+}
+
 export async function deductBalanceForInvestment(userId, currency, amount) {
   if (!isSupabaseConfigured()) {
     return { ok: false, error: 'not_configured' }
@@ -164,56 +213,34 @@ export async function deductBalanceForInvestment(userId, currency, amount) {
     return { ok: false, error: 'not_authenticated' }
   }
 
-  const investAmount = Number(amount)
-  if (!Number.isFinite(investAmount) || investAmount <= 0) {
-    return { ok: false, error: 'invalid_amount' }
-  }
+  const result = await processTransaction({
+    type: 'invest',
+    amount,
+    currency,
+    referenceId: null,
+  })
 
-  const live = await fetchUserBalances(resolvedUserId)
-  if (!live?.fromDatabase) {
-    return { ok: false, error: 'fetch_failed' }
-  }
-
-  const isUsd = currency === 'USD' || currency === 'USDT'
-  const currentBalance = isUsd ? live.usdBalance : live.etbBalance
-
-  if (currentBalance < investAmount) {
-    return {
-      ok: false,
-      error: 'insufficient',
-      currentBalance,
-      requiredAmount: investAmount,
-      usdBalance: live.usdBalance,
-      etbBalance: live.etbBalance,
+  if (!result.ok) {
+    if (result.error === 'insufficient_balance') {
+      const balances = await fetchUserBalances(resolvedUserId)
+      return {
+        ok: false,
+        error: 'insufficient',
+        currentBalance: currency === 'USD' ? balances?.usdBalance ?? 0 : balances?.etbBalance ?? 0,
+        requiredAmount: Number(amount),
+        usdBalance: balances?.usdBalance,
+        etbBalance: balances?.etbBalance,
+      }
     }
+    return { ok: false, error: result.error || 'transaction_failed' }
   }
 
-  const nextUsd = isUsd ? live.usdBalance - investAmount : live.usdBalance
-  const nextEtb = !isUsd ? live.etbBalance - investAmount : live.etbBalance
-
-  const { data, error } = await supabase
-    .from('balances')
-    .update({
-      usd_wallet: nextUsd,
-      etb_wallet: nextEtb,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('user_id', resolvedUserId)
-    .select('usd_wallet, etb_wallet')
-    .maybeSingle()
-
-  if (error) {
-    console.error('[invest] balance deduct failed:', error.message)
-    return { ok: false, error: 'update_failed', message: error.message }
+  return {
+    ok: true,
+    usdBalance: Number(result.balance_usd || 0),
+    etbBalance: Number(result.balance_etb || 0),
+    userId: resolvedUserId,
   }
-
-  const balances = {
-    usdBalance: Number(data?.usd_wallet ?? nextUsd) || 0,
-    etbBalance: Number(data?.etb_wallet ?? nextEtb) || 0,
-    fromDatabase: true,
-  }
-
-  return { ok: true, ...balances, userId: resolvedUserId }
 }
 
 export async function countApprovedDeposits(userId) {
@@ -507,26 +534,21 @@ async function submitPendingDepositLocal({
   transactionId,
   receiptFile,
 }) {
-  let proofPreview = null
-  try {
-    proofPreview = await new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.onload = () => resolve(reader.result)
-      reader.onerror = () => reject(reader.error)
-      reader.readAsDataURL(receiptFile)
-    })
-    if (typeof proofPreview === 'string' && proofPreview.length > 120_000) {
-      proofPreview = null
-    }
-  } catch {
-    proofPreview = null
-  }
+  const previewValue = await new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result)
+    reader.onerror = () => reject(reader.error)
+    reader.readAsDataURL(receiptFile)
+  }).catch(() => null)
+
+  const proofPreview =
+    typeof previewValue === 'string' && previewValue.length > 120_000 ? null : previewValue
 
   const pendingDeposit = {
     id: `deposit-${Date.now()}`,
     userId: userId || userEmail,
     userEmail: userEmail || userId,
-    amount,
+    amount: Number(amount_usd ?? amount_etb ?? amount),
     currency,
     paymentMethod,
     transactionId,
@@ -635,29 +657,25 @@ export async function submitPendingWithdrawal({
     account_number: trimmedAccount,
   })
 
-  const { data, error } = await supabase.rpc('submit_user_withdrawal', {
-    p_amount: withdrawAmount,
-    p_currency: normCurrency,
-    p_bank: trimmedBank || null,
-    p_account_name: trimmedName,
-    p_account_number: trimmedAccount,
-    p_payment_method: trimmedPaymentMethod || null,
-    p_account_details: accountDetailsJson || null,
+  const result = await processTransaction({
+    type: 'withdrawal',
+    amount: withdrawAmount,
+    currency: normCurrency,
+    bank: trimmedBank,
+    accountName: trimmedName,
+    accountNumber: trimmedAccount,
+    paymentMethod: trimmedPaymentMethod,
+    accountDetails: accountDetailsJson,
   })
 
-  if (error) {
-    const msg = error.message || ''
-    if (msg.includes('insufficient_balance')) {
+  if (!result.ok) {
+    if (result.error === 'insufficient_balance') {
       return { ok: false, error: `Insufficient ${normCurrency} balance for this withdrawal.` }
     }
-    if (msg.includes('not_authenticated')) {
-      return { ok: false, error: 'Please sign in again to withdraw.' }
-    }
-    console.error('[withdrawal] RPC failed:', msg)
-    return { ok: false, error: msg || 'Could not submit withdrawal.' }
+    return { ok: false, error: result.error || 'Could not submit withdrawal.' }
   }
 
-  const withdrawalId = data?.withdrawal_id
+  const withdrawalId = result.withdrawal_id || result.reference_id
   const localRecord = {
     id: withdrawalId || `withdrawal-${Date.now()}`,
     supabaseId: withdrawalId,
@@ -681,14 +699,14 @@ export async function submitPendingWithdrawal({
     console.warn('[withdrawal] local cache skipped:', storageErr?.message || storageErr)
   }
 
-  const balances = await fetchUserBalances(authUser.id)
   return {
     ok: true,
     withdrawalId,
-    usdBalance: balances?.usdBalance,
-    etbBalance: balances?.etbBalance,
+    usdBalance: Number(result.balance_usd || 0),
+    etbBalance: Number(result.balance_etb || 0),
   }
 }
+
 
 function submitPendingWithdrawalLocal({
   userId,
