@@ -126,6 +126,7 @@ export default function DepositPage({ ctx = {} }) {
     try {
       const depositCurrency = currency === 'USD' ? 'USDT' : currency
       const session = getSession()
+      console.log('Current Auth User ID:', session?.user?.id)
       const userId = session?.user?.id
       if (!userId) {
         displayToast('User not authenticated!', 'error')
