@@ -1,11 +1,10 @@
-import { useMemo, useEffect } from 'react'
+import { useMemo, useEffect, useState } from 'react'
 import { CheckCircle, Clock, AlertCircle } from 'lucide-react'
 import {
   mirrorSignupBonusToLocalHistory,
   fetchUserHistory,
 } from '../lib/bonusHistory'
 import { getSession } from '../lib/authService'
-import { useState } from 'react'
 
 const PRIMARY_GREEN = '#84CC16'
 
@@ -20,12 +19,17 @@ export default function HistoryPage({ ctx }) {
     userEmail,
   } = ctx
 
+  const [loading, setLoading] = useState(false)
+
   useEffect(() => {
+    let mounted = true
+
     async function syncHistoryDisplay() {
       const currentUser = getSession()?.user
       const userId = currentUser?.id
       if (!userId) {
         if (setTransactions) setTransactions([])
+        if (mounted) setLoading(false)
         return
       }
 
@@ -33,15 +37,18 @@ export default function HistoryPage({ ctx }) {
         mirrorSignupBonusToLocalHistory(userEmail, userId)
       }
 
+      if (mounted) setLoading(true)
       const rows = await fetchUserHistory(userId, userEmail)
-      if (setTransactions) {
-        setTransactions(rows)
+      if (mounted) {
+        if (setTransactions) setTransactions(rows)
+        setLoading(false)
       }
     }
-          if (setTransactions) setTransactions([])
-          setLoading(true)
 
     syncHistoryDisplay()
+    return () => {
+      mounted = false
+    }
   }, [userEmail, setTransactions])
 
   const filteredHistory = useMemo(() => {
@@ -53,16 +60,16 @@ export default function HistoryPage({ ctx }) {
   }, [historyFilter, transactions])
 
   const getStatusIcon = (status) => {
-    if (status === 'Pending') return <Clock size={16} className="text-yellow-500" />
-    if (status === 'Approved') return <CheckCircle size={16} className="text-green-600" />
-          }
-          setLoading(false)
+    const lowerStatus = String(status || '').toLowerCase()
+    if (lowerStatus === 'pending') return <Clock size={16} className="text-yellow-500" />
+    if (lowerStatus === 'successful' || lowerStatus === 'success') return <CheckCircle size={16} className="text-green-600" />
     return <AlertCircle size={16} className="text-red-600" />
   }
 
   const getStatusColor = (status) => {
-    if (status === 'Pending') return 'bg-yellow-50 text-yellow-700 border border-yellow-200'
-    if (status === 'Approved') return 'bg-green-50 text-green-700 border border-green-200'
+    const lowerStatus = String(status || '').toLowerCase()
+    if (lowerStatus === 'pending') return 'bg-yellow-50 text-yellow-700 border border-yellow-200'
+    if (lowerStatus === 'successful' || lowerStatus === 'success') return 'bg-green-50 text-green-700 border border-green-200'
     return 'bg-red-50 text-red-700 border border-red-200'
   }
 
@@ -77,16 +84,13 @@ export default function HistoryPage({ ctx }) {
         <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4">
           {historyFilters.map((filter) => (
             <button
-              const s = String(status || '').toLowerCase()
-              if (s === 'pending') return <Clock size={16} className="text-yellow-500" />
-              if (s === 'successful' || s === 'success') return <CheckCircle size={16} className="text-green-600" />
+              key={filter}
+              type="button"
               onClick={() => setHistoryFilter(filter)}
               className="whitespace-nowrap px-4 py-2 rounded-full font-semibold text-sm transition-all active:scale-95"
               style={{
                 backgroundColor: historyFilter === filter ? PRIMARY_GREEN : '#F3F4F6',
-              const s = String(status || '').toLowerCase()
-              if (s === 'pending') return 'bg-yellow-50 text-yellow-700 border border-yellow-200'
-              if (s === 'successful' || s === 'success') return 'bg-green-50 text-green-700 border border-green-200'
+                color: historyFilter === filter ? '#FFFFFF' : '#4B5563',
               }}
             >
               {filter}
