@@ -364,7 +364,7 @@ async function uploadDepositProof(authUserId, receiptFile) {
  * Submit a pending deposit: upload receipt to Storage, insert row in public.deposits.
  */
 export async function submitPendingDeposit({
-  userId,
+  user_id,
   userEmail,
   amount,
   amount_usd,
@@ -372,10 +372,12 @@ export async function submitPendingDeposit({
   currency,
   payment_method_id,
   paymentMethod,
-  transactionId,
+  transaction_id,
+  screenshot_url,
+  status,
   receiptFile,
 }) {
-  const txId = String(transactionId || '').trim()
+  const txId = String(transaction_id || '').trim()
   if (!txId) {
     return { ok: false, error: 'Transaction ID is required.' }
   }
@@ -396,9 +398,11 @@ export async function submitPendingDeposit({
 
   if (!isSupabaseConfigured()) {
     return submitPendingDepositLocal({
-      userId: userId || userEmail,
+      userId: user_id || userEmail,
       userEmail,
       amount: depositAmount,
+      amount_usd,
+      amount_etb,
       currency: normCurrency,
       paymentMethod,
       transactionId: txId,
@@ -429,13 +433,13 @@ export async function submitPendingDeposit({
   const paymentMethodIdentifier = payment_method_id ?? paymentMethod
 
   const insertPayload = {
-    user_id: authUserId,
+    user_id: user_id || authUserId,
     currency: normCurrency,
-    status: 'pending',
+    status: status || 'pending',
     payment_method_id: paymentMethodIdentifier || null,
     transaction_id: txId,
     proof_url: proofUrl,
-    screenshot_url: proofUrl,
+    screenshot_url: screenshot_url || proofUrl,
   }
 
   if (normCurrency === 'USD') {
@@ -446,7 +450,7 @@ export async function submitPendingDeposit({
 
   const { data, error } = await supabase
     .from('deposits')
-    .insert(insertPayload)
+    .insert([insertPayload])
     .select('id')
     .single()
 
