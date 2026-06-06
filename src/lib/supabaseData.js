@@ -367,6 +367,8 @@ export async function submitPendingDeposit({
   userId,
   userEmail,
   amount,
+  amount_usd,
+  amount_etb,
   currency,
   payment_method_id,
   paymentMethod,
@@ -384,7 +386,7 @@ export async function submitPendingDeposit({
     return { ok: false, error: 'Receipt must be 5MB or smaller.' }
   }
 
-  const depositAmount = Number(amount)
+  const depositAmount = Number(amount_usd ?? amount_etb ?? amount)
   if (!Number.isFinite(depositAmount) || depositAmount <= 0) {
     return { ok: false, error: 'Enter a valid deposit amount.' }
   }
@@ -482,6 +484,8 @@ async function submitPendingDepositLocal({
   userId,
   userEmail,
   amount,
+  amount_usd,
+  amount_etb,
   currency,
   paymentMethod,
   transactionId,
