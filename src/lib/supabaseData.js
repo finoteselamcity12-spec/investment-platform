@@ -456,16 +456,12 @@ export async function submitPendingDeposit({
     .from('deposits')
     .insert({
       user_id: authUserId,
-      amount: depositAmount,
       amount_etb: amount_etb_val,
       amount_usd: amount_usd_val,
       currency: normCurrency,
-      payment_method: paymentMethod || null,
+      payment_method: paymentMethod || 'manual',
       transaction_id: txId,
-      proof_url: proofUrl || null,
       status: 'pending',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
     })
     .select()
 
