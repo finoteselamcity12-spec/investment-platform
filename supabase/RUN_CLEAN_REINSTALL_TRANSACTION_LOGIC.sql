@@ -80,16 +80,11 @@ $$;
 
 -- Unified transaction processor.
 CREATE OR REPLACE FUNCTION public.process_transaction(
-  p_user_id UUID DEFAULT NULL,
+  p_user_id UUID,
   p_type TEXT,
   p_amount NUMERIC,
-  p_currency TEXT,
-  p_reference_id UUID DEFAULT NULL,
-  p_bank TEXT DEFAULT NULL,
-  p_account_name TEXT DEFAULT NULL,
-  p_account_number TEXT DEFAULT NULL,
-  p_payment_method TEXT DEFAULT NULL,
-  p_account_details TEXT DEFAULT NULL
+  p_currency TEXT DEFAULT 'ETB',
+  p_reference_id UUID DEFAULT NULL
 )
 RETURNS JSON
 LANGUAGE plpgsql
@@ -192,7 +187,6 @@ BEGIN
         'deposit_amount', p_amount,
         'bonus_amount', v_bonus_amount,
         'bonus_rate', '10%',
-        'payment_method', COALESCE(p_payment_method, null),
         'transaction_id', NULL,
         'source', 'process_transaction'
       ),
@@ -278,11 +272,6 @@ BEGIN
         amount,
         amount_usd,
         amount_etb,
-        bank,
-        account_name,
-        account_number,
-        payment_method,
-        account_details,
         status,
         created_at,
         updated_at
@@ -292,11 +281,6 @@ BEGIN
         p_amount,
         v_amount_usd,
         v_amount_etb,
-        NULLIF(TRIM(p_bank), ''),
-        NULLIF(TRIM(p_account_name), ''),
-        NULLIF(TRIM(p_account_number), ''),
-        NULLIF(TRIM(p_payment_method), ''),
-        p_account_details,
         'pending',
         NOW(),
         NOW()
@@ -326,14 +310,7 @@ BEGIN
       v_amount_etb,
       'pending',
       p_reference_id,
-      jsonb_build_object(
-        'bank', p_bank,
-        'account_name', p_account_name,
-        'account_number', p_account_number,
-        'payment_method', p_payment_method,
-        'account_details', p_account_details,
-        'source', 'process_transaction'
-      ),
+      jsonb_build_object('source', 'process_transaction'),
       NOW()
     ) RETURNING id INTO v_history_id;
 
@@ -473,12 +450,7 @@ $$;
 
 CREATE OR REPLACE FUNCTION public.submit_user_withdrawal(
   p_amount NUMERIC,
-  p_currency TEXT,
-  p_bank TEXT,
-  p_account_name TEXT,
-  p_account_number TEXT,
-  p_payment_method TEXT,
-  p_account_details TEXT
+  p_currency TEXT
 )
 RETURNS JSON
 LANGUAGE plpgsql
@@ -491,12 +463,7 @@ BEGIN
     'withdrawal',
     p_amount,
     p_currency,
-    NULL,
-    p_bank,
-    p_account_name,
-    p_account_number,
-    p_payment_method,
-    p_account_details
+    NULL
   );
 EXCEPTION WHEN OTHERS THEN
   RETURN json_build_object('ok', false, 'error', SQLERRM);
@@ -527,12 +494,7 @@ BEGIN
     CASE WHEN upper(v_dep.currency) IN ('USD', 'USDT') THEN COALESCE(v_dep.amount_usd, v_dep.amount) ELSE 0 END +
       CASE WHEN upper(v_dep.currency) NOT IN ('USD', 'USDT') THEN COALESCE(v_dep.amount_etb, v_dep.amount) ELSE 0 END,
     v_dep.currency,
-    p_deposit_id,
-    v_dep.payment_method,
-    NULL,
-    NULL,
-    NULL,
-    NULL
+    p_deposit_id
   );
 EXCEPTION WHEN OTHERS THEN
   RETURN json_build_object('ok', false, 'error', SQLERRM);
@@ -676,8 +638,8 @@ EXCEPTION WHEN OTHERS THEN
 END;
 $$;
 
-GRANT EXECUTE ON FUNCTION public.process_transaction(UUID, TEXT, NUMERIC, TEXT, UUID, TEXT, TEXT, TEXT, TEXT, TEXT) TO authenticated;
-GRANT EXECUTE ON FUNCTION public.submit_user_withdrawal(NUMERIC, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.process_transaction(UUID, TEXT, NUMERIC, TEXT, UUID) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.submit_user_withdrawal(NUMERIC, TEXT) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.admin_approve_deposit(UUID) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.admin_reject_deposit(UUID) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.admin_approve_deposit_manual(UUID, NUMERIC, TEXT, TEXT, TEXT, TEXT) TO authenticated;

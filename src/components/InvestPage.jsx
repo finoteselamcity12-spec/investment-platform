@@ -102,6 +102,13 @@ export default function InvestPage({ ctx = {} }) {
       })
 
       showToast?.('Investment started successfully!', 'success')
+
+      // Trigger UI refresh after successful RPC transaction
+      if (result.needsRefresh) {
+        setTimeout(() => {
+          window.location.reload()
+        }, 1000)
+      }
     } catch (err) {
       console.error('[InvestPage] invest failed:', err)
       showToast?.('Investment failed. Please try again.', 'error')

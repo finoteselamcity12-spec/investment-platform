@@ -145,7 +145,12 @@ export default function Withdraw({ ctx = {}, embedded = false }) {
       setAccountNumber('')
       setPaymentMethod('Telebirr')
 
-      if (embedded) {
+      // Trigger UI refresh after successful RPC transaction
+      if (result.needsRefresh) {
+        setTimeout(() => {
+          window.location.reload()
+        }, 1000)
+      } else if (embedded) {
         setTimeout(() => setActivePage?.('home'), 1200)
       } else {
         setTimeout(() => navigate('/dashboard'), 1500)

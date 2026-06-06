@@ -184,6 +184,13 @@ export default function DepositPage({ ctx = {} }) {
       if (receiptInput) receiptInput.value = ''
 
       localStorage.setItem(`user_pending_deposit_${activeUserEmail}`, result.depositId)
+
+      // Trigger UI refresh after successful RPC transaction
+      if (result.needsRefresh) {
+        setTimeout(() => {
+          window.location.reload()
+        }, 1000)
+      }
     } catch (error) {
       console.error('[deposit] submit failed:', error)
       const message =

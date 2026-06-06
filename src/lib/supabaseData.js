@@ -136,17 +136,21 @@ export async function refreshUserBalancesFromAuth(hintUserId, email) {
 
 /**
  * Process a unified transaction through the backend RPC.
+ * 
+ * Signature: process_transaction(
+ *   p_user_id UUID,
+ *   p_type TEXT,
+ *   p_amount NUMERIC,
+ *   p_currency TEXT DEFAULT 'ETB',
+ *   p_reference_id UUID DEFAULT NULL
+ * )
  */
 export async function processTransaction({
   type,
   amount,
-  currency,
+  currency = 'ETB',
   referenceId = null,
-  bank = null,
-  accountName = null,
-  accountNumber = null,
-  paymentMethod = null,
-  accountDetails = null,
+  userId = null,
 }) {
   if (!isSupabaseConfigured()) {
     return { ok: false, error: 'not_configured' }
@@ -157,16 +161,13 @@ export async function processTransaction({
     return { ok: false, error: 'invalid_amount' }
   }
 
+  // Call with exact parameter names in the SQL function signature.
   const params = {
+    p_user_id: userId || null,
     p_type: type,
     p_amount: transactionAmount,
     p_currency: currency,
     p_reference_id: referenceId,
-    p_bank: bank,
-    p_account_name: accountName,
-    p_account_number: accountNumber,
-    p_payment_method: paymentMethod,
-    p_account_details: accountDetails,
   }
 
   const { data, error } = await supabase.rpc('process_transaction', params)
@@ -196,11 +197,13 @@ export async function deductBalanceForInvestment(userId, currency, amount) {
     return { ok: false, error: 'not_authenticated' }
   }
 
+  // Call RPC function with exact parameters
   const result = await processTransaction({
     type: 'invest',
     amount,
     currency,
     referenceId: null,
+    userId: resolvedUserId,
   })
 
   if (!result.ok) {
@@ -218,8 +221,10 @@ export async function deductBalanceForInvestment(userId, currency, amount) {
     return { ok: false, error: result.error || 'transaction_failed' }
   }
 
+  // Return with needsRefresh flag for component to trigger UI update
   return {
     ok: true,
+    needsRefresh: true,
     usdBalance: Number(result.balance_usd || 0),
     etbBalance: Number(result.balance_etb || 0),
     userId: resolvedUserId,
@@ -255,11 +260,11 @@ export async function recordDepositForReferral({ userId, currency, amount }) {
     currency === 'USDT' || currency === 'USD' ? 'USD' : 'ETB'
 
   const result = await processTransaction({
-    userId,
     type: 'referral_bonus',
     amount,
     currency: normalizedCurrency,
     referenceId: null,
+    userId,
   })
 
   if (!result.ok) {
@@ -365,7 +370,10 @@ async function uploadDepositProof(authUserId, receiptFile) {
 }
 
 /**
- * Submit a pending deposit: upload receipt to Storage, insert row in public.deposits.
+ * Submit a pending deposit using RPC function.
+ * 1. Uploads receipt proof to Storage
+ * 2. Calls process_transaction RPC with type='deposit'
+ * 3. Returns result with needsRefresh flag for UI
  */
 export async function submitPendingDeposit({
   user_id,
@@ -374,12 +382,8 @@ export async function submitPendingDeposit({
   amount_usd,
   amount_etb,
   currency,
-  payment_method,
-  payment_method_id,
   paymentMethod,
   transaction_id,
-  screenshot_url,
-  status,
   receiptFile,
 }) {
   const txId = String(transaction_id || '').trim()
@@ -433,9 +437,9 @@ export async function submitPendingDeposit({
   }
 
   const authUserId = authUser.id
-  let proofUrl = await uploadDepositProof(authUserId, compressedFile)
 
-  // Ensure proofUrl fallback for RLS/policy checks
+  // Upload proof to Storage (optional - for audit trail)
+  let proofUrl = await uploadDepositProof(authUserId, compressedFile)
   if (!proofUrl) proofUrl = 'pending'
 
   // Validate provided user_id (if any) matches authenticated user
@@ -444,45 +448,27 @@ export async function submitPendingDeposit({
     return { ok: false, error: 'Authenticated user does not match payload user_id.' }
   }
 
-  const paymentMethodIdentifier = payment_method ?? payment_method_id ?? paymentMethod
-
-  // Build explicit payload matching DB column names for RLS policy
-  const amountEtb = amount_etb ?? (normCurrency === 'ETB' ? depositAmount : null)
-  const amountUsd = amount_usd ?? (normCurrency === 'USD' ? depositAmount : null)
-
-  const insertPayload = {
-    user_id: authUserId,
-    amount_etb: amountEtb ?? null,
-    amount_usd: amountUsd ?? null,
-    proof_url: proofUrl || 'pending',
-    screenshot_url: screenshot_url || proofUrl || 'pending',
-    transaction_id: txId,
-    status: status || 'pending',
-    payment_method: paymentMethodIdentifier || null,
+  // Call RPC function with exact parameters
+  const result = await processTransaction({
+    type: 'deposit',
+    amount: depositAmount,
     currency: normCurrency,
-  }
+    referenceId: null,
+    userId: authUserId,
+  })
 
-  // Perform insert with exact column names
-  const { data, error } = await supabase
-    .from('deposits')
-    .insert([insertPayload])
-    .select()
-
-  const insertedRow = Array.isArray(data) ? data[0] : data
-
-  if (error) {
-    console.error('[deposit] insert failed:', error.message)
-    return { ok: false, error: error.message || 'Could not save deposit.' }
+  if (!result.ok) {
+    console.error('[deposit] RPC failed:', result.error)
+    return { ok: false, error: result.error || 'Could not process deposit.' }
   }
 
   const localRecord = {
-    id: insertedRow?.id,
-    supabaseId: insertedRow?.id,
+    id: txId,
+    supabaseId: txId,
     userId: authUserId,
     userEmail: userEmail || authUser?.email,
     amount: depositAmount,
     currency: normCurrency,
-    paymentMethod: paymentMethodIdentifier || null,
     transactionId: txId,
     screenshot: proofUrl,
     proofUrl,
@@ -497,7 +483,15 @@ export async function submitPendingDeposit({
     console.warn('[deposit] local cache skipped:', storageErr?.message || storageErr)
   }
 
-  return { ok: true, depositId: insertedRow?.id, proofUrl }
+  // Return with needsRefresh flag for component to trigger UI update
+  return {
+    ok: true,
+    depositId: txId,
+    proofUrl,
+    needsRefresh: true,
+    balanceEtb: Number(result.balance_etb || 0),
+    balanceUsd: Number(result.balance_usd || 0),
+  }
 }
 
 async function submitPendingDepositLocal({
@@ -573,7 +567,9 @@ function appendLocalPendingWithdrawal(record) {
 }
 
 /**
- * Submit a pending withdrawal: server-side balance check, deduct, log to history.
+ * Submit a pending withdrawal using RPC function.
+ * Calls process_transaction RPC with type='withdrawal'.
+ * Returns result with needsRefresh flag for UI.
  */
 export async function submitPendingWithdrawal({
   userId,
@@ -634,15 +630,13 @@ export async function submitPendingWithdrawal({
     account_number: trimmedAccount,
   })
 
+  // Call RPC function with exact parameters
   const result = await processTransaction({
     type: 'withdrawal',
     amount: withdrawAmount,
     currency: normCurrency,
-    bank: trimmedBank,
-    accountName: trimmedName,
-    accountNumber: trimmedAccount,
-    paymentMethod: trimmedPaymentMethod,
-    accountDetails: accountDetailsJson,
+    referenceId: null,
+    userId: authUser.id,
   })
 
   if (!result.ok) {
@@ -676,9 +670,11 @@ export async function submitPendingWithdrawal({
     console.warn('[withdrawal] local cache skipped:', storageErr?.message || storageErr)
   }
 
+  // Return with needsRefresh flag for component to trigger UI update
   return {
     ok: true,
     withdrawalId,
+    needsRefresh: true,
     usdBalance: Number(result.balance_usd || 0),
     etbBalance: Number(result.balance_etb || 0),
   }
