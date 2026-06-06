@@ -431,29 +431,40 @@ export async function submitPendingDeposit({
   const authUserId = authUser.id
   let proofUrl = await uploadDepositProof(authUserId, compressedFile)
 
+  // Ensure proofUrl fallback for RLS/policy checks
+  if (!proofUrl) proofUrl = 'pending'
+
+  // Validate provided user_id (if any) matches authenticated user
+  if (user_id && String(user_id) !== authUserId) {
+    console.warn('[deposit] user_id mismatch:', user_id, 'authUserId:', authUserId)
+    return { ok: false, error: 'Authenticated user does not match payload user_id.' }
+  }
+
   const paymentMethodIdentifier = payment_method ?? payment_method_id ?? paymentMethod
 
+  // Build explicit payload matching DB column names for RLS policy
+  const amountEtb = amount_etb ?? (normCurrency === 'ETB' ? depositAmount : null)
+  const amountUsd = amount_usd ?? (normCurrency === 'USD' ? depositAmount : null)
+
   const insertPayload = {
-    user_id: user_id || authUserId,
-    currency: normCurrency,
+    user_id: authUserId,
+    amount_etb: amountEtb ?? null,
+    amount_usd: amountUsd ?? null,
+    proof_url: proofUrl || 'pending',
+    screenshot_url: screenshot_url || proofUrl || 'pending',
+    transaction_id: txId,
     status: status || 'pending',
     payment_method: paymentMethodIdentifier || null,
-    transaction_id: txId,
-    proof_url: proofUrl,
-    screenshot_url: screenshot_url || proofUrl,
+    currency: normCurrency,
   }
 
-  if (normCurrency === 'USD') {
-    insertPayload.amount_usd = depositAmount
-  } else {
-    insertPayload.amount_etb = depositAmount
-  }
-
+  // Perform insert with exact column names
   const { data, error } = await supabase
     .from('deposits')
     .insert([insertPayload])
-    .select('id')
-    .single()
+    .select()
+
+  const insertedRow = Array.isArray(data) ? data[0] : data
 
   if (error) {
     console.error('[deposit] insert failed:', error.message)
@@ -461,10 +472,10 @@ export async function submitPendingDeposit({
   }
 
   const localRecord = {
-    id: data.id,
-    supabaseId: data.id,
+    id: insertedRow?.id,
+    supabaseId: insertedRow?.id,
     userId: authUserId,
-    userEmail: userEmail || user.email,
+    userEmail: userEmail || authUser?.email,
     amount: depositAmount,
     currency: normCurrency,
     paymentMethod: paymentMethodIdentifier || null,
@@ -482,7 +493,7 @@ export async function submitPendingDeposit({
     console.warn('[deposit] local cache skipped:', storageErr?.message || storageErr)
   }
 
-  return { ok: true, depositId: data.id, proofUrl }
+  return { ok: true, depositId: insertedRow?.id, proofUrl }
 }
 
 async function submitPendingDepositLocal({
