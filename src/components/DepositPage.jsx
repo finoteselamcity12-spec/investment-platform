@@ -139,8 +139,6 @@ export default function DepositPage({ ctx = {} }) {
         amount_etb: currency === 'ETB' ? depositAmount : null,
         amount_usd: currency === 'USD' ? depositAmount : null,
         transaction_id: trimmedTxId,
-        proof_url: 'pending',
-        screenshot_url: 'pending',
         status: 'pending',
       }
 
