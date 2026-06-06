@@ -126,8 +126,15 @@ export default function DepositPage({ ctx = {} }) {
     try {
       const depositCurrency = currency === 'USD' ? 'USDT' : currency
       const session = getSession()
+      const userId = session?.user?.id
+      if (!userId) {
+        displayToast('User not authenticated!', 'error')
+        setIsSubmitting(false)
+        return
+      }
+
       const payload = {
-        user_id: session?.user?.id,
+        user_id: userId,
         payment_method: selectedPaymentData.id,
         amount_etb: currency === 'ETB' ? depositAmount : null,
         amount_usd: currency === 'USD' ? depositAmount : null,
@@ -136,6 +143,7 @@ export default function DepositPage({ ctx = {} }) {
         screenshot_url: 'pending',
         status: 'pending',
       }
+
       const result = await submitPendingDeposit({
         ...payload,
         userEmail: activeUserEmail,
