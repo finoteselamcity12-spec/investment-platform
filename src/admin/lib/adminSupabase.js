@@ -1,4 +1,5 @@
 import supabase from '../../lib/supabase'
+import { fetchUserBalances } from '../../lib/supabaseData'
 import { ADMIN_EMAIL, ADMIN_CREDENTIALS } from './adminStorage'
 
 const UUID_REGEX =
@@ -455,6 +456,11 @@ export async function approveDepositInSupabase(deposit) {
     if (error) {
       return { ok: false, error: logAdminError(ADMIN_RPC.approveDeposit, error) }
     }
+
+    if (data?.success && data.user_id) {
+      await fetchUserBalances(data.user_id)
+    }
+
     return { ok: true, data }
   }
 
