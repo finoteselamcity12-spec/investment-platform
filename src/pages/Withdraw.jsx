@@ -16,6 +16,7 @@ export default function Withdraw({ ctx = {}, embedded = false }) {
     showToast: ctxShowToast,
     userEmail: ctxEmail,
     setActivePage,
+    refreshBalances,
   } = ctx
 
   const [amount, setAmount] = useState('')
@@ -112,12 +113,18 @@ export default function Withdraw({ ctx = {}, embedded = false }) {
       })
 
       if (!result.ok) {
-        showToast(result.error || 'Error processing withdrawal. Please try again.', 'error')
+        const errMsg = result.error || ''
+        if (errMsg === 'insufficient_balance') showToast('Insufficient balance', 'error')
+        else if (errMsg === 'min_300_etb') showToast('Minimum withdrawal is 300 ETB', 'error')
+        else if (errMsg === 'min_3_usd') showToast('Minimum withdrawal is $3 USD', 'error')
+        else showToast(result.error || 'Withdrawal failed: ' + errMsg, 'error')
         return
       }
 
       if (result.usdBalance != null) setUsdBalance?.(result.usdBalance)
       if (result.etbBalance != null) setEtbBalance?.(result.etbBalance)
+      // refresh authoritative balances
+      try { await refreshBalances?.() } catch (e) { /* ignore */ }
 
       if (typeof addTransaction === 'function') {
         try {
@@ -125,10 +132,10 @@ export default function Withdraw({ ctx = {}, embedded = false }) {
             id: `tx-withdrawal-${Date.now()}`,
             type: 'Withdrawal',
             category: 'Withdrawals',
-            title: `Withdrawal Submitted: ${currencyValue === 'USD' ? '$' : ''}${value} ${currencyValue}`,
+              title: `Withdrawal Submitted: ${currencyValue === 'USD' ? '$' : ''}${value} ${currencyValue}`,
             amount: value,
             currency: currencyValue,
-            status: 'Pending Admin Approval',
+              status: 'Pending',
             date: new Date().toISOString(),
           })
         } catch (txErr) {

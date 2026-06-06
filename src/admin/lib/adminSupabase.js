@@ -228,6 +228,43 @@ export async function fetchAdminDashboard() {
   if (withdrawalsRes.error) errors.push(logAdminError(ADMIN_RPC.withdrawals, withdrawalsRes.error))
   if (usersRes.error) errors.push(logAdminError(ADMIN_RPC.users, usersRes.error))
 
+  // Fallback: if RPCs failed or returned no rows, attempt direct queries as admin
+  if (errors.length > 0 || (!statsRes.data && (!depositsRes.data || !usersRes.data))) {
+    try {
+      console.log('[Admin Supabase] falling back to direct queries for stats')
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+
+      const [usersCountRes, pendingDepRes, pendingWithRes, dailyRes, depositRowsRes, allUsersRes] = await Promise.all([
+        supabase.from('profiles').select('*', { count: 'exact', head: true }),
+        supabase.from('deposits').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+        supabase.from('withdrawals').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+        supabase.from('history').select('*', { count: 'exact', head: true }).gte('created_at', today.toISOString()),
+        supabase.from('deposits').select('*, profiles!inner(email, full_name)').order('created_at', { ascending: false }).eq('status', 'pending'),
+        supabase.from('profiles').select('*, balances(etb_balance, usd_balance)').order('created_at', { ascending: false }),
+      ])
+
+      if (!statsRes.data) {
+        statsRes.data = [{
+          total_users: usersCountRes.count ?? 0,
+          pending_deposits: pendingDepRes.count ?? 0,
+          pending_withdrawals: pendingWithRes.count ?? 0,
+          daily_transactions: dailyRes.count ?? 0,
+        }]
+      }
+
+      if ((!depositsRes.data || depositsRes.data.length === 0) && depositRowsRes.data) {
+        depositsRes.data = depositRowsRes.data
+      }
+
+      if ((!usersRes.data || usersRes.data.length === 0) && allUsersRes.data) {
+        usersRes.data = allUsersRes.data
+      }
+    } catch (fallbackErr) {
+      console.warn('[Admin Supabase] direct queries fallback failed:', fallbackErr)
+    }
+  }
+
   const statsParsed = parseStatsPayload(statsRes.data)
   const stats = statsParsed
     ? {
@@ -564,8 +601,10 @@ export async function approveWithdrawalInSupabase(withdrawal) {
     p_withdrawal_id: wid,
   })
   if (error) {
+    console.error('Approve withdrawal error:', error)
     return { ok: false, error: logAdminError(ADMIN_RPC.approveWithdrawal, error) }
   }
+  console.log('Approved withdrawal:', wid)
   return { ok: true }
 }
 
@@ -580,12 +619,35 @@ export async function rejectWithdrawalInSupabase(withdrawal) {
   const wid = normalizeRpcUuid(withdrawal.supabaseId, 'p_withdrawal_id')
   if (!wid) return { ok: true, skipped: true }
 
+  // Refund the user's balance first by calling process_transaction as a deposit
+  try {
+    const refundAmount = withdrawal.amount_etb ?? withdrawal.amount_usd ?? withdrawal.amount
+    if (refundAmount && Number(refundAmount) > 0) {
+      console.log('[Admin Supabase] refunding withdrawal before reject', { withdrawalId: wid, refundAmount, currency: withdrawal.currency })
+      const refundRes = await supabase.rpc('process_transaction', {
+        p_user_id: withdrawal.user_id,
+        p_type: 'deposit',
+        p_amount: Number(refundAmount),
+        p_currency: withdrawal.currency,
+        p_reference_id: null,
+      })
+      console.log('[Admin Supabase] refund RPC result:', refundRes)
+      if (refundRes?.error) {
+        // Log and continue to reject — admin may retry refund separately
+        logAdminError('refund_before_reject', refundRes.error)
+      }
+    }
+  } catch (err) {
+    console.error('[Admin Supabase] refund failed:', err)
+  }
+
   const { error } = await callAdminRpc(ADMIN_RPC.rejectWithdrawal, {
     p_withdrawal_id: wid,
   })
   if (error) {
     return { ok: false, error: logAdminError(ADMIN_RPC.rejectWithdrawal, error) }
   }
+  console.log('Rejected withdrawal:', wid)
   return { ok: true }
 }
 

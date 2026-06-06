@@ -50,14 +50,14 @@ export default function HistoryPage({ ctx }) {
   }, [historyFilter, transactions])
 
   const getStatusIcon = (status) => {
-    if (status?.includes('Pending')) return <Clock size={16} className="text-yellow-500" />
-    if (status?.includes('Completed')) return <CheckCircle size={16} className="text-green-600" />
+    if (status === 'Pending') return <Clock size={16} className="text-yellow-500" />
+    if (status === 'Approved') return <CheckCircle size={16} className="text-green-600" />
     return <AlertCircle size={16} className="text-red-600" />
   }
 
   const getStatusColor = (status) => {
-    if (status?.includes('Pending')) return 'bg-yellow-50 text-yellow-700 border border-yellow-200'
-    if (status?.includes('Completed')) return 'bg-green-50 text-green-700 border border-green-200'
+    if (status === 'Pending') return 'bg-yellow-50 text-yellow-700 border border-yellow-200'
+    if (status === 'Approved') return 'bg-green-50 text-green-700 border border-green-200'
     return 'bg-red-50 text-red-700 border border-red-200'
   }
 

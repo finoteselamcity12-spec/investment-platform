@@ -308,12 +308,7 @@ function historyRowToTransactions(row) {
   const currency = row.currency === 'USDT' ? 'USD' : row.currency || 'ETB'
 
   if (row.action === 'withdrawal') {
-    const status =
-      meta.status === 'approved' || meta.status === 'successful' || meta.status === 'success'
-        ? 'Completed'
-        : meta.status === 'rejected'
-          ? 'Rejected'
-          : 'Pending Admin Approval'
+    const status = depositWithdrawalStatusLabel(meta.status || row.status)
     return [
       {
         id: row.id,
@@ -332,12 +327,7 @@ function historyRowToTransactions(row) {
   }
 
   if (row.action === 'deposit') {
-    const status =
-      meta.status === 'successful' || meta.status === 'approved' || meta.status === 'success'
-        ? 'Completed'
-        : meta.status === 'rejected'
-          ? 'Rejected'
-          : 'Pending Admin Approval'
+    const status = depositWithdrawalStatusLabel(meta.status || row.status)
     return [
       {
         id: row.id,
@@ -420,8 +410,8 @@ export async function fetchWelcomeBonusHistory(userId) {
 }
 
 function depositWithdrawalStatusLabel(status) {
-  if (status === 'approved' || status === 'successful' || status === 'success') return 'Completed'
-  if (status === 'pending') return 'Pending Admin Approval'
+  if (status === 'approved' || status === 'successful' || status === 'success') return 'Approved'
+  if (status === 'pending') return 'Pending'
   if (status === 'rejected') return 'Rejected'
   return status || 'Pending'
 }
