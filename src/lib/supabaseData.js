@@ -1,7 +1,5 @@
 import supabase from './supabase'
 import {
-  REGISTRATION_BONUS_ETB,
-  REGISTRATION_BONUS_USD,
   REFERRAL_BONUS_ETB,
   REFERRAL_BONUS_USD,
 } from './platformConfig'
@@ -51,21 +49,6 @@ export async function syncProfileAfterSignup({
   if (profileError) {
     console.error('Profile upsert failed:', profileError)
     return { ok: false, error: profileError }
-  }
-
-  const { error: balanceError } = await supabase.from('balances').upsert(
-    {
-      user_id: userId,
-      etb_wallet: REGISTRATION_BONUS_ETB,
-      usd_wallet: REGISTRATION_BONUS_USD,
-      etb_referral_bonus: 0,
-      usd_referral_bonus: 0,
-    },
-    { onConflict: 'user_id', ignoreDuplicates: true }
-  )
-
-  if (balanceError) {
-    console.error('Balance upsert failed:', balanceError)
   }
 
   return { ok: true, referredBy }
@@ -271,26 +254,20 @@ export async function recordDepositForReferral({ userId, currency, amount }) {
   const normalizedCurrency =
     currency === 'USDT' || currency === 'USD' ? 'USD' : 'ETB'
 
-  // Insert using amount_etb / amount_usd to match DB schema
-  const depositPayload = {
-    user_id: userId,
-    currency: normalizedCurrency === 'USD' ? 'USD' : 'ETB',
-    status: 'successful',
-  }
-  if (normalizedCurrency === 'USD') {
-    depositPayload.amount_usd = Number(amount)
-  } else {
-    depositPayload.amount_etb = Number(amount)
-  }
+  const result = await processTransaction({
+    userId,
+    type: 'referral_bonus',
+    amount,
+    currency: normalizedCurrency,
+    referenceId: null,
+  })
 
-  const { error } = await supabase.from('deposits').insert(depositPayload)
-
-  if (error) {
-    console.error('Deposit record failed:', error)
-    return { ok: false, error }
+  if (!result.ok) {
+    console.error('Referral deposit bonus failed:', result.error)
+    return { ok: false, error: result.error }
   }
 
-  return { ok: true }
+  return { ok: true, data: result }
 }
 
 export async function findProfileIdByEmail(email) {
