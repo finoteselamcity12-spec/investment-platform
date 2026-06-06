@@ -17,7 +17,6 @@ import {
   mergePendingDeposits,
   mergePendingWithdrawals,
   mergeUsers,
-  approveDeposit,
   rejectDeposit,
   approveWithdrawal,
   rejectWithdrawal,
@@ -53,6 +52,8 @@ export default function AdminDashboardApp() {
   const [toast, setToast] = useState({ message: '', type: 'success' })
   const [receiptDeposit, setReceiptDeposit] = useState(null)
   const [busyId, setBusyId] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [, setDeposits] = useState([])
 
   const showToast = useCallback((message, type = 'success') => {
     setToast({ message, type })
@@ -188,22 +189,43 @@ export default function AdminDashboardApp() {
     [snapshot, remoteStats]
   )
 
-  const handleApproveDeposit = useCallback(
-    async (id) => {
-      setBusyId(id)
-      try {
-        const next = await approveDeposit(id, snapshot)
-        setSnapshot(next)
-        await refresh()
-        showToast('Deposit approved — Supabase balance updated.', 'success')
-      } catch (e) {
-        showToast(e?.message || 'Approve failed', 'error')
-      } finally {
-        setBusyId(null)
+  async function fetchDeposits() {
+    console.log('[Admin Dashboard] fetchDeposits start')
+    const { data, error } = await supabase
+      .from('deposits')
+      .select('*, profiles(email)')
+      .order('created_at', { ascending: false })
+    console.log('Deposits loaded:', data?.length, error)
+    setDeposits(data || [])
+  }
+
+  async function approveDeposit(depositId) {
+    setLoading(true)
+    setBusyId(depositId)
+    console.log('[Admin Dashboard] approveDeposit start', { depositId })
+    try {
+      const { data, error } = await supabase.rpc('admin_approve_deposit', {
+        p_deposit_id: depositId,
+      })
+      console.log('Approve result:', JSON.stringify(data))
+      if (error) {
+        alert('Error: ' + error.message)
+        return
       }
-    },
-    [snapshot, showToast, refresh]
-  )
+      if (data?.ok) {
+        alert('✅ Deposit approved! Balance updated.')
+        await fetchDeposits()
+      } else {
+        alert('Failed: ' + data?.error)
+      }
+    } catch (e) {
+      console.log('[Admin Dashboard] approveDeposit exception', e)
+      alert('Exception: ' + e.message)
+    } finally {
+      setLoading(false)
+      setBusyId(null)
+    }
+  }
 
   const handleRejectDeposit = useCallback(
     async (id) => {
@@ -320,8 +342,8 @@ export default function AdminDashboardApp() {
               <button
                 type="button"
                 className="admin-btn admin-btn-approve"
-                disabled={busyId === d.id}
-                onClick={() => handleApproveDeposit(d.id)}
+                disabled={busyId === d.id || loading}
+                onClick={() => approveDeposit(d.id)}
               >
                 Approve
               </button>
