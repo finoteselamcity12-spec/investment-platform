@@ -132,7 +132,7 @@ export default function DepositPage({ ctx = {} }) {
         ...(currency === 'USD'
           ? { amount_usd: depositAmount }
           : { amount_etb: depositAmount }),
-        payment_method_id: selectedPaymentData.id,
+        payment_method: selectedPaymentData.id,
         transaction_id: trimmedTxId,
         status: 'pending',
         receiptFile,
