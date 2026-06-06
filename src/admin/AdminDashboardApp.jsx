@@ -25,6 +25,7 @@ import {
   formatAdminCurrency,
 } from './lib/adminStorage'
 import { fetchAdminDashboard, ensureSupabaseAdminAuth } from './lib/adminSupabase'
+import supabase from '../lib/supabase'
 import './admin.css'
 
 const NAV = [
@@ -40,6 +41,12 @@ export default function AdminDashboardApp() {
   const [adminSession, setAdminSession] = useState(null)
   const [snapshot, setSnapshot] = useState(() => loadAdminSnapshot())
   const [remoteStats, setRemoteStats] = useState(null)
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    dailyTransactions: 0,
+    pendingDeposits: 0,
+    pendingWithdrawals: 0,
+  })
   const [fetchErrors, setFetchErrors] = useState([])
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [section, setSection] = useState('overview')
@@ -51,6 +58,33 @@ export default function AdminDashboardApp() {
     setToast({ message, type })
     const t = setTimeout(() => setToast({ message: '', type }), 3200)
     return () => clearTimeout(t)
+  }, [])
+
+  useEffect(() => {
+    let mounted = true
+    async function fetchStats() {
+      try {
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        const [usersRes, pendingDepRes, pendingWithRes, todayRes] = await Promise.all([
+          supabase.from('profiles').select('*', { count: 'exact', head: true }),
+          supabase.from('deposits').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+          supabase.from('withdrawals').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+          supabase.from('history').select('id').gte('created_at', today.toISOString()),
+        ])
+        if (!mounted) return
+        setStats({
+          totalUsers: usersRes.count || 0,
+          dailyTransactions: todayRes.data?.length || todayRes.count || 0,
+          pendingDeposits: pendingDepRes.count || 0,
+          pendingWithdrawals: pendingWithRes.count || 0,
+        })
+      } catch (err) {
+        console.error('[AdminDashboard] fetchStats failed:', err)
+      }
+    }
+    fetchStats()
+    return () => { mounted = false }
   }, [])
 
   const refresh = useCallback(async () => {
@@ -136,11 +170,11 @@ export default function AdminDashboardApp() {
     () => [
       {
         label: 'Total Users',
-        value: remoteStats?.totalUsers ?? snapshot.registrationCount ?? 0,
+        value: stats.totalUsers ?? remoteStats?.totalUsers ?? snapshot.registrationCount ?? 0,
       },
       {
         label: 'Daily Transactions',
-        value: remoteStats?.dailyTransactions ?? snapshot.dailyTransactions ?? 0,
+        value: stats.dailyTransactions ?? remoteStats?.dailyTransactions ?? snapshot.dailyTransactions ?? 0,
       },
       {
         label: 'Active Investments',
@@ -148,7 +182,7 @@ export default function AdminDashboardApp() {
       },
       {
         label: 'Pending Deposits',
-        value: remoteStats?.pendingDeposits ?? snapshot.pendingDeposits.length ?? 0,
+        value: stats.pendingDeposits ?? remoteStats?.pendingDeposits ?? snapshot.pendingDeposits.length ?? 0,
       },
     ],
     [snapshot, remoteStats]

@@ -500,12 +500,13 @@ export async function approveDepositInSupabase(deposit) {
 
   if (depositUuid) {
     const approvePayload = { p_deposit_id: depositUuid }
-    const { data, error } = await callAdminRpc(ADMIN_RPC.approveDeposit, approvePayload)
+    // Call the admin RPC directly and log results for debugging
+    const { data, error } = await supabase.rpc(ADMIN_RPC.approveDeposit, approvePayload)
+    console.log('approve result:', data, error)
     if (error) {
       console.error('Approve error:', error)
       return { ok: false, error: logAdminError(ADMIN_RPC.approveDeposit, error) }
     }
-    console.log('Approved:', data)
     const parsedData = parseRpcJsonData(data)
     const rpcUserId = normalizeRpcUuid(parsedData?.user_id ?? parsedData?.userId, 'user_id')
     const requestUserId = normalizeRpcUuid(deposit.userId, 'user_id')
@@ -597,9 +598,11 @@ export async function approveWithdrawalInSupabase(withdrawal) {
   const wid = normalizeRpcUuid(withdrawal.supabaseId, 'p_withdrawal_id')
   if (!wid) return { ok: true, skipped: true }
 
-  const { error } = await callAdminRpc(ADMIN_RPC.approveWithdrawal, {
+  // Call admin_approve_withdrawal RPC directly
+  const { data, error } = await supabase.rpc(ADMIN_RPC.approveWithdrawal, {
     p_withdrawal_id: wid,
   })
+  console.log('approve withdrawal result:', data, error)
   if (error) {
     console.error('Approve withdrawal error:', error)
     return { ok: false, error: logAdminError(ADMIN_RPC.approveWithdrawal, error) }
@@ -626,7 +629,7 @@ export async function rejectWithdrawalInSupabase(withdrawal) {
       console.log('[Admin Supabase] refunding withdrawal before reject', { withdrawalId: wid, refundAmount, currency: withdrawal.currency })
       const refundRes = await supabase.rpc('process_transaction', {
         p_user_id: withdrawal.user_id,
-        p_type: 'deposit',
+        p_type: 'referral_bonus',
         p_amount: Number(refundAmount),
         p_currency: withdrawal.currency,
         p_reference_id: null,
@@ -641,11 +644,12 @@ export async function rejectWithdrawalInSupabase(withdrawal) {
     console.error('[Admin Supabase] refund failed:', err)
   }
 
-  const { error } = await callAdminRpc(ADMIN_RPC.rejectWithdrawal, {
+  const { data: rejectData, error: rejectError } = await supabase.rpc(ADMIN_RPC.rejectWithdrawal, {
     p_withdrawal_id: wid,
   })
-  if (error) {
-    return { ok: false, error: logAdminError(ADMIN_RPC.rejectWithdrawal, error) }
+  console.log('reject withdrawal result:', rejectData, rejectError)
+  if (rejectError) {
+    return { ok: false, error: logAdminError(ADMIN_RPC.rejectWithdrawal, rejectError) }
   }
   console.log('Rejected withdrawal:', wid)
   return { ok: true }
@@ -660,4 +664,24 @@ export async function fetchAdminSupabaseStats() {
     error: dash.errors?.[0] || null,
     errors: dash.errors,
   }
+}
+
+export async function fetchDepositsDirect() {
+  if (!isSupabaseConfigured()) return { data: [], error: 'supabase not configured' }
+  const { data, error } = await supabase
+    .from('deposits')
+    .select('*, profiles(email)')
+    .order('created_at', { ascending: false })
+  console.log('[Admin Supabase] fetchDepositsDirect result:', data, error)
+  return { data, error }
+}
+
+export async function fetchWithdrawalsDirect() {
+  if (!isSupabaseConfigured()) return { data: [], error: 'supabase not configured' }
+  const { data, error } = await supabase
+    .from('withdrawals')
+    .select('*, profiles(email)')
+    .order('created_at', { ascending: false })
+  console.log('[Admin Supabase] fetchWithdrawalsDirect result:', data, error)
+  return { data, error }
 }

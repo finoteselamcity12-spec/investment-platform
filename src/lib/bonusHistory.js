@@ -348,7 +348,7 @@ function historyRowToTransactions(row) {
   const titleByAction = {
     [WELCOME_BONUS_ACTION]: 'Welcome Bonus',
     [LEGACY_SIGNUP_ACTION]: 'Welcome Bonus',
-    deposit_bonus: 'Deposit Bonus (10%)',
+    deposit_bonus: 'Deposit Bonus +10%',
     referral_bonus: 'Referral Bonus',
     invite_bonus: 'Referral Bonus',
   }
@@ -375,7 +375,7 @@ export async function fetchBonusHistory(userId) {
 
   const { data, error } = await supabase
     .from(HISTORY_TABLE)
-    .select(HISTORY_DISPLAY_COLUMNS)
+    .select('*')
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
 
@@ -410,10 +410,10 @@ export async function fetchWelcomeBonusHistory(userId) {
 }
 
 function depositWithdrawalStatusLabel(status) {
-  if (status === 'approved' || status === 'successful' || status === 'success') return 'Approved'
-  if (status === 'pending') return 'Pending'
-  if (status === 'rejected') return 'Rejected'
-  return status || 'Pending'
+  if (status === 'approved' || status === 'successful' || status === 'success') return 'successful'
+  if (status === 'pending') return 'pending'
+  if (status === 'rejected') return 'rejected'
+  return String(status || 'pending')
 }
 
 async function fetchUserDepositsAndWithdrawals(userId) {

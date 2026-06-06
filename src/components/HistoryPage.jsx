@@ -5,6 +5,7 @@ import {
   fetchUserHistory,
 } from '../lib/bonusHistory'
 import { getSession } from '../lib/authService'
+import { useState } from 'react'
 
 const PRIMARY_GREEN = '#84CC16'
 
@@ -37,6 +38,8 @@ export default function HistoryPage({ ctx }) {
         setTransactions(rows)
       }
     }
+          if (setTransactions) setTransactions([])
+          setLoading(true)
 
     syncHistoryDisplay()
   }, [userEmail, setTransactions])
@@ -52,6 +55,8 @@ export default function HistoryPage({ ctx }) {
   const getStatusIcon = (status) => {
     if (status === 'Pending') return <Clock size={16} className="text-yellow-500" />
     if (status === 'Approved') return <CheckCircle size={16} className="text-green-600" />
+          }
+          setLoading(false)
     return <AlertCircle size={16} className="text-red-600" />
   }
 
@@ -72,14 +77,16 @@ export default function HistoryPage({ ctx }) {
         <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4">
           {historyFilters.map((filter) => (
             <button
-              key={filter}
-              type="button"
+              const s = String(status || '').toLowerCase()
+              if (s === 'pending') return <Clock size={16} className="text-yellow-500" />
+              if (s === 'successful' || s === 'success') return <CheckCircle size={16} className="text-green-600" />
               onClick={() => setHistoryFilter(filter)}
               className="whitespace-nowrap px-4 py-2 rounded-full font-semibold text-sm transition-all active:scale-95"
               style={{
                 backgroundColor: historyFilter === filter ? PRIMARY_GREEN : '#F3F4F6',
-                color: historyFilter === filter ? '#FFFFFF' : '#4B5563',
-                boxShadow: historyFilter === filter ? `0 2px 8px ${PRIMARY_GREEN}30` : 'none',
+              const s = String(status || '').toLowerCase()
+              if (s === 'pending') return 'bg-yellow-50 text-yellow-700 border border-yellow-200'
+              if (s === 'successful' || s === 'success') return 'bg-green-50 text-green-700 border border-green-200'
               }}
             >
               {filter}
@@ -87,7 +94,9 @@ export default function HistoryPage({ ctx }) {
           ))}
         </div>
 
-        {filteredHistory.length > 0 ? (
+        {loading ? (
+          <div className="rounded-2xl border border-slate-200 bg-slate-50 p-8 text-center">Loading…</div>
+        ) : filteredHistory.length > 0 ? (
           <div className="space-y-3">
             {filteredHistory.map((tx) => (
               <div
