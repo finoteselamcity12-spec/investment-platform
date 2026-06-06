@@ -173,7 +173,7 @@ export default function DepositPage({ ctx = {} }) {
         }
       }
 
-      displayToast('Deposit submitted! Waiting for admin approval.', 'success')
+      displayToast(result.message || 'Your deposit request has been submitted. Admin will approve shortly.', 'success')
 
       setAmount('')
       setTransactionId('')
@@ -184,13 +184,6 @@ export default function DepositPage({ ctx = {} }) {
       if (receiptInput) receiptInput.value = ''
 
       localStorage.setItem(`user_pending_deposit_${activeUserEmail}`, result.depositId)
-
-      // Trigger UI refresh after successful RPC transaction
-      if (result.needsRefresh) {
-        setTimeout(() => {
-          window.location.reload()
-        }, 1000)
-      }
     } catch (error) {
       console.error('[deposit] submit failed:', error)
       const message =

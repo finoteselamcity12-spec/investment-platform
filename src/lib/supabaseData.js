@@ -370,10 +370,10 @@ async function uploadDepositProof(authUserId, receiptFile) {
 }
 
 /**
- * Submit a pending deposit using RPC function.
+ * Submit a pending deposit (user-facing).
  * 1. Uploads receipt proof to Storage
- * 2. Calls process_transaction RPC with type='deposit'
- * 3. Returns result with needsRefresh flag for UI
+ * 2. Inserts pending deposit record into deposits table
+ * 3. Awaits admin approval to credit balance
  */
 export async function submitPendingDeposit({
   user_id,
@@ -448,23 +448,35 @@ export async function submitPendingDeposit({
     return { ok: false, error: 'Authenticated user does not match payload user_id.' }
   }
 
-  // Call RPC function with exact parameters
-  const result = await processTransaction({
-    type: 'deposit',
-    amount: depositAmount,
-    currency: normCurrency,
-    referenceId: null,
-    userId: authUserId,
-  })
+  // Insert pending deposit record directly (user cannot approve, only insert pending)
+  const amount_usd_val = normCurrency === 'USD' ? depositAmount : 0
+  const amount_etb_val = normCurrency === 'ETB' ? depositAmount : 0
 
-  if (!result.ok) {
-    console.error('[deposit] RPC failed:', result.error)
-    return { ok: false, error: result.error || 'Could not process deposit.' }
+  const { data: insertedData, error: insertError } = await supabase
+    .from('deposits')
+    .insert({
+      user_id: authUserId,
+      amount: depositAmount,
+      amount_etb: amount_etb_val,
+      amount_usd: amount_usd_val,
+      currency: normCurrency,
+      payment_method: paymentMethod || null,
+      transaction_id: txId,
+      proof_url: proofUrl || null,
+      status: 'pending',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+    .select()
+
+  if (insertError) {
+    console.error('[deposit] insert failed:', insertError.message)
+    return { ok: false, error: 'Failed to submit deposit: ' + insertError.message }
   }
 
   const localRecord = {
     id: txId,
-    supabaseId: txId,
+    supabaseId: insertedData?.[0]?.id || txId,
     userId: authUserId,
     userEmail: userEmail || authUser?.email,
     amount: depositAmount,
@@ -483,14 +495,12 @@ export async function submitPendingDeposit({
     console.warn('[deposit] local cache skipped:', storageErr?.message || storageErr)
   }
 
-  // Return with needsRefresh flag for component to trigger UI update
+  // Return success - admin approval will update balances later
   return {
     ok: true,
-    depositId: txId,
+    depositId: insertedData?.[0]?.id || txId,
     proofUrl,
-    needsRefresh: true,
-    balanceEtb: Number(result.balance_etb || 0),
-    balanceUsd: Number(result.balance_usd || 0),
+    message: 'Your deposit request has been submitted. Admin will approve shortly.',
   }
 }
 
