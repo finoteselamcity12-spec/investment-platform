@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Upload, Copy, Check } from 'lucide-react'
 import { getSession } from '../lib/authService'
+import supabase from '../lib/supabase'
 import {
   DEPOSIT_RECEIPT_MAX_BYTES,
   submitPendingDeposit,
@@ -125,17 +126,17 @@ export default function DepositPage({ ctx = {} }) {
 
     try {
       const depositCurrency = currency === 'USD' ? 'USDT' : currency
-      const session = getSession()
-      console.log('Current Auth User ID:', session?.user?.id)
-      const userId = session?.user?.id
-      if (!userId) {
+      const { data: { session: supaSession } = {} } = await supabase.auth.getSession()
+      console.log('Current Auth User ID:', supaSession?.user?.id)
+      const currentAuthUserId = supaSession?.user?.id
+      if (!currentAuthUserId) {
         displayToast('User not authenticated!', 'error')
         setIsSubmitting(false)
         return
       }
 
       const payload = {
-        user_id: userId,
+        user_id: currentAuthUserId,
         payment_method: selectedPaymentData.id,
         amount_etb: currency === 'ETB' ? depositAmount : null,
         amount_usd: currency === 'USD' ? depositAmount : null,
