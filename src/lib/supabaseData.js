@@ -75,19 +75,19 @@ export async function syncProfileAfterSignup({
  * Resolve the authenticated Supabase user id (RLS requires auth.uid()).
  */
 export async function resolveAuthenticatedUserId(hintUserId) {
-  const resolvedHintUserId = hintUserId ?? null
-  if (!isSupabaseConfigured()) return resolvedHintUserId
+  if (!isSupabaseConfigured()) return hintUserId ?? null
 
   const { data: { user }, error } = await supabase.auth.getUser()
   if (error) {
     console.warn('[balances] auth.getUser failed:', error.message)
   }
-
-  if (user?.id && resolvedHintUserId && resolvedHintUserId !== user.id) {
-    console.warn('[balances] Using hinted user id over Supabase session user id')
+  if (user?.id) {
+    if (hintUserId != null && hintUserId !== user.id) {
+      console.warn('[balances] Using hinted user id instead of Supabase session user id')
+    }
+    return hintUserId ?? user.id
   }
-
-  return resolvedHintUserId ?? user?.id ?? null
+  return hintUserId ?? null
 }
 
 export async function fetchUserBalances(userId) {
