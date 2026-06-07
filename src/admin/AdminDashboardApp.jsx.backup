@@ -233,6 +233,7 @@ export default function AdminDashboardApp() {
     setLoading(true)
     setBusyId(depositId)
     try {
+      // Fetch deposit to get the full object
       const { data: deposit, error: depositFetchError } = await supabase
         .from('deposits')
         .select('*')
@@ -242,57 +243,35 @@ export default function AdminDashboardApp() {
       if (depositFetchError) throw depositFetchError
       if (!deposit) throw new Error('Deposit not found')
 
+      // Validate amount is greater than 0
       if (!deposit.amount || Number(deposit.amount) <= 0) {
-        throw new Error(`Invalid deposit amount: ${deposit.amount}`)
+        throw new Error(`Invalid deposit amount: ${deposit.amount}. Amount must be greater than 0.`)
       }
 
-      if (deposit.status === 'approved') {
-        showToast('This deposit is already approved.', 'info')
-        return
-      }
+      // 1. Update deposit status
+      await supabase.from('deposits').update({ status: 'approved' }).eq('id', deposit.id)
 
-      const { error: updateError } = await supabase
-        .from('deposits')
-        .update({ status: 'approved' })
-        .eq('id', deposit.id)
-      if (updateError) throw updateError
-
-      const userId = deposit.user_id
-      const depositAmount = Number(deposit.amount)
-      const currency = (deposit.currency || 'ETB').toUpperCase()
-
-      const { data: balanceData } = await supabase
+      // 2. Fetch current balance
+      const { data: balanceData, error: fetchError } = await supabase
         .from('balances')
-        .select('etb_wallet, usd_wallet')
-        .eq('user_id', userId)
-        .maybeSingle()
+        .select('etb_balance')
+        .eq('user_id', deposit.profile_id)
+        .single()
 
-      if (!balanceData) {
-        const { error: insertError } = await supabase
-          .from('balances')
-          .insert({
-            user_id: userId,
-            etb_wallet: currency === 'ETB' ? depositAmount : 0,
-            usd_wallet: currency === 'USD' ? depositAmount : 0,
-          })
-        if (insertError) throw insertError
-      } else {
-        const updatePayload = currency === 'USD'
-          ? { usd_wallet: (Number(balanceData.usd_wallet) || 0) + depositAmount }
-          : { etb_wallet: (Number(balanceData.etb_wallet) || 0) + depositAmount }
+      if (fetchError) throw fetchError
 
-        const { error: balanceUpdateError } = await supabase
-          .from('balances')
-          .update(updatePayload)
-          .eq('user_id', userId)
-        if (balanceUpdateError) throw balanceUpdateError
-      }
+      // 3. Update balance
+      const newBalance = (balanceData.etb_balance || 0) + Number(deposit.amount)
+      await supabase
+        .from('balances')
+        .update({ etb_balance: newBalance })
+        .eq('user_id', deposit.profile_id)
 
-      showToast('Deposit approved and balance updated!', 'success')
-      await refresh()
+      alert('Approved successfully!')
+      await fetchDeposits()
     } catch (err) {
-      console.error('Approve error:', err)
-      showToast('Failed to approve: ' + (err?.message || String(err)), 'error')
+      console.error('Error:', err)
+      alert('Failed to approve: ' + (err?.message || String(err)))
     } finally {
       setLoading(false)
       setBusyId(null)
