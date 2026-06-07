@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import './App.css'
 import supabase from './lib/supabase'
 import Auth from './pages/Auth'
 import UserDashboard from './pages/Dashboard'
