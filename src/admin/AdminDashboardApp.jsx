@@ -53,7 +53,7 @@ export default function AdminDashboardApp() {
   const [receiptDeposit, setReceiptDeposit] = useState(null)
   const [busyId, setBusyId] = useState(null)
   const [loading, setLoading] = useState(false)
-  const [, setDeposits] = useState([])
+  const [deposits, setDeposits] = useState([])
 
   const emptySnapshot = {
     users: [],
@@ -118,6 +118,9 @@ export default function AdminDashboardApp() {
     try {
       const auth = await ensureSupabaseAdminAuth()
       console.log('[Admin Dashboard] supabase auth', auth)
+
+      // Load raw deposits from Supabase
+      await fetchDeposits()
 
       const remote = await fetchAdminDashboard()
       console.log('[Admin Dashboard] remote payload', {
@@ -212,26 +215,20 @@ export default function AdminDashboardApp() {
   )
 
   async function fetchDeposits() {
-    console.log('[Admin Dashboard] fetchDeposits start')
-    try {
-      const { data, error } = await supabase
-        .from('deposits')
-        .select('*, profiles(email)')
-        .order('created_at', { ascending: false })
-      if (error) {
-        console.error('[Admin Dashboard] fetchDeposits error:', error)
-      }
-      console.log('Deposits loaded:', data?.length, error)
-      setDeposits(Array.isArray(data) ? data : [])
-    } catch (e) {
-      console.error('[Admin Dashboard] fetchDeposits exception:', e)
-      setDeposits([])
-    }
+    const { data, error } = await supabase
+      .from('deposits')
+      .select('id, user_id, amount_etb, amount_usd, amount, currency, status, payment_method, transaction_id, proof_url, created_at, profiles(email)')
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false })
+    
+    console.log('raw deposits:', JSON.stringify(data?.[0]))
+    setDeposits(data || [])
   }
 
   async function approveDeposit(deposit) {
-    console.log('deposit object:', JSON.stringify(deposit))
+    console.log('ALL deposit fields:', Object.keys(deposit))
     console.log('deposit.id:', deposit.id)
+    console.log('deposit object:', JSON.stringify(deposit))
     
     const { data, error } = await supabase.rpc('admin_approve_deposit', {
       p_deposit_id: String(deposit.id)
@@ -326,42 +323,37 @@ export default function AdminDashboardApp() {
 
   const depositRows = useMemo(
     () =>
-      safePendingDeposits.map((d) => (
-        <tr key={d.supabaseId || d.id}>
+      deposits.map((d) => (
+        <tr key={d.id}>
           <td>
-            <div style={{ fontWeight: 600 }}>{d.userEmail || '—'}</div>
+            <div style={{ fontWeight: 600 }}>{d.profiles?.email || d.user_id || '—'}</div>
             <div style={{ fontSize: '0.6875rem', color: '#64748b', fontFamily: 'monospace' }}>
-              {d.userId || '—'}
+              {d.user_id || '—'}
             </div>
-            {d.source === 'local' && (
-              <span className="admin-badge admin-badge-pending" style={{ marginTop: '0.25rem' }}>
-                Local only
-              </span>
-            )}
           </td>
           <td style={{ fontFamily: 'monospace', fontSize: '0.75rem', maxWidth: '10rem', wordBreak: 'break-all' }}>
-            {d.transactionId || '—'}
+            {d.transaction_id || '—'}
           </td>
           <td>
-            {d.screenshot &&
-            typeof d.screenshot === 'string' &&
-            d.screenshot.length > 0 &&
-            (d.screenshot.startsWith('data:') || d.screenshot.startsWith('http')) ? (
+            {d.proof_url &&
+            typeof d.proof_url === 'string' &&
+            d.proof_url.length > 0 &&
+            (d.proof_url.startsWith('data:') || d.proof_url.startsWith('http')) ? (
               <button
                 type="button"
                 className="admin-proof-thumb"
                 onClick={() => setReceiptDeposit(d)}
                 aria-label="View payment proof"
               >
-                <img src={d.screenshot} alt="Proof" onError={(e) => { e.currentTarget.style.display = 'none' }} />
+                <img src={d.proof_url} alt="Proof" onError={(e) => { e.currentTarget.style.display = 'none' }} />
               </button>
             ) : (
               <span style={{ color: '#64748b', fontSize: '0.75rem' }}>No image</span>
             )}
           </td>
           <td>{formatAdminCurrency(d.amount, d.currency)}</td>
-          <td style={{ fontSize: '0.75rem' }}>{d.paymentMethod || '—'}</td>
-          <td style={{ fontSize: '0.75rem' }}>{new Date(d.createdAt).toLocaleString()}</td>
+          <td style={{ fontSize: '0.75rem' }}>{d.payment_method || '—'}</td>
+          <td style={{ fontSize: '0.75rem' }}>{new Date(d.created_at).toLocaleString()}</td>
           <td>
             <div className="admin-actions">
               <button
@@ -384,7 +376,7 @@ export default function AdminDashboardApp() {
           </td>
         </tr>
       )),
-    [safePendingDeposits, busyId, loading, approveDeposit, handleRejectDeposit]
+    [deposits, busyId, loading, approveDeposit, handleRejectDeposit]
   )
 
   const withdrawalRows = useMemo(
