@@ -1,4 +1,6 @@
+import { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import supabase from './lib/supabase'
 import Login from './pages/Login'
 import Auth from './pages/Auth'
 import Dashboard from './pages/Dashboard'
@@ -7,37 +9,95 @@ import AdminDashboard from './pages/AdminDashboard'
 import Withdraw from './pages/Withdraw'
 import SupportPage from './components/SupportPage'
 import ErrorBoundary from './components/ErrorBoundary'
-import { getSession } from './lib/authService'
 
 const ADMIN_EMAIL = 'workinehabche@gmail.com'
 
 function RequireAdmin({ children }) {
-  const session = getSession()
-  const adminSession = JSON.parse(sessionStorage.getItem('admin_session') || 'null')
-  const isAuthorized = session?.user?.email === ADMIN_EMAIL || adminSession?.email === ADMIN_EMAIL
-  const redirectTo = session ? '/dashboard' : '/login'
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
 
-  if (!isAuthorized) {
-    return <Navigate to={redirectTo} replace />
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null)
+      setLoading(false)
+    })
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user ?? null)
+        setLoading(false)
+      }
+    )
+
+    return () => subscription?.unsubscribe()
+  }, [])
+
+  if (loading) return <div className="flex items-center justify-center min-h-screen">Loading...</div>
+  if (!user || user.email !== ADMIN_EMAIL) {
+    return <Navigate to="/dashboard" replace />
   }
 
   return children
 }
 
 function App() {
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    // Check current session on mount
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.error('Session check error:', error)
+      }
+      setUser(session?.user ?? null)
+      setLoading(false)
+    })
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.email)
+        setUser(session?.user ?? null)
+        setLoading(false)
+      }
+    )
+
+    return () => subscription?.unsubscribe()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-slate-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#84CC16] mx-auto mb-4"></div>
+          <p className="text-slate-600">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <ErrorBoundary>
       <Router>
         <Routes>
-          <Route path="/" element={<Auth />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Auth />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <Auth />} />
+          <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <Login />} />
+          <Route path="/register" element={user ? <Navigate to="/dashboard" replace /> : <Auth />} />
+          <Route path="/dashboard" element={user ? <Dashboard /> : <Navigate to="/login" replace />} />
           <Route path="/admin-login" element={<AdminLogin />} />
-          <Route path="/admin-dashboard" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
-          <Route path="/withdraw" element={<Withdraw />} />
+          <Route path="/admin" element={<Navigate to="/admin-dashboard" replace />} />
+          <Route 
+            path="/admin-dashboard" 
+            element={
+              <RequireAdmin>
+                <AdminDashboard />
+              </RequireAdmin>
+            } 
+          />
+          <Route path="/withdraw" element={user ? <Withdraw /> : <Navigate to="/login" replace />} />
           <Route path="/support" element={<SupportPage />} />
-          <Route path="*" element={<Navigate to="/login" replace />} />
+          <Route path="*" element={<Navigate to={user ? "/dashboard" : "/login"} replace />} />
         </Routes>
       </Router>
     </ErrorBoundary>
