@@ -249,9 +249,9 @@ export default function AdminDashboardApp() {
         return
       }
 
-      const profileId = deposit.profile_id || deposit.user_id || deposit.userId || deposit.profileId
-      if (!profileId) {
-        alert('Error: deposit record does not contain a profile/user id')
+      const userId = deposit.user_id
+      if (!userId) {
+        alert('Error: deposit record missing user_id')
         return
       }
 
@@ -268,7 +268,7 @@ export default function AdminDashboardApp() {
       const { data: profile, error: profileFetchError } = await supabase
         .from('profiles')
         .select('balance')
-        .eq('id', profileId)
+        .eq('id', userId)
         .single()
 
       if (profileFetchError) {
@@ -280,7 +280,7 @@ export default function AdminDashboardApp() {
       const { error: updateProfileError } = await supabase
         .from('profiles')
         .update({ balance: newBalance })
-        .eq('id', profileId)
+        .eq('id', userId)
 
       if (updateProfileError) {
         alert('Error updating profile balance: ' + updateProfileError.message)
