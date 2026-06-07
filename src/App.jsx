@@ -1,30 +1,12 @@
 import { useState, useEffect } from 'react'
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter as Router } from 'react-router-dom'
 import supabase from './lib/supabase'
-import Login from './pages/Login'
-import Auth from './pages/Auth'
-import Dashboard from './pages/Dashboard'
-import AdminLogin from './pages/AdminLogin'
+import LoginPage from './pages/Login'
+import UserDashboard from './pages/Dashboard'
 import AdminDashboard from './pages/AdminDashboard'
-import Withdraw from './pages/Withdraw'
-import SupportPage from './components/SupportPage'
 import ErrorBoundary from './components/ErrorBoundary'
-import { getSession } from './lib/authService'
 
 const ADMIN_EMAIL = 'workinehabche@gmail.com'
-
-function RequireAdmin({ children }) {
-  const session = getSession()
-  const adminSession = JSON.parse(sessionStorage.getItem('admin_session') || 'null')
-  const isAuthorized = session?.user?.email === ADMIN_EMAIL || adminSession?.email === ADMIN_EMAIL
-  const redirectTo = session ? '/dashboard' : '/login'
-
-  if (!isAuthorized) {
-    return <Navigate to={redirectTo} replace />
-  }
-
-  return children
-}
 
 function App() {
   const [user, setUser] = useState(null)
@@ -49,34 +31,29 @@ function App() {
     return () => subscription?.unsubscribe()
   }, [])
 
-  if (loading) {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>
+  if (loading) return <div>Loading...</div>
+  if (!user) {
+    return (
+      <Router>
+        <LoginPage />
+      </Router>
+    )
+  }
+
+  const isAdmin = user.email === ADMIN_EMAIL
+
+  if (isAdmin) {
+    return (
+      <Router>
+        <AdminDashboard user={user} />
+      </Router>
+    )
   }
 
   return (
-    <ErrorBoundary>
-      <Router>
-        <Routes>
-          <Route path="/" element={user ? <Navigate to="/dashboard" replace /> : <Auth />} />
-          <Route path="/login" element={user ? <Navigate to="/dashboard" replace /> : <Login />} />
-          <Route path="/register" element={user ? <Navigate to="/dashboard" replace /> : <Auth />} />
-          <Route path="/dashboard" element={user ? <Dashboard /> : <Navigate to="/login" replace />} />
-          <Route path="/admin-login" element={<AdminLogin />} />
-          <Route path="/admin" element={<Navigate to="/admin-dashboard" replace />} />
-          <Route
-            path="/admin-dashboard"
-            element={
-              <RequireAdmin>
-                <AdminDashboard />
-              </RequireAdmin>
-            }
-          />
-          <Route path="/withdraw" element={user ? <Withdraw /> : <Navigate to="/login" replace />} />
-          <Route path="/support" element={<SupportPage />} />
-          <Route path="*" element={<Navigate to={user ? '/dashboard' : '/login'} replace />} />
-        </Routes>
-      </Router>
-    </ErrorBoundary>
+    <Router>
+      <UserDashboard user={user} />
+    </Router>
   )
 }
 
