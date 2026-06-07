@@ -224,31 +224,40 @@ export default function AdminDashboardApp() {
 
   async function approveDeposit(deposit) {
     console.log('Approving deposit:', deposit.id, 'for user:', deposit.user_id)
-    
-    const { data, error } = await supabase.rpc('admin_approve_deposit', {
-      p_deposit_id: deposit.id
-    })
-    
-    console.log('Approve result:', JSON.stringify(data), JSON.stringify(error))
-    
-    if (error) {
-      alert('Error: ' + error.message)
-      return
+
+    try {
+      const { data, error } = await supabase.rpc('admin_approve_deposit', {
+        p_deposit_id: deposit.id,
+      })
+
+      console.log('Approve result:', JSON.stringify(data), JSON.stringify(error))
+
+      if (error) {
+        showToast(error?.message || 'Approval failed', 'error')
+        return
+      }
+
+      if (!data) {
+        showToast('Approval failed: no response from server', 'error')
+        return
+      }
+
+      if (data.success === true) {
+        setReceiptDeposit(null)
+        showToast(
+          `✅ Approved deposit. ${data.currency || ''} balance updated to ${data.new_balance ?? ''}`.trim(),
+          'success'
+        )
+        await fetchDeposits()
+        return
+      }
+
+      const message = data.error || 'Approval failed'
+      showToast(message, 'error')
+    } catch (err) {
+      console.error('approveDeposit exception', err)
+      showToast(err?.message || 'Approval failed unexpectedly', 'error')
     }
-    
-    if (data?.ok && !data?.already_approved) {
-      alert(`✅ Approved! ${data.total_credit} ${data.currency} added to user balance.`)
-      // update UI immediately
-      setDeposits((prev) => prev.map((d) => (d.id === deposit.id ? { ...d, status: 'successful' } : d)))
-    } else if (data?.already_approved) {
-      alert('Already approved before!')
-      setDeposits((prev) => prev.map((d) => (d.id === deposit.id ? { ...d, status: 'successful' } : d)))
-    } else {
-      alert('Failed: ' + JSON.stringify(data))
-    }
-    
-    // Refresh deposits list in background
-    fetchDeposits().catch((e) => console.warn('fetchDeposits after approve failed', e))
   }
 
   async function rejectDepositRpc(deposit) {
