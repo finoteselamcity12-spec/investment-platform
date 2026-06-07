@@ -270,7 +270,7 @@ export default function AdminDashboardApp() {
   }
 
   async function deleteDeposit(depositId) {
-    if (!window.confirm('Delete this deposit permanently?')) return
+    if (!confirm('Delete this deposit permanently?')) return
 
     const { error } = await supabase
       .from('deposits')
@@ -419,8 +419,8 @@ export default function AdminDashboardApp() {
                   </button>
                   <button
                     type="button"
-                    style={{ background: '#dc2626', color: 'white', padding: '4px 8px', borderRadius: '4px', marginLeft: '4px' }}
                     onClick={() => deleteDeposit(d.id)}
+                    style={{ background: '#dc2626', color: 'white', padding: '4px 8px', borderRadius: '4px', marginLeft: '4px' }}
                   >
                     Delete
                   </button>

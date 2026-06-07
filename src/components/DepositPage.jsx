@@ -25,6 +25,9 @@ export default function DepositPage({ ctx = {} }) {
   const [receiptFile, setReceiptFile] = useState(null)
   const [screenshot, setScreenshot] = useState({ name: '', preview: '' })
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+  const [success, setSuccess] = useState(null)
   const [copiedField, setCopiedField] = useState('')
   const [toast, setToast] = useState('')
   const [toastType, setToastType] = useState('success')
@@ -95,16 +98,14 @@ export default function DepositPage({ ctx = {} }) {
 
   async function handleDepositSubmit(e) {
     e.preventDefault()
-    setIsSubmitting(true)
-    setToast('')
-    setToastType('success')
-
+    setLoading(true)
+    setError(null)
+    
     const { data: { user } } = await supabase.auth.getUser()
-
+    
     if (!user) {
-      setToast('Not logged in')
-      setToastType('error')
-      setIsSubmitting(false)
+      setError('Not logged in')
+      setLoading(false)
       return
     }
 
@@ -116,30 +117,28 @@ export default function DepositPage({ ctx = {} }) {
       currency: currency,
       payment_method: paymentMethod || 'manual',
       transaction_id: transactionId || '',
-      status: 'pending',
+      status: 'pending'
     }
-
+    
     console.log('Inserting deposit:', depositData)
-
+    
     const { data, error } = await supabase
       .from('deposits')
       .insert(depositData)
       .select()
-
+    
     console.log('Insert result:', data, error)
-
+    
     if (error) {
-      setToast('Failed: ' + error.message)
-      setToastType('error')
-      setIsSubmitting(false)
+      setError('Failed: ' + error.message)
+      setLoading(false)
       return
     }
-
-    setToast('✅ Deposit submitted! Waiting for admin approval.')
-    setToastType('success')
+    
+    setSuccess('✅ Deposit submitted! Waiting for admin approval.')
     setAmount('')
     setTransactionId('')
-    setIsSubmitting(false)
+    setLoading(false)
   }
 
   return (
