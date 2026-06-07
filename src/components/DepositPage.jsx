@@ -25,7 +25,6 @@ export default function DepositPage({ ctx = {} }) {
   const [receiptFile, setReceiptFile] = useState(null)
   const [screenshot, setScreenshot] = useState({ name: '', preview: '' })
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [success, setSuccess] = useState(null)
   const [copiedField, setCopiedField] = useState('')
@@ -98,19 +97,22 @@ export default function DepositPage({ ctx = {} }) {
 
   async function handleDepositSubmit(e) {
     e.preventDefault()
-    setLoading(true)
+    setIsSubmitting(true)
     setError(null)
-    
-    const { data: { user } } = await supabase.auth.getUser()
-    
-    if (!user) {
-      setError('Not logged in')
-      setLoading(false)
+
+    const { data: authData, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !authData?.user) {
+      setError('Please log in again')
+      setIsSubmitting(false)
       return
     }
 
+    const currentUser = authData.user
+    console.log('Depositing for user:', currentUser.id, currentUser.email)
+
     const depositData = {
-      user_id: user.id,
+      user_id: currentUser.id,
       amount_etb: currency === 'ETB' ? Number(amount) : 0,
       amount_usd: currency === 'USD' ? Number(amount) : 0,
       amount: Number(amount),
@@ -119,26 +121,26 @@ export default function DepositPage({ ctx = {} }) {
       transaction_id: transactionId || '',
       status: 'pending'
     }
-    
+
     console.log('Inserting deposit:', depositData)
-    
+
     const { data, error } = await supabase
       .from('deposits')
       .insert(depositData)
       .select()
-    
-    console.log('Insert result:', data, error)
-    
+
+    console.log('Deposit insert:', data, error)
+
     if (error) {
       setError('Failed: ' + error.message)
-      setLoading(false)
+      setIsSubmitting(false)
       return
     }
-    
-    setSuccess('✅ Deposit submitted! Waiting for admin approval.')
+
+    setSuccess('Deposit submitted! Waiting for admin approval.')
     setAmount('')
     setTransactionId('')
-    setLoading(false)
+    setIsSubmitting(false)
   }
 
   return (
