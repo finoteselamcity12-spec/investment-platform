@@ -229,31 +229,26 @@ export default function AdminDashboardApp() {
     }
   }
 
-  async function approveDeposit(depositId) {
-    setLoading(true)
-    setBusyId(depositId)
-    console.log('[Admin Dashboard] approveDeposit start', { depositId })
-    try {
-      const { data, error } = await supabase.rpc('admin_approve_deposit', {
-        p_deposit_id: depositId,
-      })
-      console.log('Approve result:', JSON.stringify(data))
-      if (error) {
-        alert('Error: ' + error.message)
-        return
-      }
-      if (data?.ok) {
-        alert('✅ Deposit approved! Balance updated.')
-        await fetchDeposits()
-      } else {
-        alert('Failed: ' + data?.error)
-      }
-    } catch (e) {
-      console.log('[Admin Dashboard] approveDeposit exception', e)
-      alert('Exception: ' + e.message)
-    } finally {
-      setLoading(false)
-      setBusyId(null)
+  async function approveDeposit(deposit) {
+    console.log('deposit object:', JSON.stringify(deposit))
+    console.log('deposit.id:', deposit.id)
+    
+    const { data, error } = await supabase.rpc('admin_approve_deposit', {
+      p_deposit_id: String(deposit.id)
+    })
+    
+    console.log('data:', JSON.stringify(data))
+    console.log('error:', JSON.stringify(error))
+    
+    if (error) {
+      alert('Error: ' + error.message + ' | ' + error.details)
+      return
+    }
+    if (data?.ok) {
+      alert('✅ Approved! +' + data.total_credit + ' ' + data.currency)
+      fetchDeposits()
+    } else {
+      alert('Failed: ' + JSON.stringify(data))
     }
   }
 
@@ -373,7 +368,7 @@ export default function AdminDashboardApp() {
                 type="button"
                 className="admin-btn admin-btn-approve"
                 disabled={busyId === d.id || loading}
-                onClick={() => approveDeposit(d.id)}
+                onClick={() => approveDeposit(d)}
               >
                 Approve
               </button>
