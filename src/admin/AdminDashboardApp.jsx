@@ -234,20 +234,55 @@ export default function AdminDashboardApp() {
     setBusyId(depositId)
     console.log('[Admin Dashboard] approveDeposit start', { depositId })
     try {
-      const { data, error } = await supabase.rpc('admin_approve_deposit', {
-        p_deposit_id: depositId,
-      })
-      console.log('Approve result:', JSON.stringify(data))
-      if (error) {
-        alert('Error: ' + error.message)
+      const { data: deposit, error: depositFetchError } = await supabase
+        .from('deposits')
+        .select('id, amount, profile_id')
+        .eq('id', depositId)
+        .single()
+
+      if (depositFetchError) {
+        alert('Error fetching deposit: ' + depositFetchError.message)
         return
       }
-      if (data?.ok) {
-        alert('✅ Deposit approved! Balance updated.')
-        await fetchDeposits()
-      } else {
-        alert('Failed: ' + data?.error)
+      if (!deposit) {
+        alert('Deposit not found')
+        return
       }
+
+      const { error: updateDepositError } = await supabase
+        .from('deposits')
+        .update({ status: 'approved' })
+        .eq('id', depositId)
+
+      if (updateDepositError) {
+        alert('Error updating deposit status: ' + updateDepositError.message)
+        return
+      }
+
+      const { data: profile, error: profileFetchError } = await supabase
+        .from('profiles')
+        .select('balance')
+        .eq('id', deposit.profile_id)
+        .single()
+
+      if (profileFetchError) {
+        alert('Error fetching profile: ' + profileFetchError.message)
+        return
+      }
+
+      const newBalance = Number(profile.balance ?? 0) + Number(deposit.amount ?? 0)
+      const { error: updateProfileError } = await supabase
+        .from('profiles')
+        .update({ balance: newBalance })
+        .eq('id', deposit.profile_id)
+
+      if (updateProfileError) {
+        alert('Error updating profile balance: ' + updateProfileError.message)
+        return
+      }
+
+      alert('✅ Deposit approved! Balance updated.')
+      await fetchDeposits()
     } catch (e) {
       console.log('[Admin Dashboard] approveDeposit exception', e)
       alert('Exception: ' + e.message)
