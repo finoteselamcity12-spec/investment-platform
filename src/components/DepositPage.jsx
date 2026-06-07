@@ -154,7 +154,7 @@ export default function DepositPage({ ctx = {} }) {
           </div>
 
       {/* Deposit Form */}
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleDepositSubmit} className="space-y-4">
         {/* Currency Selection */}
         <div className="rounded-[1.75rem] bg-white border border-slate-200 p-5 shadow-sm">
           <label className="block text-sm font-semibold text-slate-950 mb-3">Currency</label>
