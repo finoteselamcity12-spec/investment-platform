@@ -1,23 +1,23 @@
 import { useState } from 'react'
-import { ADMIN_CREDENTIALS } from '../lib/adminStorage'
+import { ADMIN_EMAIL, ADMIN_CREDENTIALS } from '../lib/adminStorage'
 import { ensureAdminSupabaseSession } from '../lib/adminSupabase'
 
 export default function AdminLoginForm({ onSuccess }) {
-  const [loginName, setLoginName] = useState('')
+  const [loginEmail, setLoginEmail] = useState('')
   const [loginPassword, setLoginPassword] = useState('')
-  const [loginId, setLoginId] = useState('')
   const [loginError, setLoginError] = useState('')
 
   async function handleSubmit(event) {
     event.preventDefault()
     setLoginError('')
 
-    if (
-      loginName !== ADMIN_CREDENTIALS.name ||
-      loginPassword !== ADMIN_CREDENTIALS.password ||
-      loginId !== ADMIN_CREDENTIALS.id
-    ) {
-      setLoginError('Invalid admin credentials. Please check name, password, and ID.')
+    if (loginEmail.toLowerCase().trim() !== ADMIN_EMAIL.toLowerCase()) {
+      setLoginError(`Only ${ADMIN_EMAIL} may login to the admin console.`)
+      return
+    }
+
+    if (loginPassword !== ADMIN_CREDENTIALS.password) {
+      setLoginError('Invalid admin password.')
       return
     }
 
@@ -28,9 +28,7 @@ export default function AdminLoginForm({ onSuccess }) {
     }
 
     const session = {
-      name: loginName,
-      id: loginId,
-      email: 'workinehabche@gmail.com',
+      email: ADMIN_EMAIL,
       loginTime: new Date().toISOString(),
     }
     sessionStorage.setItem('admin_session', JSON.stringify(session))
@@ -49,12 +47,15 @@ export default function AdminLoginForm({ onSuccess }) {
 
         <form onSubmit={handleSubmit} style={{ marginTop: '1.25rem' }}>
           <div className="admin-field">
-            <label htmlFor="admin-name">Admin Name</label>
-            <input id="admin-name" value={loginName} onChange={(e) => setLoginName(e.target.value)} placeholder="Admin" required />
-          </div>
-          <div className="admin-field">
-            <label htmlFor="admin-id">Admin ID</label>
-            <input id="admin-id" value={loginId} onChange={(e) => setLoginId(e.target.value)} placeholder="15610010" required />
+            <label htmlFor="admin-email">Admin Email</label>
+            <input
+              id="admin-email"
+              type="email"
+              value={loginEmail}
+              onChange={(e) => setLoginEmail(e.target.value)}
+              placeholder="workinehabche@gmail.com"
+              required
+            />
           </div>
           <div className="admin-field">
             <label htmlFor="admin-password">Password</label>
