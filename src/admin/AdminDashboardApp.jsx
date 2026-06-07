@@ -255,7 +255,7 @@ export default function AdminDashboardApp() {
       const { data: balanceData, error: fetchError } = await supabase
         .from('balances')
         .select('etb_balance')
-        .eq('user_id', deposit.user_id)
+        .eq('user_id', deposit.profile_id)
         .single()
 
       if (fetchError) throw fetchError
@@ -265,7 +265,7 @@ export default function AdminDashboardApp() {
       await supabase
         .from('balances')
         .update({ etb_balance: newBalance })
-        .eq('user_id', deposit.user_id)
+        .eq('user_id', deposit.profile_id)
 
       alert('Approved successfully!')
       await fetchDeposits()
