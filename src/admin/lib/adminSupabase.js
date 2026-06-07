@@ -228,41 +228,9 @@ export async function fetchAdminDashboard() {
   if (withdrawalsRes.error) errors.push(logAdminError(ADMIN_RPC.withdrawals, withdrawalsRes.error))
   if (usersRes.error) errors.push(logAdminError(ADMIN_RPC.users, usersRes.error))
 
-  // Fallback: if RPCs failed or returned no rows, attempt direct queries as admin
-  if (errors.length > 0 || (!statsRes.data && (!depositsRes.data || !usersRes.data))) {
-    try {
-      console.log('[Admin Supabase] falling back to direct queries for stats')
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
-
-      const [usersCountRes, pendingDepRes, pendingWithRes, dailyRes, depositRowsRes, allUsersRes] = await Promise.all([
-        supabase.from('profiles').select('*', { count: 'exact', head: true }),
-        supabase.from('deposits').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-        supabase.from('withdrawals').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-        supabase.from('history').select('*', { count: 'exact', head: true }).gte('created_at', today.toISOString()),
-        supabase.from('deposits').select('*, profiles!inner(email, full_name)').order('created_at', { ascending: false }).eq('status', 'pending'),
-        supabase.from('profiles').select('*, balances(etb_balance, usd_balance)').order('created_at', { ascending: false }),
-      ])
-
-      if (!statsRes.data) {
-        statsRes.data = [{
-          total_users: usersCountRes.count ?? 0,
-          pending_deposits: pendingDepRes.count ?? 0,
-          pending_withdrawals: pendingWithRes.count ?? 0,
-          daily_transactions: dailyRes.count ?? 0,
-        }]
-      }
-
-      if ((!depositsRes.data || depositsRes.data.length === 0) && depositRowsRes.data) {
-        depositsRes.data = depositRowsRes.data
-      }
-
-      if ((!usersRes.data || usersRes.data.length === 0) && allUsersRes.data) {
-        usersRes.data = allUsersRes.data
-      }
-    } catch (fallbackErr) {
-      console.warn('[Admin Supabase] direct queries fallback failed:', fallbackErr)
-    }
+  // If any RPC returned an error, surface it and continue — do not perform direct table queries.
+  if (errors.length > 0) {
+    adminLog('rpc_errors', { errors })
   }
 
   const statsParsed = parseStatsPayload(statsRes.data)
@@ -376,17 +344,23 @@ export async function resolveUserId(emailOrId) {
   if (!emailOrId) return null
   if (UUID_REGEX.test(emailOrId)) return emailOrId
 
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('id')
-    .eq('email', emailOrId)
-    .maybeSingle()
-
-  if (error) {
-    logAdminError('resolveUserId', error)
+  // Use admin RPC to fetch users and resolve by email (avoid direct table queries)
+  try {
+    const { data, error } = await supabase.rpc(ADMIN_RPC.users)
+    if (error) {
+      logAdminError('resolveUserId_rpc', error)
+      return null
+    }
+    const rows = Array.isArray(data) ? data : []
+    const found = rows.find((r) => {
+      const email = pick(r, 'email', 'user_email', 'userEmail')
+      return email && email.toLowerCase() === String(emailOrId).toLowerCase()
+    })
+    return found ? pick(found, 'user_id', 'userId', 'id') : null
+  } catch (e) {
+    logAdminError('resolveUserId_exception', e)
     return null
   }
-  return data?.id || null
 }
 
 /**
@@ -697,20 +671,14 @@ export async function fetchAdminSupabaseStats() {
 
 export async function fetchDepositsDirect() {
   if (!isSupabaseConfigured()) return { data: [], error: 'supabase not configured' }
-  const { data, error } = await supabase
-    .from('deposits')
-    .select('*, profiles(email)')
-    .order('created_at', { ascending: false })
-  console.log('[Admin Supabase] fetchDepositsDirect result:', data, error)
-  return { data, error }
+  const result = await supabase.rpc(ADMIN_RPC.pendingDeposits)
+  console.log('[Admin Supabase] fetchDepositsDirect RPC result:', result.data, result.error)
+  return { data: result.data, error: result.error }
 }
 
 export async function fetchWithdrawalsDirect() {
   if (!isSupabaseConfigured()) return { data: [], error: 'supabase not configured' }
-  const { data, error } = await supabase
-    .from('withdrawals')
-    .select('*, profiles(email)')
-    .order('created_at', { ascending: false })
-  console.log('[Admin Supabase] fetchWithdrawalsDirect result:', data, error)
-  return { data, error }
+  const result = await supabase.rpc(ADMIN_RPC.withdrawals)
+  console.log('[Admin Supabase] fetchWithdrawalsDirect RPC result:', result.data, result.error)
+  return { data: result.data, error: result.error }
 }

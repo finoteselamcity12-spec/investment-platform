@@ -87,20 +87,13 @@ export default function AdminDashboardApp() {
     let mounted = true
     async function fetchStats() {
       try {
-        const today = new Date()
-        today.setHours(0, 0, 0, 0)
-        const [usersRes, pendingDepRes, pendingWithRes, todayRes] = await Promise.all([
-          supabase.from('profiles').select('*', { count: 'exact', head: true }),
-          supabase.from('deposits').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-          supabase.from('withdrawals').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-          supabase.from('history').select('id').gte('created_at', today.toISOString()),
-        ])
+        const dash = await fetchAdminDashboard()
         if (!mounted) return
         setStats({
-          totalUsers: usersRes.count || 0,
-          dailyTransactions: todayRes.data?.length || todayRes.count || 0,
-          pendingDeposits: pendingDepRes.count || 0,
-          pendingWithdrawals: pendingWithRes.count || 0,
+          totalUsers: dash.stats?.totalUsers ?? 0,
+          dailyTransactions: dash.stats?.dailyTransactions ?? 0,
+          pendingDeposits: dash.stats?.pendingDeposits ?? 0,
+          pendingWithdrawals: dash.stats?.pendingWithdrawals ?? 0,
         })
       } catch (err) {
         console.error('[AdminDashboard] fetchStats failed:', err)
@@ -215,14 +208,10 @@ export default function AdminDashboardApp() {
   )
 
   async function fetchDeposits() {
-    const { data, error } = await supabase
-      .from('deposits')
-      .select('id, user_id, amount_etb, amount_usd, amount, currency, status, payment_method, transaction_id, proof_url, created_at, profiles(email)')
-      .eq('status', 'pending')
-      .order('created_at', { ascending: false })
-    
-    console.log('raw deposits:', JSON.stringify(data?.[0]))
-    setDeposits(data || [])
+    const { data, error } = await supabase.rpc('admin_list_pending_deposits')
+    const deposits = Array.isArray(data) ? data : []
+    console.log('raw deposits (rpc):', JSON.stringify(deposits?.[0]))
+    setDeposits(deposits)
   }
 
   async function approveDeposit(deposit) {
