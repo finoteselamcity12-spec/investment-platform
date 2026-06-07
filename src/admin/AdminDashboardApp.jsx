@@ -54,6 +54,8 @@ export default function AdminDashboardApp() {
   const [busyId, setBusyId] = useState(null)
   const [loading, setLoading] = useState(false)
   const [deposits, setDeposits] = useState([])
+  const [page, setPage] = useState(1)
+  const ITEMS_PER_PAGE = 20
 
   const emptySnapshot = {
     users: [],
@@ -214,6 +216,11 @@ export default function AdminDashboardApp() {
     setDeposits(deposits)
   }
 
+  const getAmount = (deposit) => {
+    if (deposit.currency === 'USD') return `$${Number(deposit.amount_usd || 0).toFixed(2)}`
+    return `${Number(deposit.amount_etb || 0).toLocaleString()} ETB`
+  }
+
   async function approveDeposit(deposit) {
     console.log('Approving deposit:', deposit.id, 'for user:', deposit.user_id)
     
@@ -230,14 +237,35 @@ export default function AdminDashboardApp() {
     
     if (data?.ok && !data?.already_approved) {
       alert(`✅ Approved! ${data.total_credit} ${data.currency} added to user balance.`)
+      // update UI immediately
+      setDeposits((prev) => prev.map((d) => (d.id === deposit.id ? { ...d, status: 'successful' } : d)))
     } else if (data?.already_approved) {
       alert('Already approved before!')
+      setDeposits((prev) => prev.map((d) => (d.id === deposit.id ? { ...d, status: 'successful' } : d)))
     } else {
       alert('Failed: ' + JSON.stringify(data))
     }
     
-    // Refresh deposits list
-    await fetchDeposits()
+    // Refresh deposits list in background
+    fetchDeposits().catch((e) => console.warn('fetchDeposits after approve failed', e))
+  }
+
+  async function rejectDepositRpc(deposit) {
+    console.log('Rejecting deposit:', deposit.id)
+    try {
+      const { data, error } = await supabase.rpc('admin_reject_deposit', { p_deposit_id: deposit.id })
+      console.log('Reject result:', JSON.stringify(data), JSON.stringify(error))
+      if (error) {
+        alert('Error: ' + error.message)
+        return
+      }
+      alert('Deposit rejected.')
+      setDeposits((prev) => prev.map((d) => (d.id === deposit.id ? { ...d, status: 'rejected' } : d)))
+      fetchDeposits().catch((e) => console.warn('fetchDeposits after reject failed', e))
+    } catch (e) {
+      console.error('rejectDepositRpc exception', e)
+      alert('Reject failed: ' + (e?.message || String(e)))
+    }
   }
 
   const handleRejectDeposit = useCallback(
@@ -313,8 +341,9 @@ export default function AdminDashboardApp() {
   }, [showToast])
 
   const depositRows = useMemo(
-    () =>
-      deposits.map((d) => (
+    () => {
+      const paginatedDeposits = deposits.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE)
+      return paginatedDeposits.map((d) => (
         <tr key={d.id}>
             <td>
               <div style={{ fontWeight: 600 }}>{d.email || d.profiles?.email || d.user_id || '—'}</div>
@@ -342,34 +371,44 @@ export default function AdminDashboardApp() {
               <span style={{ color: '#64748b', fontSize: '0.75rem' }}>No image</span>
             )}
           </td>
+          <td>{getAmount(d)}</td>
           <td>
-            {d.currency === 'USD' ? `$${d.amount_usd}` : `${d.amount_etb} ETB`}
+            {d.status === 'pending' && <span className="admin-badge admin-badge-pending">Pending</span>}
+            {d.status === 'successful' && <span className="admin-badge admin-badge-success">Approved</span>}
+            {d.status === 'rejected' && <span className="admin-badge admin-badge-rejected">Rejected</span>}
           </td>
           <td style={{ fontSize: '0.75rem' }}>{d.payment_method || '—'}</td>
           <td style={{ fontSize: '0.75rem' }}>{new Date(d.created_at).toLocaleString()}</td>
           <td>
             <div className="admin-actions">
-              <button
-                type="button"
-                className="admin-btn admin-btn-approve"
-                disabled={busyId === d.id || loading}
-                onClick={() => approveDeposit(d)}
-              >
-                Approve
-              </button>
-              <button
-                type="button"
-                className="admin-btn admin-btn-reject"
-                disabled={busyId === d.id}
-                onClick={() => handleRejectDeposit(d.id)}
-              >
-                Reject
-              </button>
+              {d.status === 'pending' ? (
+                <>
+                  <button
+                    type="button"
+                    className="admin-btn admin-btn-approve"
+                    disabled={busyId === d.id || loading}
+                    onClick={() => approveDeposit(d)}
+                  >
+                    Approve
+                  </button>
+                  <button
+                    type="button"
+                    className="admin-btn admin-btn-reject"
+                    disabled={busyId === d.id}
+                    onClick={() => rejectDepositRpc(d)}
+                  >
+                    Reject
+                  </button>
+                </>
+              ) : (
+                d.status === 'successful' ? <span style={{ color: 'green' }}>✅ Approved</span> : <span style={{ color: 'red' }}>❌ Rejected</span>
+              )}
             </div>
           </td>
         </tr>
-      )),
-    [deposits, busyId, loading, approveDeposit, handleRejectDeposit]
+      ))
+    },
+    [deposits, page, busyId, loading, approveDeposit]
   )
 
   const withdrawalRows = useMemo(
@@ -523,21 +562,35 @@ export default function AdminDashboardApp() {
           )}
 
           {section === 'deposits' && (
-            <AdminDataTable
-              title="Pending Deposits"
-              subtitle="Approve or reject from each row"
-              emptyMessage="No pending deposits."
-              columns={[
-                { key: 'user', label: 'User / ID' },
-                { key: 'tx', label: 'Transaction ID' },
-                { key: 'proof', label: 'Proof' },
-                { key: 'amount', label: 'Amount' },
-                { key: 'method', label: 'Method' },
-                { key: 'date', label: 'Submitted' },
-                { key: 'actions', label: 'Actions' },
-              ]}
-              rows={depositRows}
-            />
+            <>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                <div>
+                  <h3 style={{ margin: 0 }}>Deposits</h3>
+                  <div style={{ fontSize: '0.85rem', color: '#64748b' }}>Showing all deposits (pending, successful, rejected)</div>
+                </div>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>Previous</button>
+                  <span>Page {page} of {Math.max(1, Math.ceil(deposits.length / ITEMS_PER_PAGE))}</span>
+                  <button onClick={() => setPage((p) => p + 1)} disabled={page * ITEMS_PER_PAGE >= deposits.length}>Next</button>
+                </div>
+              </div>
+              <AdminDataTable
+                title="Deposits"
+                subtitle="Approve or reject from each row"
+                emptyMessage="No deposits."
+                columns={[
+                  { key: 'user', label: 'User / ID' },
+                  { key: 'tx', label: 'Transaction ID' },
+                  { key: 'proof', label: 'Proof' },
+                  { key: 'amount', label: 'Amount' },
+                  { key: 'status', label: 'Status' },
+                  { key: 'method', label: 'Method' },
+                  { key: 'date', label: 'Submitted' },
+                  { key: 'actions', label: 'Actions' },
+                ]}
+                rows={depositRows}
+              />
+            </>
           )}
 
           {section === 'withdrawals' && (
