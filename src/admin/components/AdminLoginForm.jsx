@@ -38,43 +38,53 @@ export default function AdminLoginForm({ onSuccess }) {
   return (
     <div className="admin-login-page">
       <div className="admin-login-card">
-        <p style={{ fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.14em', color: '#84cc16', textTransform: 'uppercase' }}>
-          Blackrock Admin
-        </p>
-        <h2 style={{ marginTop: '0.5rem', fontSize: '1.35rem', fontWeight: 800, color: '#f8fafc' }}>
-          Operator Login
-        </h2>
+        <div className="admin-login-header">
+          <span className="admin-login-subtitle">BLACKROCK OPERATOR</span>
+          <h1>Admin Console Login</h1>
+          <p className="admin-login-description">Secure access for the platform operator. Login with the authorized admin email to continue.</p>
+        </div>
 
-        <form onSubmit={handleSubmit} style={{ marginTop: '1.25rem' }}>
+        <form onSubmit={handleSubmit} className="admin-login-form">
           <div className="admin-field">
-            <label htmlFor="admin-email">Admin Email</label>
+            <label htmlFor="admin-email" className="admin-label">
+              Admin Email
+            </label>
             <input
               id="admin-email"
               type="email"
               value={loginEmail}
               onChange={(e) => setLoginEmail(e.target.value)}
               placeholder="workinehabche@gmail.com"
+              className="admin-input"
               required
             />
           </div>
+
           <div className="admin-field">
-            <label htmlFor="admin-password">Password</label>
+            <label htmlFor="admin-password" className="admin-label">
+              Password
+            </label>
             <input
               id="admin-password"
               type="password"
               value={loginPassword}
               onChange={(e) => setLoginPassword(e.target.value)}
               placeholder="••••••••"
+              className="admin-input"
               required
             />
           </div>
-          {loginError && (
-            <p style={{ marginBottom: '0.75rem', fontSize: '0.8125rem', fontWeight: 600, color: '#fca5a5' }}>{loginError}</p>
-          )}
-          <button type="submit" className="admin-btn admin-btn-approve" style={{ width: '100%', padding: '0.75rem' }}>
+
+          {loginError && <p className="admin-message">{loginError}</p>}
+
+          <button type="submit" className="admin-btn admin-login-button">
             Login to Console
           </button>
         </form>
+
+        <p className="admin-login-foot">
+          Only <strong>{ADMIN_EMAIL}</strong> can access the admin console.
+        </p>
       </div>
     </div>
   )
