@@ -658,13 +658,6 @@ export async function submitPendingWithdrawal({
   }
 
   const withdrawalId = rpcData.withdrawal_id || rpcData.reference_id
-  const accountDetailsJson = providedAccountDetails || JSON.stringify({
-    bank: trimmedBank,
-    payment_method: trimmedPaymentMethod,
-    account_name: trimmedName,
-    account_number: trimmedAccount,
-  })
-
   const localRecord = {
     id: withdrawalId || `withdrawal-${Date.now()}`,
     supabaseId: withdrawalId,
@@ -688,31 +681,13 @@ export async function submitPendingWithdrawal({
     console.warn('[withdrawal] local cache skipped:', storageErr?.message || storageErr)
   }
 
-  // Persist bank/account details to the withdrawals row created by RPC (if we have an id)
-  if (withdrawalId) {
-    try {
-      const { data: updateData, error: updateErr } = await supabase
-        .from('withdrawals')
-        .update({
-          bank: trimmedBank,
-          account_name: trimmedName,
-          account_number: trimmedAccount,
-        })
-        .eq('id', withdrawalId)
-
-      console.log('[withdrawal] update withdrawal row result:', updateData, updateErr)
-    } catch (updErr) {
-      console.warn('[withdrawal] update withdrawal row failed:', updErr)
-    }
-  }
-
   // Return with needsRefresh flag for component to trigger UI update
   return {
     ok: true,
     withdrawalId,
     needsRefresh: true,
-    usdBalance: Number(rpcData.balance_usd || 0),
-    etbBalance: Number(rpcData.balance_etb || 0),
+    usdBalance: Number(result.balance_usd || 0),
+    etbBalance: Number(result.balance_etb || 0),
   }
 }
 
