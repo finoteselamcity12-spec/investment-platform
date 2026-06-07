@@ -236,7 +236,9 @@ export default function AdminDashboardApp() {
     try {
       const { data: deposit, error: depositFetchError } = await supabase
         .from('deposits')
-      .select('*')
+        .select('*')
+        .eq('id', depositId)
+        .single()
 
       if (depositFetchError) {
         alert('Error fetching deposit: ' + depositFetchError.message)
@@ -244,6 +246,12 @@ export default function AdminDashboardApp() {
       }
       if (!deposit) {
         alert('Deposit not found')
+        return
+      }
+
+      const profileId = deposit.profile_id || deposit.user_id || deposit.userId || deposit.profileId
+      if (!profileId) {
+        alert('Error: deposit record does not contain a profile/user id')
         return
       }
 
@@ -260,7 +268,7 @@ export default function AdminDashboardApp() {
       const { data: profile, error: profileFetchError } = await supabase
         .from('profiles')
         .select('balance')
-        .eq('id', deposit.profile_id)
+        .eq('id', profileId)
         .single()
 
       if (profileFetchError) {
@@ -272,7 +280,7 @@ export default function AdminDashboardApp() {
       const { error: updateProfileError } = await supabase
         .from('profiles')
         .update({ balance: newBalance })
-        .eq('id', deposit.profile_id)
+        .eq('id', profileId)
 
       if (updateProfileError) {
         alert('Error updating profile balance: ' + updateProfileError.message)
