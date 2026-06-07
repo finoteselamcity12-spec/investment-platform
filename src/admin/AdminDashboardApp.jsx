@@ -236,9 +236,7 @@ export default function AdminDashboardApp() {
     try {
       const { data: deposit, error: depositFetchError } = await supabase
         .from('deposits')
-        .select('id, amount, profile_id')
-        .eq('id', depositId)
-        .single()
+      .select('*')
 
       if (depositFetchError) {
         alert('Error fetching deposit: ' + depositFetchError.message)
