@@ -216,7 +216,7 @@ export default function AdminDashboardApp() {
     try {
       const { data, error } = await supabase
         .from('deposits')
-        .select('*, profiles(email)')
+        .select('*')
         .order('created_at', { ascending: false })
       if (error) {
         console.error('[Admin Dashboard] fetchDeposits error:', error)
