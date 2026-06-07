@@ -454,6 +454,8 @@ export async function submitPendingDeposit({
     .insert({
       user_id: authUserId,
       amount: depositAmount,
+      amount_etb: normCurrency === 'ETB' ? depositAmount : null,
+      amount_usd: normCurrency === 'USD' ? depositAmount : null,
       currency: normCurrency,
       payment_method: paymentMethod || 'manual',
       transaction_id: txId,

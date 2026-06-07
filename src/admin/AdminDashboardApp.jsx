@@ -242,8 +242,9 @@ export default function AdminDashboardApp() {
       if (depositFetchError) throw depositFetchError
       if (!deposit) throw new Error('Deposit not found')
 
-      if (!deposit.amount || Number(deposit.amount) <= 0) {
-        throw new Error(`Invalid deposit amount: ${deposit.amount}`)
+      const depositAmount = Number(deposit.amount_etb ?? deposit.amount_usd ?? deposit.amount) || 0
+      if (depositAmount <= 0) {
+        throw new Error(`Invalid deposit amount: ${depositAmount}. Please ensure the user submitted a valid amount.`)
       }
 
       if (deposit.status === 'approved') {
@@ -258,7 +259,6 @@ export default function AdminDashboardApp() {
       if (updateError) throw updateError
 
       const userId = deposit.user_id
-      const depositAmount = Number(deposit.amount)
       const currency = (deposit.currency || 'ETB').toUpperCase()
 
       const { data: balanceData } = await supabase
