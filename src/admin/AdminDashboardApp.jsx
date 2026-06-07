@@ -213,6 +213,7 @@ export default function AdminDashboardApp() {
     const { data, error } = await supabase.rpc('admin_list_pending_deposits')
     const deposits = Array.isArray(data) ? data : []
     console.log('raw deposits (rpc):', JSON.stringify(deposits?.[0]))
+    deposits.forEach((d) => console.log(d.id, '→', d.email))
     setDeposits(deposits)
   }
 
@@ -266,6 +267,23 @@ export default function AdminDashboardApp() {
       console.error('rejectDepositRpc exception', e)
       alert('Reject failed: ' + (e?.message || String(e)))
     }
+  }
+
+  async function deleteDeposit(depositId) {
+    if (!window.confirm('Delete this deposit permanently?')) return
+
+    const { error } = await supabase
+      .from('deposits')
+      .delete()
+      .eq('id', depositId)
+
+    if (error) {
+      alert('Delete failed: ' + error.message)
+      return
+    }
+
+    setDeposits((prev) => prev.filter((d) => d.id !== depositId))
+    alert('Deleted successfully')
   }
 
   const handleRejectDeposit = useCallback(
@@ -398,6 +416,13 @@ export default function AdminDashboardApp() {
                     onClick={() => rejectDepositRpc(d)}
                   >
                     Reject
+                  </button>
+                  <button
+                    type="button"
+                    style={{ background: '#dc2626', color: 'white', padding: '4px 8px', borderRadius: '4px', marginLeft: '4px' }}
+                    onClick={() => deleteDeposit(d.id)}
+                  >
+                    Delete
                   </button>
                 </>
               ) : (

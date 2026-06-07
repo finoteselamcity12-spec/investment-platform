@@ -93,107 +93,53 @@ export default function DepositPage({ ctx = {} }) {
     setTimeout(() => setToast(''), 3000)
   }
 
-  const handleSubmit = async (e) => {
+  async function handleDepositSubmit(e) {
     e.preventDefault()
-    
-    // Validate minimum amount
-    const minUsd = WITHDRAWAL_MIN_USD || 3
-    const minEtb = WITHDRAWAL_MIN_ETB || 300
-    const depositAmount = parseFloat(amount) || 0
-    
-    if (currency === 'USD' && depositAmount < minUsd) {
-      displayToast(`Minimum deposit is $${minUsd}`, 'error')
-      return
-    }
-    
-    if (currency === 'ETB' && depositAmount < minEtb) {
-      displayToast(`Minimum deposit is ${minEtb} Birr`, 'error')
-      return
-    }
-    
-    const trimmedTxId = transactionId.trim()
-    if (!trimmedTxId) {
-      displayToast('Transaction ID is required.', 'error')
-      return
-    }
-
-    if (!receiptFile) {
-      displayToast('Please upload a receipt image before submitting.', 'error')
-      return
-    }
-
     setIsSubmitting(true)
+    setToast('')
+    setToastType('success')
 
-    try {
-      const depositCurrency = currency === 'USD' ? 'USDT' : currency
-      const { data: { session: supaSession } = {} } = await supabase.auth.getSession()
-      console.log('Current Auth User ID:', supaSession?.user?.id)
-      const currentAuthUserId = supaSession?.user?.id
-      if (!currentAuthUserId) {
-        displayToast('User not authenticated!', 'error')
-        setIsSubmitting(false)
-        return
-      }
+    const { data: { user } } = await supabase.auth.getUser()
 
-      const payload = {
-        user_id: currentAuthUserId,
-        payment_method: selectedPaymentData.id,
-        amount_etb: currency === 'ETB' ? depositAmount : null,
-        amount_usd: currency === 'USD' ? depositAmount : null,
-        transaction_id: trimmedTxId,
-        status: 'pending',
-      }
-
-      const result = await submitPendingDeposit({
-        ...payload,
-        userEmail: activeUserEmail,
-        currency: depositCurrency,
-        receiptFile,
-      })
-
-      if (!result.ok) {
-        displayToast(result.error || 'Error submitting deposit. Please try again.', 'error')
-        return
-      }
-
-      if (typeof addTransaction === 'function') {
-        try {
-          addTransaction({
-            id: `tx-${Date.now()}`,
-            type: 'Deposit',
-            category: 'Deposits',
-            title: `Deposit Submitted: ${currency === 'USD' ? '$' : ''}${amount} ${currency === 'USD' ? 'USDT' : currency}`,
-            amount: depositAmount,
-            currency: depositCurrency,
-            status: 'Pending Admin Approval',
-            date: new Date().toISOString(),
-          })
-        } catch (txErr) {
-          console.warn('[deposit] local transaction log failed:', txErr)
-        }
-      }
-
-      displayToast(result.message || 'Your deposit request has been submitted. Admin will approve shortly.', 'success')
-
-      setAmount('')
-      setTransactionId('')
-      setReceiptFile(null)
-      setScreenshot({ name: '', preview: '' })
-
-      const receiptInput = document.getElementById('receipt-upload')
-      if (receiptInput) receiptInput.value = ''
-
-      localStorage.setItem(`user_pending_deposit_${activeUserEmail}`, result.depositId)
-    } catch (error) {
-      console.error('[deposit] submit failed:', error)
-      const message =
-        error?.name === 'QuotaExceededError'
-          ? 'Browser storage is full. Try a smaller image or clear site data.'
-          : 'Error submitting deposit. Please try again.'
-      displayToast(message, 'error')
-    } finally {
+    if (!user) {
+      setToast('Not logged in')
+      setToastType('error')
       setIsSubmitting(false)
+      return
     }
+
+    const depositData = {
+      user_id: user.id,
+      amount_etb: currency === 'ETB' ? Number(amount) : 0,
+      amount_usd: currency === 'USD' ? Number(amount) : 0,
+      amount: Number(amount),
+      currency: currency,
+      payment_method: paymentMethod || 'manual',
+      transaction_id: transactionId || '',
+      status: 'pending',
+    }
+
+    console.log('Inserting deposit:', depositData)
+
+    const { data, error } = await supabase
+      .from('deposits')
+      .insert(depositData)
+      .select()
+
+    console.log('Insert result:', data, error)
+
+    if (error) {
+      setToast('Failed: ' + error.message)
+      setToastType('error')
+      setIsSubmitting(false)
+      return
+    }
+
+    setToast('✅ Deposit submitted! Waiting for admin approval.')
+    setToastType('success')
+    setAmount('')
+    setTransactionId('')
+    setIsSubmitting(false)
   }
 
   return (
