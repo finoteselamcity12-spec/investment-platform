@@ -11,9 +11,9 @@ export default function AdminLogin() {
   useEffect(() => {
     const stored = JSON.parse(sessionStorage.getItem('admin_session') || 'null')
     if (stored?.email === ADMIN_EMAIL) {
-      navigate('/admin/dashboard', { replace: true })
+      navigate('/admin-dashboard', { replace: true })
     }
   }, [navigate])
 
-  return <AdminLoginForm onSuccess={() => navigate('/admin/dashboard')} />
+  return <AdminLoginForm onSuccess={() => navigate('/admin-dashboard')} />
 }

@@ -91,6 +91,30 @@ export default function AdminDashboardApp() {
       try {
         const dash = await fetchAdminDashboard()
         if (!mounted) return
+
+        // try to call a small scalar RPC for total users if available
+        try {
+          const { data: totalData, error: totalErr } = await supabase.rpc('get_total_users')
+          if (!totalErr && totalData != null) {
+            // handle different return shapes
+            let totalUsers = 0
+            if (Array.isArray(totalData) && totalData.length > 0) {
+              const first = totalData[0]
+              if (typeof first === 'object') {
+                const val = Object.values(first)[0]
+                totalUsers = Number(val) || 0
+              } else {
+                totalUsers = Number(first) || 0
+              }
+            } else if (typeof totalData === 'number' || typeof totalData === 'string') {
+              totalUsers = Number(totalData) || 0
+            }
+            dash.stats = { ...dash.stats, totalUsers }
+          }
+        } catch (e) {
+          // ignore if RPC not present
+        }
+
         setStats({
           totalUsers: dash.stats?.totalUsers ?? 0,
           dailyTransactions: dash.stats?.dailyTransactions ?? 0,
@@ -675,7 +699,7 @@ export default function AdminDashboardApp() {
         <div className={`admin-toast admin-toast-${toast.type}`}>{toast.message}</div>
       )}
 
-      <AdminReceiptModal deposit={receiptDeposit} onClose={() => setReceiptDeposit(null)} />
+      <AdminReceiptModal deposit={receiptDeposit} onClose={() => setReceiptDeposit(null)} fetchDeposits={fetchDeposits} />
     </div>
   )
 }

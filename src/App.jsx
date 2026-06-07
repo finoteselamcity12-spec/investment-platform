@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
-import { BrowserRouter as Router } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import supabase from './lib/supabase'
-import LoginPage from './pages/Login'
+import Auth from './pages/Auth'
 import UserDashboard from './pages/Dashboard'
 import AdminDashboard from './pages/AdminDashboard'
 import ErrorBoundary from './components/ErrorBoundary'
@@ -13,10 +13,7 @@ function App() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-      if (error) {
-        console.error('Session check error:', error)
-      }
+    supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null)
       setLoading(false)
     })
@@ -24,36 +21,34 @@ function App() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setUser(session?.user ?? null)
-        setLoading(false)
       }
     )
 
     return () => subscription?.unsubscribe()
   }, [])
 
-  if (loading) return <div>Loading...</div>
-  if (!user) {
-    return (
-      <Router>
-        <LoginPage />
-      </Router>
-    )
-  }
-
-  const isAdmin = user.email === ADMIN_EMAIL
-
-  if (isAdmin) {
-    return (
-      <Router>
-        <AdminDashboard user={user} />
-      </Router>
-    )
-  }
+  if (loading) return <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',background:'#84CC16',color:'white',fontSize:'1.5rem'}}>Loading...</div>
 
   return (
-    <Router>
-      <UserDashboard user={user} />
-    </Router>
+    <ErrorBoundary>
+      <Router>
+        <Routes>
+          {/* Public routes */}
+          <Route path="/login" element={!user ? <Auth /> : <Navigate to={user.email === ADMIN_EMAIL ? '/admin-dashboard' : '/dashboard'} />} />
+          <Route path="/register" element={!user ? <Auth /> : <Navigate to={user.email === ADMIN_EMAIL ? '/admin-dashboard' : '/dashboard'} />} />
+          <Route path="/" element={!user ? <Auth /> : <Navigate to={user.email === ADMIN_EMAIL ? '/admin-dashboard' : '/dashboard'} />} />
+
+          {/* User dashboard */}
+          <Route path="/dashboard" element={user && user.email !== ADMIN_EMAIL ? <UserDashboard user={user} /> : <Navigate to="/login" />} />
+
+          {/* Admin dashboard */}
+          <Route path="/admin-dashboard" element={user && user.email === ADMIN_EMAIL ? <AdminDashboard user={user} /> : <Navigate to="/login" />} />
+
+          {/* Catch all */}
+          <Route path="*" element={<Navigate to="/" />} />
+        </Routes>
+      </Router>
+    </ErrorBoundary>
   )
 }
 
