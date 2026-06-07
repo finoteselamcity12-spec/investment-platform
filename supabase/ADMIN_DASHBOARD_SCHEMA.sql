@@ -157,6 +157,7 @@ SET search_path = public
 AS $$
 DECLARE
   v_dep public.deposits%ROWTYPE;
+  deposit_amount NUMERIC(18,4);
   v_currency TEXT;
   v_balance_exists BOOLEAN;
 BEGIN
@@ -174,6 +175,7 @@ BEGIN
   END IF;
 
   v_currency := CASE WHEN upper(v_dep.currency) IN ('USD','USDT') THEN 'USD' ELSE 'ETB' END;
+  deposit_amount := COALESCE(v_dep.amount, v_dep.amount_usd, v_dep.amount_etb, 0);
 
   INSERT INTO public.balances (user_id, usd_balance, etb_balance)
   VALUES (v_dep.user_id, 0, 0)
@@ -181,12 +183,12 @@ BEGIN
 
   IF v_currency = 'USD' THEN
     UPDATE public.balances
-    SET usd_balance = usd_balance + v_dep.amount,
+    SET usd_balance = usd_balance + deposit_amount,
         updated_at = NOW()
     WHERE user_id = v_dep.user_id;
   ELSE
     UPDATE public.balances
-    SET etb_balance = etb_balance + v_dep.amount,
+    SET etb_balance = etb_balance + deposit_amount,
         updated_at = NOW()
     WHERE user_id = v_dep.user_id;
   END IF;
@@ -196,7 +198,7 @@ BEGIN
   WHERE id = p_deposit_id;
 
   INSERT INTO public.history (user_id, action, currency, amount, status, reference_id, metadata)
-  VALUES (v_dep.user_id, 'deposit', v_currency, v_dep.amount, 'successful', p_deposit_id, jsonb_build_object('payment_method', v_dep.payment_method));
+  VALUES (v_dep.user_id, 'deposit', v_currency, deposit_amount, 'successful', p_deposit_id, jsonb_build_object('payment_method', v_dep.payment_method));
 
   RETURN json_build_object('ok', true, 'deposit_id', p_deposit_id, 'status', 'successful');
 EXCEPTION WHEN OTHERS THEN

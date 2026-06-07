@@ -307,7 +307,7 @@ export async function fetchAdminDashboard() {
     currency: pick(row, 'currency'),
     paymentMethodId: pick(row, 'payment_method_id', 'paymentMethodId', 'payment_method', 'paymentMethod'),
     transactionId: pick(row, 'transaction_id', 'transactionId'),
-    screenshot: pick(row, 'proof_url', 'proofUrl', 'screenshot_url', 'screenshotUrl') || null,
+    screenshot: pick(row, 'proof_url', 'proofUrl', 'screenshot_url', 'screenshotUrl', 'screenshot') || null,
     status: pick(row, 'status'),
     createdAt: pick(row, 'created_at', 'createdAt'),
     source: 'supabase',

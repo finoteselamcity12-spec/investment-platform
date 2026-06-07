@@ -244,7 +244,7 @@ export default function AdminDashboardApp() {
       }
       if (data?.ok) {
         alert('✅ Deposit approved! Balance updated.')
-        await fetchDeposits()
+        await refresh()
       } else {
         alert('Failed: ' + data?.error)
       }
