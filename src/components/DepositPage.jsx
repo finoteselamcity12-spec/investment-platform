@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Upload, Copy, Check } from 'lucide-react'
 import { getSession } from '../lib/authService'
 import supabase from '../lib/supabase'
@@ -27,6 +27,7 @@ export default function DepositPage({ ctx = {} }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState(null)
   const [success, setSuccess] = useState(null)
+  const [currentUserEmail, setCurrentUserEmail] = useState('')
   const [copiedField, setCopiedField] = useState('')
   const [toast, setToast] = useState('')
   const [toastType, setToastType] = useState('success')
@@ -43,7 +44,26 @@ export default function DepositPage({ ctx = {} }) {
 
   const currentMethods = paymentMethods[currency]
   const selectedPaymentData = currentMethods.find(m => m.label === paymentMethod) || currentMethods[0]
-  const activeUserEmail = userEmail || localStorage.getItem('current_user_email') || 'user@example.com'
+  const activeUserEmail = userEmail || currentUserEmail || 'user@example.com'
+
+  useEffect(() => {
+    let isMounted = true
+
+    async function loadCurrentUserEmail() {
+      const { data: authData, error } = await supabase.auth.getUser()
+      if (isMounted && authData?.user?.email) {
+        setCurrentUserEmail(authData.user.email)
+      }
+      if (error) {
+        console.warn('[DepositPage] auth.getUser failed:', error)
+      }
+    }
+
+    loadCurrentUserEmail()
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   const handleCopy = (text, field) => {
     navigator.clipboard.writeText(text)
@@ -153,6 +173,17 @@ export default function DepositPage({ ctx = {} }) {
               📌 <strong>Important:</strong> Send your payment first, then provide proof of transaction below. Admin approval required.
             </p>
           </div>
+
+          {success && (
+            <div className="rounded-3xl bg-emerald-600 px-5 py-4 text-white shadow-lg shadow-emerald-600/20">
+              ✅ {success}
+            </div>
+          )}
+          {error && (
+            <div className="rounded-3xl bg-red-600 px-5 py-4 text-white shadow-lg shadow-red-600/20">
+              ❌ {error}
+            </div>
+          )}
 
       {/* Deposit Form */}
       <form onSubmit={handleDepositSubmit} className="space-y-4">

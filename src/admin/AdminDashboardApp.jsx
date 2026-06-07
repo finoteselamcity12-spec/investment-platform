@@ -24,7 +24,7 @@ import {
   formatAdminCurrency,
 } from './lib/adminStorage'
 import { fetchAdminDashboard, ensureSupabaseAdminAuth } from './lib/adminSupabase'
-import supabase from '../lib/supabase'
+import { adminSupabase as supabase } from '../lib/supabase'
 import './admin.css'
 
 const NAV = [
@@ -364,7 +364,7 @@ export default function AdminDashboardApp() {
       return paginatedDeposits.map((d) => (
         <tr key={d.id}>
             <td>
-              <div style={{ fontWeight: 600 }}>{d.email || 'Unknown'}</div>
+              <div style={{ fontWeight: 600 }}>{d.email || d.user_email || d.profiles?.email || d.user_id || 'Unknown'}</div>
               <div style={{ fontSize: '0.6875rem', color: '#64748b', fontFamily: 'monospace' }}>
                 {d.user_id || '—'}
               </div>
