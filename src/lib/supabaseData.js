@@ -66,9 +66,9 @@ export async function resolveAuthenticatedUserId(hintUserId) {
   }
   if (user?.id) {
     if (hintUserId != null && hintUserId !== user.id) {
-      console.warn('[balances] Using hinted user id instead of Supabase session user id')
+      console.warn('[balances] Using Supabase session user id (hint mismatch)')
     }
-    return hintUserId ?? user.id
+    return user.id
   }
   return hintUserId ?? null
 }
