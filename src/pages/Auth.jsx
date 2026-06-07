@@ -68,7 +68,7 @@ function AuthIconField({ label, required, icon: Icon, valid, hint, children }) {
   )
 }
 
-function Auth() {
+export default function Auth() {
   const navigate = useNavigate()
   const location = useLocation()
   const [isLogin, setIsLogin] = useState(true)
@@ -289,27 +289,13 @@ function Auth() {
 
         // Fallback: if auto sign-in failed, redirect user to login
         setFeedback(
-          `Welcome, ${sanitizedName}! Logging you in…`,
+          `Welcome, ${sanitizedName}! Registration successful. Redirecting to login…`,
           'success'
         )
         setForm(initialForm)
-        try {
-          const { data: autoLogin, error: autoErr } = await supabase.auth.signInWithPassword({
-            email: sanitizedEmail,
-            password: form.password,
-          })
-          if (!autoErr && autoLogin?.user) {
-            await supabase.rpc('grant_signup_bonus_if_missing', {
-              p_user_id: autoLogin.user.id,
-            }).catch(() => {})
-            setLoading(false)
-            navigate('/dashboard')
-            return
-          }
-        } catch (_) {}
         setIsLogin(true)
-        setLoading(false)
         setTimeout(() => navigate('/login'), 1500)
+        setLoading(false)
         return
       }
 
@@ -386,11 +372,7 @@ function Auth() {
       localStorage.setItem('admin_user_data', JSON.stringify(userData))
       persistUserBalances(sanitizedEmail, { usdBalance, etbBalance }, user?.id)
 
-      if (sanitizedEmail === ADMIN_EMAIL) {
-        navigate('/admin-dashboard')
-      } else {
-        navigate('/dashboard')
-      }
+      navigate('/dashboard')
     } catch (error) {
       const errorMessage = String(error?.message || error || '')
       if (errorMessage.toLowerCase().includes('invalid')) {
@@ -629,5 +611,3 @@ function Auth() {
     </div>
   )
 }
-
-export default Auth

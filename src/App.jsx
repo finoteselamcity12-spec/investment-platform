@@ -1,5 +1,6 @@
-﻿import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import './App.css'
 import supabase from './lib/supabase'
 import Auth from './pages/Auth'
 import UserDashboard from './pages/Dashboard'
@@ -21,16 +22,28 @@ function App() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setUser(session?.user ?? null)
-        setLoading(false)
       }
     )
 
     return () => subscription?.unsubscribe()
   }, [])
 
-  if (loading) return null
-
-  const isAdmin = user?.email === ADMIN_EMAIL
+  if (loading) {
+    return (
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: '100vh',
+        background: '#84CC16',
+        color: 'white',
+        fontSize: '1.5rem',
+        fontWeight: 'bold'
+      }}>
+        Loading...
+      </div>
+    )
+  }
 
   return (
     <ErrorBoundary>
@@ -39,57 +52,45 @@ function App() {
           <Route
             path="/"
             element={
-              !user ? <Auth /> :
-              isAdmin ? <Navigate to="/admin-dashboard" replace /> :
-              <Navigate to="/dashboard" replace />
+              !user
+                ? <Auth />
+                : <Navigate to={user.email === ADMIN_EMAIL ? '/admin-dashboard' : '/dashboard'} replace />
             }
           />
           <Route
             path="/login"
             element={
-              !user ? <Auth /> :
-              isAdmin ? <Navigate to="/admin-dashboard" replace /> :
-              <Navigate to="/dashboard" replace />
+              !user
+                ? <Auth />
+                : <Navigate to={user.email === ADMIN_EMAIL ? '/admin-dashboard' : '/dashboard'} replace />
             }
           />
           <Route
             path="/register"
             element={
-              !user ? <Auth /> :
-              isAdmin ? <Navigate to="/admin-dashboard" replace /> :
-              <Navigate to="/dashboard" replace />
+              !user
+                ? <Auth />
+                : <Navigate to={user.email === ADMIN_EMAIL ? '/admin-dashboard' : '/dashboard'} replace />
             }
           />
           <Route
             path="/dashboard"
             element={
-              !user ? <Navigate to="/login" replace /> :
-              isAdmin ? <Navigate to="/admin-dashboard" replace /> :
-              <UserDashboard user={user} />
-            }
-          />
-          <Route
-            path="/dashboard/*"
-            element={
-              !user ? <Navigate to="/login" replace /> :
-              isAdmin ? <Navigate to="/admin-dashboard" replace /> :
-              <UserDashboard user={user} />
+              !user
+                ? <Navigate to="/login" replace />
+                : user.email === ADMIN_EMAIL
+                  ? <Navigate to="/admin-dashboard" replace />
+                  : <UserDashboard user={user} />
             }
           />
           <Route
             path="/admin-dashboard"
             element={
-              !user ? <Navigate to="/login" replace /> :
-              !isAdmin ? <Navigate to="/dashboard" replace /> :
-              <AdminDashboard user={user} />
-            }
-          />
-          <Route
-            path="/admin-dashboard/*"
-            element={
-              !user ? <Navigate to="/login" replace /> :
-              !isAdmin ? <Navigate to="/dashboard" replace /> :
-              <AdminDashboard user={user} />
+              !user
+                ? <Navigate to="/login" replace />
+                : user.email !== ADMIN_EMAIL
+                  ? <Navigate to="/dashboard" replace />
+                  : <AdminDashboard user={user} />
             }
           />
           <Route path="*" element={<Navigate to="/" replace />} />
