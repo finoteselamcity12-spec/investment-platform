@@ -79,9 +79,12 @@ export async function fetchUserBalances(userId) {
   const resolvedUserId = await resolveAuthenticatedUserId(userId)
   if (!resolvedUserId) return null
 
+  // Ensure auth session is active
+  await supabase.auth.getSession()
+
   const { data, error } = await supabase
     .from('balances')
-    .select('etb_wallet, usd_wallet')
+    .select('etb_wallet, usd_wallet, etb_balance, usd_balance')
     .eq('user_id', resolvedUserId)
     .maybeSingle()
 
@@ -95,8 +98,8 @@ export async function fetchUserBalances(userId) {
   }
 
   return {
-    etbBalance: Number(data.etb_wallet) || 0,
-    usdBalance: Number(data.usd_wallet) || 0,
+    etbBalance: Number(data.etb_wallet || data.etb_balance) || 0,
+    usdBalance: Number(data.usd_wallet || data.usd_balance) || 0,
     fromDatabase: true,
     empty: false,
   }
