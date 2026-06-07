@@ -215,27 +215,29 @@ export default function AdminDashboardApp() {
   }
 
   async function approveDeposit(deposit) {
-    console.log('ALL deposit fields:', Object.keys(deposit))
-    console.log('deposit.id:', deposit.id)
-    console.log('deposit object:', JSON.stringify(deposit))
+    console.log('Approving deposit:', deposit.id, 'for user:', deposit.user_id)
     
     const { data, error } = await supabase.rpc('admin_approve_deposit', {
-      p_deposit_id: String(deposit.id)
+      p_deposit_id: deposit.id
     })
     
-    console.log('data:', JSON.stringify(data))
-    console.log('error:', JSON.stringify(error))
+    console.log('Approve result:', JSON.stringify(data), JSON.stringify(error))
     
     if (error) {
-      alert('Error: ' + error.message + ' | ' + error.details)
+      alert('Error: ' + error.message)
       return
     }
-    if (data?.ok) {
-      alert('✅ Approved! +' + data.total_credit + ' ' + data.currency)
-      fetchDeposits()
+    
+    if (data?.ok && !data?.already_approved) {
+      alert(`✅ Approved! ${data.total_credit} ${data.currency} added to user balance.`)
+    } else if (data?.already_approved) {
+      alert('Already approved before!')
     } else {
       alert('Failed: ' + JSON.stringify(data))
     }
+    
+    // Refresh deposits list
+    await fetchDeposits()
   }
 
   const handleRejectDeposit = useCallback(
@@ -314,12 +316,12 @@ export default function AdminDashboardApp() {
     () =>
       deposits.map((d) => (
         <tr key={d.id}>
-          <td>
-            <div style={{ fontWeight: 600 }}>{d.profiles?.email || d.user_id || '—'}</div>
-            <div style={{ fontSize: '0.6875rem', color: '#64748b', fontFamily: 'monospace' }}>
-              {d.user_id || '—'}
-            </div>
-          </td>
+            <td>
+              <div style={{ fontWeight: 600 }}>{d.email || d.profiles?.email || d.user_id || '—'}</div>
+              <div style={{ fontSize: '0.6875rem', color: '#64748b', fontFamily: 'monospace' }}>
+                {d.user_id || '—'}
+              </div>
+            </td>
           <td style={{ fontFamily: 'monospace', fontSize: '0.75rem', maxWidth: '10rem', wordBreak: 'break-all' }}>
             {d.transaction_id || '—'}
           </td>
@@ -340,7 +342,9 @@ export default function AdminDashboardApp() {
               <span style={{ color: '#64748b', fontSize: '0.75rem' }}>No image</span>
             )}
           </td>
-          <td>{formatAdminCurrency(d.amount, d.currency)}</td>
+          <td>
+            {d.currency === 'USD' ? `$${d.amount_usd}` : `${d.amount_etb} ETB`}
+          </td>
           <td style={{ fontSize: '0.75rem' }}>{d.payment_method || '—'}</td>
           <td style={{ fontSize: '0.75rem' }}>{new Date(d.created_at).toLocaleString()}</td>
           <td>
