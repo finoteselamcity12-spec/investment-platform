@@ -218,6 +218,32 @@ export default function AppShell({ children, activePage, setActivePage }) {
     return () => document.removeEventListener('visibilitychange', onVisible)
   }, [refreshBalances])
 
+  useEffect(() => {
+    const session = getSession()
+    const userId = session?.user?.id
+    if (!userId) return undefined
+
+    const channel = supabase
+      .channel('balance-changes')
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'balances',
+        filter: `user_id=eq.${userId}`,
+      }, (payload) => {
+        console.log('Balance updated:', payload.new)
+        setUsdBalance(payload.new.usd_balance)
+        setEtbBalance(payload.new.etb_balance)
+      })
+      .subscribe()
+
+    const interval = setInterval(refreshBalances, 10000)
+    return () => {
+      clearInterval(interval)
+      supabase.removeChannel(channel)
+    }
+  }, [refreshBalances])
+
   const navItems = [
     { id: 'home', label: 'Home', icon: Home },
     { id: 'deposit', label: 'Deposit', icon: Wallet },
