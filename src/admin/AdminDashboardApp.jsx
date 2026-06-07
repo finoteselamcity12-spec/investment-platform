@@ -243,6 +243,11 @@ export default function AdminDashboardApp() {
       if (depositFetchError) throw depositFetchError
       if (!deposit) throw new Error('Deposit not found')
 
+      // Validate amount is greater than 0
+      if (!deposit.amount || Number(deposit.amount) <= 0) {
+        throw new Error(`Invalid deposit amount: ${deposit.amount}. Amount must be greater than 0.`)
+      }
+
       // 1. Update deposit status
       await supabase.from('deposits').update({ status: 'approved' }).eq('id', deposit.id)
 
@@ -256,7 +261,7 @@ export default function AdminDashboardApp() {
       if (fetchError) throw fetchError
 
       // 3. Update balance
-      const newBalance = (balanceData.etb_balance || 0) + deposit.amount
+      const newBalance = (balanceData.etb_balance || 0) + Number(deposit.amount)
       await supabase
         .from('balances')
         .update({ etb_balance: newBalance })

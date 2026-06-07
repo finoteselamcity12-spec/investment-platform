@@ -449,19 +449,16 @@ export async function submitPendingDeposit({
   }
 
   // Insert pending deposit record directly (user cannot approve, only insert pending)
-  const amount_usd_val = normCurrency === 'USD' ? depositAmount : 0
-  const amount_etb_val = normCurrency === 'ETB' ? depositAmount : 0
-
   const { data: insertedData, error: insertError } = await supabase
     .from('deposits')
     .insert({
       user_id: authUserId,
-      amount_etb: amount_etb_val,
-      amount_usd: amount_usd_val,
+      amount: depositAmount,
       currency: normCurrency,
       payment_method: paymentMethod || 'manual',
       transaction_id: txId,
       status: 'pending',
+      proof_url: proofUrl,
     })
     .select()
 
