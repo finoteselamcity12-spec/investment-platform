@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import supabase from './lib/supabase'
 import Auth from './pages/Auth'
@@ -36,7 +36,6 @@ function App() {
     <ErrorBoundary>
       <Router>
         <Routes>
-          {/* Auth routes */}
           <Route
             path="/"
             element={
@@ -61,8 +60,6 @@ function App() {
               <Navigate to="/dashboard" replace />
             }
           />
-
-          {/* User dashboard - only non-admin users */}
           <Route
             path="/dashboard"
             element={
@@ -79,8 +76,6 @@ function App() {
               <UserDashboard user={user} />
             }
           />
-
-          {/* Admin dashboard - only admin */}
           <Route
             path="/admin-dashboard"
             element={
@@ -97,8 +92,6 @@ function App() {
               <AdminDashboard user={user} />
             }
           />
-
-          {/* Catch all */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
@@ -106,5 +99,4 @@ function App() {
   )
 }
 
-// v2
 export default App
