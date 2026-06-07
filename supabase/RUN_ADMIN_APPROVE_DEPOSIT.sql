@@ -54,7 +54,6 @@ SET search_path = public
 AS $$
 DECLARE
   dep RECORD;
-  deposit_amount NUMERIC(18, 4);
   bonus_amt NUMERIC(18, 4);
   norm_currency TEXT;
   bonus_row_id UUID;
@@ -83,8 +82,7 @@ BEGIN
   END IF;
 
   norm_currency := CASE WHEN upper(dep.currency) IN ('USD', 'USDT') THEN 'USD' ELSE 'ETB' END;
-  deposit_amount := COALESCE(dep.amount, dep.amount_usd, dep.amount_etb, 0);
-  bonus_amt := ROUND(deposit_amount * 0.10, 4);
+  bonus_amt := ROUND(dep.amount * 0.10, 4);
 
   INSERT INTO public.balances (user_id, etb_balance, usd_balance)
   VALUES (dep.user_id, 0, 0)
@@ -92,11 +90,11 @@ BEGIN
 
   IF norm_currency = 'USD' THEN
     UPDATE public.balances
-    SET usd_balance = usd_balance + deposit_amount, updated_at = NOW()
+    SET usd_balance = usd_balance + dep.amount, updated_at = NOW()
     WHERE user_id = dep.user_id;
   ELSE
     UPDATE public.balances
-    SET etb_balance = etb_balance + deposit_amount, updated_at = NOW()
+    SET etb_balance = etb_balance + dep.amount, updated_at = NOW()
     WHERE user_id = dep.user_id;
   END IF;
 
@@ -114,7 +112,7 @@ BEGIN
       norm_currency,
       bonus_amt,
       p_deposit_id,
-      jsonb_build_object('deposit_amount', deposit_amount, 'rate', 0.10)
+      jsonb_build_object('deposit_amount', dep.amount, 'rate', 0.10)
     )
     ON CONFLICT DO NOTHING
     RETURNING id INTO bonus_row_id;
@@ -139,7 +137,7 @@ BEGIN
   RETURN json_build_object(
     'ok', true,
     'p_deposit_id', p_deposit_id,
-    'deposit_amount', deposit_amount,
+    'deposit_amount', dep.amount,
     'deposit_bonus', COALESCE(bonus_amt, 0),
     'bonus_applied', bonus_row_id IS NOT NULL,
     'currency', norm_currency
