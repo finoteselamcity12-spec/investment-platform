@@ -1,5 +1,5 @@
-import ErrorBoundary from '../components/ErrorBoundary'
 import AdminDashboardApp from '../admin/AdminDashboardApp'
+import AdminErrorBoundary from '../admin/AdminErrorBoundary'
 
 /**
  * Admin route entry — isolated from user dashboard.
@@ -7,8 +7,8 @@ import AdminDashboardApp from '../admin/AdminDashboardApp'
  */
 export default function AdminDashboard() {
   return (
-    <ErrorBoundary>
+    <AdminErrorBoundary>
       <AdminDashboardApp />
-    </ErrorBoundary>
+    </AdminErrorBoundary>
   )
 }

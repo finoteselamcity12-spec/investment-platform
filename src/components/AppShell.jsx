@@ -118,11 +118,10 @@ export default function AppShell({ children, activePage, setActivePage }) {
   const claimCooldownMs = 24 * 60 * 60 * 1000
 
   const refreshBalances = useCallback(async () => {
-    const { data: authData, error: authError } = await supabase.auth.getUser()
-    const user = authData?.user
-    const profileEmail = user?.email
-    const supabaseUserId = user?.id
-    if (authError || !profileEmail || !supabaseUserId) {
+    const session = getSession()
+    const profileEmail = session?.user?.email
+    const supabaseUserId = session?.user?.id
+    if (!profileEmail || !supabaseUserId) {
       setBalancesLoading(false)
       return null
     }
@@ -146,15 +145,14 @@ export default function AppShell({ children, activePage, setActivePage }) {
   // Load session + fetch authoritative balances from Supabase (not stale cache)
   useEffect(() => {
     async function loadUserState() {
-      const { data: authData, error: authError } = await supabase.auth.getUser()
-      const user = authData?.user
+      const session = getSession()
       const userData = JSON.parse(localStorage.getItem('admin_user_data') || '{}')
-      const profileEmail = user?.email || Object.keys(userData)[0]
+      const profileEmail = session?.user?.email || Object.keys(userData)[0]
 
-      if (user?.email) {
-        setUserEmail(user.email)
-        setUserFullName(user.user_metadata?.fullName || user.email.split('@')[0] || 'User')
-        const possible = user.user_metadata || {}
+      if (session?.user?.email) {
+        setUserEmail(session.user.email)
+        setUserFullName(session.user.fullName || 'User')
+        const possible = session.user.user_metadata || {}
         if (possible.avatar_url || possible.avatar || possible.photoURL) {
           setProfileImage(possible.avatar_url || possible.avatar || possible.photoURL)
         }
@@ -166,8 +164,8 @@ export default function AppShell({ children, activePage, setActivePage }) {
         }
       }
 
-      const supabaseUserId = user?.id
-      if (!authError && supabaseUserId && profileEmail) {
+      const supabaseUserId = session?.user?.id
+      if (supabaseUserId && profileEmail) {
         await refreshBalances()
       } else {
         setBalancesLoading(false)
@@ -218,42 +216,6 @@ export default function AppShell({ children, activePage, setActivePage }) {
     }
     document.addEventListener('visibilitychange', onVisible)
     return () => document.removeEventListener('visibilitychange', onVisible)
-  }, [refreshBalances])
-
-  useEffect(() => {
-    let channel = null
-    let interval = null
-    let isMounted = true
-
-    async function subscribeBalanceUpdates() {
-      const { data: authData } = await supabase.auth.getUser()
-      const userId = authData?.user?.id
-      if (!userId || !isMounted) return
-
-      channel = supabase
-        .channel('balance-changes')
-        .on('postgres_changes', {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'balances',
-          filter: `user_id=eq.${userId}`,
-        }, (payload) => {
-          console.log('Balance updated:', payload.new)
-          setUsdBalance(payload.new.usd_balance)
-          setEtbBalance(payload.new.etb_balance)
-        })
-        .subscribe()
-
-      interval = setInterval(refreshBalances, 5000)
-    }
-
-    subscribeBalanceUpdates()
-
-    return () => {
-      isMounted = false
-      if (interval) clearInterval(interval)
-      if (channel) supabase.removeChannel(channel)
-    }
   }, [refreshBalances])
 
   const navItems = [

@@ -1,99 +1,43 @@
-import { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import './App.css'
-import supabase from './lib/supabase'
+import Login from './pages/Login'
 import Auth from './pages/Auth'
-import UserDashboard from './pages/Dashboard'
+import Dashboard from './pages/Dashboard'
+import AdminLogin from './pages/AdminLogin'
 import AdminDashboard from './pages/AdminDashboard'
+import Withdraw from './pages/Withdraw'
+import SupportPage from './components/SupportPage'
 import ErrorBoundary from './components/ErrorBoundary'
+import { getSession } from './lib/authService'
 
 const ADMIN_EMAIL = 'workinehabche@gmail.com'
 
-function App() {
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
+function RequireAdmin({ children }) {
+  const session = getSession()
+  const adminSession = JSON.parse(sessionStorage.getItem('admin_session') || 'null')
+  const isAuthorized = session?.user?.email === ADMIN_EMAIL || adminSession?.email === ADMIN_EMAIL
+  const redirectTo = session ? '/dashboard' : '/login'
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setUser(session?.user ?? null)
-      }
-    )
-
-    return () => subscription?.unsubscribe()
-  }, [])
-
-  if (loading) {
-    return (
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '100vh',
-        background: '#84CC16',
-        color: 'white',
-        fontSize: '1.5rem',
-        fontWeight: 'bold'
-      }}>
-        Loading...
-      </div>
-    )
+  if (!isAuthorized) {
+    return <Navigate to={redirectTo} replace />
   }
 
+  return children
+}
+
+function App() {
   return (
     <ErrorBoundary>
       <Router>
         <Routes>
-          <Route
-            path="/"
-            element={
-              !user
-                ? <Auth />
-                : <Navigate to={user.email === ADMIN_EMAIL ? '/admin-dashboard' : '/dashboard'} replace />
-            }
-          />
-          <Route
-            path="/login"
-            element={
-              !user
-                ? <Auth />
-                : <Navigate to={user.email === ADMIN_EMAIL ? '/admin-dashboard' : '/dashboard'} replace />
-            }
-          />
-          <Route
-            path="/register"
-            element={
-              !user
-                ? <Auth />
-                : <Navigate to={user.email === ADMIN_EMAIL ? '/admin-dashboard' : '/dashboard'} replace />
-            }
-          />
-          <Route
-            path="/dashboard"
-            element={
-              !user
-                ? <Navigate to="/login" replace />
-                : user.email === ADMIN_EMAIL
-                  ? <Navigate to="/admin-dashboard" replace />
-                  : <UserDashboard user={user} />
-            }
-          />
-          <Route
-            path="/admin-dashboard"
-            element={
-              !user
-                ? <Navigate to="/login" replace />
-                : user.email !== ADMIN_EMAIL
-                  ? <Navigate to="/dashboard" replace />
-                  : <AdminDashboard user={user} />
-            }
-          />
-          <Route path="*" element={<Navigate to="/" replace />} />
+          <Route path="/" element={<Auth />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Auth />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/admin-login" element={<AdminLogin />} />
+          <Route path="/admin-dashboard" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
+          <Route path="/withdraw" element={<Withdraw />} />
+          <Route path="/support" element={<SupportPage />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </Router>
     </ErrorBoundary>

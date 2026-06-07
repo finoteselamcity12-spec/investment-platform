@@ -268,34 +268,13 @@ export default function Auth() {
           await ensureSignupBonusHistoryOnce(authUserId, sanitizedEmail)
         }
 
-        // Attempt immediate sign-in after registration so users land in dashboard
-        try {
-          const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
-            email: sanitizedEmail,
-            password: form.password,
-          })
-
-          if (!signInError && signInData?.user) {
-            setFeedback(`Welcome, ${sanitizedName}! Signing you in…`, 'success')
-            setForm(initialForm)
-            // Give a short moment for UI feedback, then navigate to user dashboard
-            setTimeout(() => navigate('/dashboard'), 1000)
-            setLoading(false)
-            return
-          }
-        } catch (e) {
-          // fall through to friendly redirect to login
-        }
-
-        // Fallback: if auto sign-in failed, redirect user to login
         setFeedback(
           `Welcome, ${sanitizedName}! Registration successful. Redirecting to login…`,
           'success'
         )
         setForm(initialForm)
         setIsLogin(true)
-        setTimeout(() => navigate('/login'), 1500)
-        setLoading(false)
+        setTimeout(() => navigate('/login'), 2000)
         return
       }
 

@@ -24,7 +24,7 @@ import {
   formatAdminCurrency,
 } from './lib/adminStorage'
 import { fetchAdminDashboard, ensureSupabaseAdminAuth } from './lib/adminSupabase'
-import { adminSupabase as supabase } from '../lib/supabase'
+import supabase from '../lib/supabase'
 import './admin.css'
 
 const NAV = [
@@ -53,9 +53,7 @@ export default function AdminDashboardApp() {
   const [receiptDeposit, setReceiptDeposit] = useState(null)
   const [busyId, setBusyId] = useState(null)
   const [loading, setLoading] = useState(false)
-  const [deposits, setDeposits] = useState([])
-  const [page, setPage] = useState(1)
-  const ITEMS_PER_PAGE = 20
+  const [, setDeposits] = useState([])
 
   const emptySnapshot = {
     users: [],
@@ -89,37 +87,20 @@ export default function AdminDashboardApp() {
     let mounted = true
     async function fetchStats() {
       try {
-        const dash = await fetchAdminDashboard()
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        const [usersRes, pendingDepRes, pendingWithRes, todayRes] = await Promise.all([
+          supabase.from('profiles').select('*', { count: 'exact', head: true }),
+          supabase.from('deposits').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+          supabase.from('withdrawals').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+          supabase.from('history').select('id').gte('created_at', today.toISOString()),
+        ])
         if (!mounted) return
-
-        // try to call a small scalar RPC for total users if available
-        try {
-          const { data: totalData, error: totalErr } = await supabase.rpc('get_total_users')
-          if (!totalErr && totalData != null) {
-            // handle different return shapes
-            let totalUsers = 0
-            if (Array.isArray(totalData) && totalData.length > 0) {
-              const first = totalData[0]
-              if (typeof first === 'object') {
-                const val = Object.values(first)[0]
-                totalUsers = Number(val) || 0
-              } else {
-                totalUsers = Number(first) || 0
-              }
-            } else if (typeof totalData === 'number' || typeof totalData === 'string') {
-              totalUsers = Number(totalData) || 0
-            }
-            dash.stats = { ...dash.stats, totalUsers }
-          }
-        } catch (e) {
-          // ignore if RPC not present
-        }
-
         setStats({
-          totalUsers: dash.stats?.totalUsers ?? 0,
-          dailyTransactions: dash.stats?.dailyTransactions ?? 0,
-          pendingDeposits: dash.stats?.pendingDeposits ?? 0,
-          pendingWithdrawals: dash.stats?.pendingWithdrawals ?? 0,
+          totalUsers: usersRes.count || 0,
+          dailyTransactions: todayRes.data?.length || todayRes.count || 0,
+          pendingDeposits: pendingDepRes.count || 0,
+          pendingWithdrawals: pendingWithRes.count || 0,
         })
       } catch (err) {
         console.error('[AdminDashboard] fetchStats failed:', err)
@@ -129,20 +110,7 @@ export default function AdminDashboardApp() {
     return () => { mounted = false }
   }, [])
 
-  const fetchDeposits = useCallback(async () => {
-    const { data, error } = await supabase.rpc('admin_list_pending_deposits')
-    if (error) {
-      console.error('admin_list_pending_deposits RPC failed:', error)
-      setDeposits([])
-      return []
-    }
-
-    const rows = Array.isArray(data) ? data : []
-    setDeposits(rows)
-    return rows
-  }, [])
-
-  const refresh = useCallback(async () => {
+  async function refresh() {
     setIsRefreshing(true)
     const local = loadAdminSnapshot()
     console.log('[Admin Dashboard] refresh start', { localUsers: local.users?.length })
@@ -150,9 +118,6 @@ export default function AdminDashboardApp() {
     try {
       const auth = await ensureSupabaseAdminAuth()
       console.log('[Admin Dashboard] supabase auth', auth)
-
-      // Load raw deposits from Supabase
-      await fetchDeposits()
 
       const remote = await fetchAdminDashboard()
       console.log('[Admin Dashboard] remote payload', {
@@ -199,7 +164,7 @@ export default function AdminDashboardApp() {
     } finally {
       setIsRefreshing(false)
     }
-  }, [fetchDeposits])
+  }
 
   useEffect(() => {
     const stored = JSON.parse(sessionStorage.getItem('admin_session') || 'null')
@@ -222,26 +187,17 @@ export default function AdminDashboardApp() {
       refresh()
     }
     setAuthChecked(true)
-  }, [refresh])
+  }, [])
 
-  const metrics = useMemo(() => {
-    const safeDeposits = Array.isArray(deposits) ? deposits : []
-    const pendingDepositCount = safeDeposits.filter((d) => String(d?.status).toLowerCase() === 'pending').length
-    const totalUsersCount = Math.max(
-      stats?.totalUsers ?? 0,
-      remoteStats?.totalUsers ?? 0,
-      safeUsers.length,
-      safeSnapshot.registrationCount ?? 0
-    )
-
-    return [
+  const metrics = useMemo(
+    () => [
       {
         label: 'Total Users',
-        value: totalUsersCount,
+        value: stats.totalUsers ?? remoteStats?.totalUsers ?? safeSnapshot.registrationCount ?? 0,
       },
       {
         label: 'Daily Transactions',
-        value: stats?.dailyTransactions ?? remoteStats?.dailyTransactions ?? safeSnapshot.dailyTransactions ?? 0,
+        value: stats.dailyTransactions ?? remoteStats?.dailyTransactions ?? safeSnapshot.dailyTransactions ?? 0,
       },
       {
         label: 'Active Investments',
@@ -249,87 +205,56 @@ export default function AdminDashboardApp() {
       },
       {
         label: 'Pending Deposits',
-        value: pendingDepositCount || stats?.pendingDeposits || remoteStats?.pendingDeposits || safePendingDeposits.length,
+        value: stats.pendingDeposits ?? remoteStats?.pendingDeposits ?? safePendingDeposits.length,
       },
-    ]
-  }, [deposits, safeSnapshot, safeUsers, safePendingDeposits, remoteStats, stats])
+    ],
+    [safeSnapshot, safePendingDeposits, remoteStats, stats]
+  )
 
-  const getAmount = (deposit) => {
-    if (deposit.currency === 'USD') return `$${Number(deposit.amount_usd || 0).toFixed(2)}`
-    return `${Number(deposit.amount_etb || 0).toLocaleString()} ETB`
-  }
-
-  async function approveDeposit(deposit) {
-    console.log('Approving deposit:', deposit.id, 'for user:', deposit.user_id)
-
+  async function fetchDeposits() {
+    console.log('[Admin Dashboard] fetchDeposits start')
     try {
-      const { data, error } = await supabase.rpc('admin_approve_deposit', {
-        p_deposit_id: deposit.id,
-      })
-
-      console.log('Approve result:', JSON.stringify(data), JSON.stringify(error))
-
+      const { data, error } = await supabase
+        .from('deposits')
+        .select('*, profiles(email)')
+        .order('created_at', { ascending: false })
       if (error) {
-        showToast(error?.message || 'Approval failed', 'error')
-        return
+        console.error('[Admin Dashboard] fetchDeposits error:', error)
       }
-
-      if (!data) {
-        showToast('Approval failed: no response from server', 'error')
-        return
-      }
-
-      if (data.success === true) {
-        setReceiptDeposit(null)
-        showToast(
-          `✅ Approved deposit. ${data.currency || ''} balance updated to ${data.new_balance ?? ''}`.trim(),
-          'success'
-        )
-        await fetchDeposits()
-        return
-      }
-
-      const message = data.error || 'Approval failed'
-      showToast(message, 'error')
-    } catch (err) {
-      console.error('approveDeposit exception', err)
-      showToast(err?.message || 'Approval failed unexpectedly', 'error')
+      console.log('Deposits loaded:', data?.length, error)
+      setDeposits(Array.isArray(data) ? data : [])
+    } catch (e) {
+      console.error('[Admin Dashboard] fetchDeposits exception:', e)
+      setDeposits([])
     }
   }
 
-  async function rejectDepositRpc(deposit) {
-    console.log('Rejecting deposit:', deposit.id)
+  async function approveDeposit(depositId) {
+    setLoading(true)
+    setBusyId(depositId)
+    console.log('[Admin Dashboard] approveDeposit start', { depositId })
     try {
-      const { data, error } = await supabase.rpc('admin_reject_deposit', { p_deposit_id: deposit.id })
-      console.log('Reject result:', JSON.stringify(data), JSON.stringify(error))
+      const { data, error } = await supabase.rpc('admin_approve_deposit', {
+        p_deposit_id: depositId,
+      })
+      console.log('Approve result:', JSON.stringify(data))
       if (error) {
         alert('Error: ' + error.message)
         return
       }
-      alert('Deposit rejected.')
-      setDeposits((prev) => prev.map((d) => (d.id === deposit.id ? { ...d, status: 'rejected' } : d)))
-      fetchDeposits().catch((e) => console.warn('fetchDeposits after reject failed', e))
+      if (data?.ok) {
+        alert('✅ Deposit approved! Balance updated.')
+        await fetchDeposits()
+      } else {
+        alert('Failed: ' + data?.error)
+      }
     } catch (e) {
-      console.error('rejectDepositRpc exception', e)
-      alert('Reject failed: ' + (e?.message || String(e)))
+      console.log('[Admin Dashboard] approveDeposit exception', e)
+      alert('Exception: ' + e.message)
+    } finally {
+      setLoading(false)
+      setBusyId(null)
     }
-  }
-
-  async function deleteDeposit(depositId) {
-    if (!confirm('Delete this deposit permanently?')) return
-
-    const { error } = await supabase
-      .from('deposits')
-      .delete()
-      .eq('id', depositId)
-
-    if (error) {
-      alert('Delete failed: ' + error.message)
-      return
-    }
-
-    setDeposits((prev) => prev.filter((d) => d.id !== depositId))
-    alert('Deleted successfully')
   }
 
   const handleRejectDeposit = useCallback(
@@ -405,87 +330,71 @@ export default function AdminDashboardApp() {
   }, [showToast])
 
   const depositRows = useMemo(
-    () => {
-      const safeDeposits = Array.isArray(deposits) ? deposits : []
-      const paginatedDeposits = safeDeposits.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE)
-      return paginatedDeposits.map((d) => (
-        <tr key={d.id}>
-            <td>
-              <div style={{ fontWeight: 600 }}>{d.email || d.user_email || d.profiles?.email || d.user_id || 'Unknown'}</div>
-              <div style={{ fontSize: '0.6875rem', color: '#64748b', fontFamily: 'monospace' }}>
-                {d.user_id || '—'}
-              </div>
-            </td>
+    () =>
+      safePendingDeposits.map((d) => (
+        <tr key={d.supabaseId || d.id}>
+          <td>
+            <div style={{ fontWeight: 600 }}>{d.userEmail || '—'}</div>
+            <div style={{ fontSize: '0.6875rem', color: '#64748b', fontFamily: 'monospace' }}>
+              {d.userId || '—'}
+            </div>
+            {d.source === 'local' && (
+              <span className="admin-badge admin-badge-pending" style={{ marginTop: '0.25rem' }}>
+                Local only
+              </span>
+            )}
+          </td>
           <td style={{ fontFamily: 'monospace', fontSize: '0.75rem', maxWidth: '10rem', wordBreak: 'break-all' }}>
-            {d.transaction_id || '—'}
+            {d.transactionId || '—'}
           </td>
           <td>
-            {d.proof_url &&
-            typeof d.proof_url === 'string' &&
-            d.proof_url.length > 0 &&
-            (d.proof_url.startsWith('data:') || d.proof_url.startsWith('http')) ? (
+            {d.screenshot &&
+            typeof d.screenshot === 'string' &&
+            d.screenshot.length > 0 &&
+            (d.screenshot.startsWith('data:') || d.screenshot.startsWith('http')) ? (
               <button
                 type="button"
                 className="admin-proof-thumb"
                 onClick={() => setReceiptDeposit(d)}
                 aria-label="View payment proof"
               >
-                <img src={d.proof_url} alt="Proof" onError={(e) => { e.currentTarget.style.display = 'none' }} />
+                <img src={d.screenshot} alt="Proof" onError={(e) => { e.currentTarget.style.display = 'none' }} />
               </button>
             ) : (
               <span style={{ color: '#64748b', fontSize: '0.75rem' }}>No image</span>
             )}
           </td>
-          <td>{getAmount(d)}</td>
-          <td>
-            {d.status === 'pending' && <span className="admin-badge admin-badge-pending">Pending</span>}
-            {d.status === 'successful' && <span className="admin-badge admin-badge-success">Approved</span>}
-            {d.status === 'rejected' && <span className="admin-badge admin-badge-rejected">Rejected</span>}
-          </td>
-          <td style={{ fontSize: '0.75rem' }}>{d.payment_method || '—'}</td>
-          <td style={{ fontSize: '0.75rem' }}>{new Date(d.created_at).toLocaleString()}</td>
+          <td>{formatAdminCurrency(d.amount, d.currency)}</td>
+          <td style={{ fontSize: '0.75rem' }}>{d.paymentMethod || '—'}</td>
+          <td style={{ fontSize: '0.75rem' }}>{new Date(d.createdAt).toLocaleString()}</td>
           <td>
             <div className="admin-actions">
-              {d.status === 'pending' ? (
-                <>
-                  <button
-                    type="button"
-                    className="admin-btn admin-btn-approve"
-                    disabled={busyId === d.id || loading}
-                    onClick={() => approveDeposit(d)}
-                  >
-                    Approve
-                  </button>
-                  <button
-                    type="button"
-                    className="admin-btn admin-btn-reject"
-                    disabled={busyId === d.id}
-                    onClick={() => rejectDepositRpc(d)}
-                  >
-                    Reject
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => deleteDeposit(d.id)}
-                    style={{ background: '#dc2626', color: 'white', padding: '4px 8px', borderRadius: '4px', marginLeft: '4px' }}
-                  >
-                    Delete
-                  </button>
-                </>
-              ) : (
-                d.status === 'successful' ? <span style={{ color: 'green' }}>✅ Approved</span> : <span style={{ color: 'red' }}>❌ Rejected</span>
-              )}
+              <button
+                type="button"
+                className="admin-btn admin-btn-approve"
+                disabled={busyId === d.id || loading}
+                onClick={() => approveDeposit(d.id)}
+              >
+                Approve
+              </button>
+              <button
+                type="button"
+                className="admin-btn admin-btn-reject"
+                disabled={busyId === d.id}
+                onClick={() => handleRejectDeposit(d.id)}
+              >
+                Reject
+              </button>
             </div>
           </td>
         </tr>
-      ))
-    },
-    [deposits, page, busyId, loading, approveDeposit]
+      )),
+    [safePendingDeposits, busyId, loading, approveDeposit, handleRejectDeposit]
   )
 
   const withdrawalRows = useMemo(
     () =>
-      (Array.isArray(safePendingWithdrawals) ? safePendingWithdrawals : []).map((w) => (
+      safePendingWithdrawals.map((w) => (
         <tr key={w.id}>
           <td>
             <div style={{ fontWeight: 600 }}>{w.userName || w.userEmail}</div>
@@ -510,7 +419,7 @@ export default function AdminDashboardApp() {
 
   const userRows = useMemo(
     () =>
-      (Array.isArray(safeUsers) ? safeUsers : []).map((u) => (
+      safeUsers.map((u) => (
         <tr key={u.id || u.email}>
           <td>
             <div style={{ fontWeight: 600 }}>{u.fullName || '—'}</div>
@@ -634,35 +543,21 @@ export default function AdminDashboardApp() {
           )}
 
           {section === 'deposits' && (
-            <>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                <div>
-                  <h3 style={{ margin: 0 }}>Deposits</h3>
-                  <div style={{ fontSize: '0.85rem', color: '#64748b' }}>Showing all deposits (pending, successful, rejected)</div>
-                </div>
-                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                  <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}>Previous</button>
-                  <span>Page {page} of {Math.max(1, Math.ceil(deposits.length / ITEMS_PER_PAGE))}</span>
-                  <button onClick={() => setPage((p) => p + 1)} disabled={page * ITEMS_PER_PAGE >= deposits.length}>Next</button>
-                </div>
-              </div>
-              <AdminDataTable
-                title="Deposits"
-                subtitle="Approve or reject from each row"
-                emptyMessage="No deposits."
-                columns={[
-                  { key: 'user', label: 'User / ID' },
-                  { key: 'tx', label: 'Transaction ID' },
-                  { key: 'proof', label: 'Proof' },
-                  { key: 'amount', label: 'Amount' },
-                  { key: 'status', label: 'Status' },
-                  { key: 'method', label: 'Method' },
-                  { key: 'date', label: 'Submitted' },
-                  { key: 'actions', label: 'Actions' },
-                ]}
-                rows={depositRows}
-              />
-            </>
+            <AdminDataTable
+              title="Pending Deposits"
+              subtitle="Approve or reject from each row"
+              emptyMessage="No pending deposits."
+              columns={[
+                { key: 'user', label: 'User / ID' },
+                { key: 'tx', label: 'Transaction ID' },
+                { key: 'proof', label: 'Proof' },
+                { key: 'amount', label: 'Amount' },
+                { key: 'method', label: 'Method' },
+                { key: 'date', label: 'Submitted' },
+                { key: 'actions', label: 'Actions' },
+              ]}
+              rows={depositRows}
+            />
           )}
 
           {section === 'withdrawals' && (
@@ -701,7 +596,7 @@ export default function AdminDashboardApp() {
         <div className={`admin-toast admin-toast-${toast.type}`}>{toast.message}</div>
       )}
 
-      <AdminReceiptModal deposit={receiptDeposit} onClose={() => setReceiptDeposit(null)} fetchDeposits={fetchDeposits} />
+      <AdminReceiptModal deposit={receiptDeposit} onClose={() => setReceiptDeposit(null)} />
     </div>
   )
 }

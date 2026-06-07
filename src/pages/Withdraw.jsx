@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowUpCircle, Wallet } from 'lucide-react'
-import supabase from '../lib/supabase'
+import { getSession } from '../lib/authService'
 import { WITHDRAWAL_MIN_ETB, WITHDRAWAL_MIN_USD } from '../lib/platformConfig'
 import { submitPendingWithdrawal } from '../lib/supabaseData'
 
@@ -34,22 +34,8 @@ export default function Withdraw({ ctx = {}, embedded = false }) {
   const currencies = ['ETB', 'USD']
 
   useEffect(() => {
-    let isMounted = true
-
-    async function loadCurrentUser() {
-      const { data: authData, error } = await supabase.auth.getUser()
-      if (isMounted) {
-        setUserEmail(ctxEmail || authData?.user?.email || '')
-      }
-      if (error) {
-        console.warn('[Withdraw] auth.getUser failed:', error)
-      }
-    }
-
-    loadCurrentUser()
-    return () => {
-      isMounted = false
-    }
+    const session = getSession()
+    setUserEmail(ctxEmail || session?.user?.email || '')
   }, [ctxEmail])
 
   useEffect(() => {
@@ -106,13 +92,7 @@ export default function Withdraw({ ctx = {}, embedded = false }) {
     setLoading(true)
 
     try {
-      const { data: authData, error: authError } = await supabase.auth.getUser()
-      const currentUser = authData?.user
-      if (authError || !currentUser) {
-        showToast('Session expired. Please login again.', 'error')
-        return
-      }
-
+      const session = getSession()
       const accountDetails = {
         bank: trimmedBank,
         payment_method: trimmedPaymentMethod,
@@ -121,7 +101,8 @@ export default function Withdraw({ ctx = {}, embedded = false }) {
       }
 
       const result = await submitPendingWithdrawal({
-        userEmail: currentUser.email,
+        userId: session?.user?.id,
+        userEmail: userEmail || session?.user?.email,
         amount: value,
         currency: currencyValue,
         bank: trimmedBank,

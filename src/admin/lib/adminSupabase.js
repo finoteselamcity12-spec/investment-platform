@@ -1,4 +1,4 @@
-import { adminSupabase } from '../../lib/supabase'
+import supabase from '../../lib/supabase'
 import { fetchUserBalances } from '../../lib/supabaseData'
 import { ADMIN_EMAIL, ADMIN_CREDENTIALS } from './adminStorage'
 
@@ -22,7 +22,7 @@ export const ADMIN_RPC = {
 
 /**
  * Parameter keys MUST match PostgreSQL function argument names exactly.
- * PostgREST maps: adminSupabase.rpc('fn', { p_deposit_id: uuid }) → fn(p_deposit_id uuid)
+ * PostgREST maps: supabase.rpc('fn', { p_deposit_id: uuid }) → fn(p_deposit_id uuid)
  */
 export const ADMIN_RPC_PARAMS = {
   approveDeposit: ['p_deposit_id'],
@@ -68,7 +68,7 @@ export async function ensureAdminSupabaseSession(password) {
     return { ok: false, error: 'Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY in .env' }
   }
 
-  const { data: sessionData, error: sessionError } = await adminSupabase.auth.getSession()
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
   if (sessionError) {
     adminLog('getSession_error', sessionError)
   }
@@ -87,7 +87,7 @@ export async function ensureAdminSupabaseSession(password) {
   }
 
   adminLog('auth', { status: 'signing_in', email: ADMIN_EMAIL })
-  const { data, error } = await adminSupabase.auth.signInWithPassword({
+  const { data, error } = await supabase.auth.signInWithPassword({
     email: ADMIN_EMAIL,
     password,
   })
@@ -100,7 +100,7 @@ export async function ensureAdminSupabaseSession(password) {
     }
   }
 
-  await adminSupabase.auth.getSession()
+  await supabase.auth.getSession()
 
   adminLog('auth', { status: 'signed_in', userId: data.user?.id, email: data.user?.email })
   return { ok: true, user: data.user, email: data.user?.email, userId: data.user?.id }
@@ -169,7 +169,7 @@ function logRpcResult(name, result) {
 }
 
 async function runAdminDebug() {
-  const { data, error } = await adminSupabase.rpc(ADMIN_RPC.debug)
+  const { data, error } = await supabase.rpc(ADMIN_RPC.debug)
   if (error) {
     adminLog('debug_rpc_unavailable', {
       hint: 'Run supabase/migrations/007_fix_admin_auth_and_debug.sql',
@@ -193,7 +193,7 @@ export async function fetchAdminDashboard() {
     return emptyDashboard([authResult.error || 'Supabase admin authentication failed'])
   }
 
-  const { data: sessionData } = await adminSupabase.auth.getSession()
+  const { data: sessionData } = await supabase.auth.getSession()
   const sessionEmail = sessionData?.session?.user?.email || authResult.email
   adminLog('session', {
     email: sessionEmail,
@@ -212,10 +212,10 @@ export async function fetchAdminDashboard() {
   const errors = []
 
   const [statsRes, depositsRes, withdrawalsRes, usersRes] = await Promise.all([
-    adminSupabase.rpc(ADMIN_RPC.stats),
-    adminSupabase.rpc(ADMIN_RPC.pendingDeposits),
-    adminSupabase.rpc(ADMIN_RPC.withdrawals),
-    adminSupabase.rpc(ADMIN_RPC.users),
+    supabase.rpc(ADMIN_RPC.stats),
+    supabase.rpc(ADMIN_RPC.pendingDeposits),
+    supabase.rpc(ADMIN_RPC.withdrawals),
+    supabase.rpc(ADMIN_RPC.users),
   ])
 
   logRpcResult(ADMIN_RPC.stats, statsRes)
@@ -228,9 +228,41 @@ export async function fetchAdminDashboard() {
   if (withdrawalsRes.error) errors.push(logAdminError(ADMIN_RPC.withdrawals, withdrawalsRes.error))
   if (usersRes.error) errors.push(logAdminError(ADMIN_RPC.users, usersRes.error))
 
-  // If any RPC returned an error, surface it and continue — do not perform direct table queries.
-  if (errors.length > 0) {
-    adminLog('rpc_errors', { errors })
+  // Fallback: if RPCs failed or returned no rows, attempt direct queries as admin
+  if (errors.length > 0 || (!statsRes.data && (!depositsRes.data || !usersRes.data))) {
+    try {
+      console.log('[Admin Supabase] falling back to direct queries for stats')
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+
+      const [usersCountRes, pendingDepRes, pendingWithRes, dailyRes, depositRowsRes, allUsersRes] = await Promise.all([
+        supabase.from('profiles').select('*', { count: 'exact', head: true }),
+        supabase.from('deposits').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+        supabase.from('withdrawals').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+        supabase.from('history').select('*', { count: 'exact', head: true }).gte('created_at', today.toISOString()),
+        supabase.from('deposits').select('*, profiles!inner(email, full_name)').order('created_at', { ascending: false }).eq('status', 'pending'),
+        supabase.from('profiles').select('*, balances(etb_balance, usd_balance)').order('created_at', { ascending: false }),
+      ])
+
+      if (!statsRes.data) {
+        statsRes.data = [{
+          total_users: usersCountRes.count ?? 0,
+          pending_deposits: pendingDepRes.count ?? 0,
+          pending_withdrawals: pendingWithRes.count ?? 0,
+          daily_transactions: dailyRes.count ?? 0,
+        }]
+      }
+
+      if ((!depositsRes.data || depositsRes.data.length === 0) && depositRowsRes.data) {
+        depositsRes.data = depositRowsRes.data
+      }
+
+      if ((!usersRes.data || usersRes.data.length === 0) && allUsersRes.data) {
+        usersRes.data = allUsersRes.data
+      }
+    } catch (fallbackErr) {
+      console.warn('[Admin Supabase] direct queries fallback failed:', fallbackErr)
+    }
   }
 
   const statsParsed = parseStatsPayload(statsRes.data)
@@ -344,23 +376,17 @@ export async function resolveUserId(emailOrId) {
   if (!emailOrId) return null
   if (UUID_REGEX.test(emailOrId)) return emailOrId
 
-  // Use admin RPC to fetch users and resolve by email (avoid direct table queries)
-  try {
-    const { data, error } = await adminSupabase.rpc(ADMIN_RPC.users)
-    if (error) {
-      logAdminError('resolveUserId_rpc', error)
-      return null
-    }
-    const rows = Array.isArray(data) ? data : []
-    const found = rows.find((r) => {
-      const email = pick(r, 'email', 'user_email', 'userEmail')
-      return email && email.toLowerCase() === String(emailOrId).toLowerCase()
-    })
-    return found ? pick(found, 'user_id', 'userId', 'id') : null
-  } catch (e) {
-    logAdminError('resolveUserId_exception', e)
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('email', emailOrId)
+    .maybeSingle()
+
+  if (error) {
+    logAdminError('resolveUserId', error)
     return null
   }
+  return data?.id || null
 }
 
 /**
@@ -445,7 +471,7 @@ async function callAdminRpc(fnName, params = {}) {
 
   adminLog(`rpc_send:${fnName}`, { params: cleanParams })
 
-  const result = await adminSupabase.rpc(fnName, cleanParams)
+  const result = await supabase.rpc(fnName, cleanParams)
 
   adminLog(`rpc_recv:${fnName}`, {
     error: result.error?.message ?? null,
@@ -482,7 +508,7 @@ export async function approveDepositInSupabase(deposit) {
   if (depositUuid) {
     const approvePayload = { p_deposit_id: depositUuid }
     // Call the admin RPC directly and log results for debugging
-    const { data, error } = await adminSupabase.rpc(ADMIN_RPC.approveDeposit, approvePayload)
+    const { data, error } = await supabase.rpc(ADMIN_RPC.approveDeposit, approvePayload)
     console.log('approve result:', data, error)
     if (error) {
       console.log('error:', JSON.stringify(error))
@@ -595,7 +621,7 @@ export async function approveWithdrawalInSupabase(withdrawal) {
   if (!sessionCheck.ok) return sessionCheck
 
   // Call admin_approve_withdrawal RPC directly
-  const { data, error } = await adminSupabase.rpc(ADMIN_RPC.approveWithdrawal, {
+  const { data, error } = await supabase.rpc(ADMIN_RPC.approveWithdrawal, {
     p_withdrawal_id: wid,
   })
   console.log('approve withdrawal result:', data, error)
@@ -629,7 +655,7 @@ export async function rejectWithdrawalInSupabase(withdrawal) {
     const refundAmount = withdrawal.amount_etb ?? withdrawal.amount_usd ?? withdrawal.amount
     if (refundAmount && Number(refundAmount) > 0) {
       console.log('[Admin Supabase] refunding withdrawal before reject', { withdrawalId: wid, refundAmount, currency: withdrawal.currency })
-      const refundRes = await adminSupabase.rpc('process_transaction', {
+      const refundRes = await supabase.rpc('process_transaction', {
         p_user_id: withdrawal.user_id,
         p_type: 'referral_bonus',
         p_amount: Number(refundAmount),
@@ -646,7 +672,7 @@ export async function rejectWithdrawalInSupabase(withdrawal) {
     console.error('[Admin Supabase] refund failed:', err)
   }
 
-  const { data: rejectData, error: rejectError } = await adminSupabase.rpc(ADMIN_RPC.rejectWithdrawal, {
+  const { data: rejectData, error: rejectError } = await supabase.rpc(ADMIN_RPC.rejectWithdrawal, {
     p_withdrawal_id: wid,
   })
   console.log('reject withdrawal result:', rejectData, rejectError)
@@ -671,14 +697,20 @@ export async function fetchAdminSupabaseStats() {
 
 export async function fetchDepositsDirect() {
   if (!isSupabaseConfigured()) return { data: [], error: 'supabase not configured' }
-  const result = await adminSupabase.rpc(ADMIN_RPC.pendingDeposits)
-  console.log('[Admin Supabase] fetchDepositsDirect RPC result:', result.data, result.error)
-  return { data: result.data, error: result.error }
+  const { data, error } = await supabase
+    .from('deposits')
+    .select('*, profiles(email)')
+    .order('created_at', { ascending: false })
+  console.log('[Admin Supabase] fetchDepositsDirect result:', data, error)
+  return { data, error }
 }
 
 export async function fetchWithdrawalsDirect() {
   if (!isSupabaseConfigured()) return { data: [], error: 'supabase not configured' }
-  const result = await adminSupabase.rpc(ADMIN_RPC.withdrawals)
-  console.log('[Admin Supabase] fetchWithdrawalsDirect RPC result:', result.data, result.error)
-  return { data: result.data, error: result.error }
+  const { data, error } = await supabase
+    .from('withdrawals')
+    .select('*, profiles(email)')
+    .order('created_at', { ascending: false })
+  console.log('[Admin Supabase] fetchWithdrawalsDirect result:', data, error)
+  return { data, error }
 }

@@ -1,242 +1,79 @@
 import { useState } from 'react'
+import { ADMIN_CREDENTIALS } from '../lib/adminStorage'
 import { ensureAdminSupabaseSession } from '../lib/adminSupabase'
 
-const ADMIN_EMAIL = 'workinehabche@gmail.com'
-
 export default function AdminLoginForm({ onSuccess }) {
-  const [activeTab, setActiveTab] = useState('signin')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [error, setError] = useState('')
+  const [loginName, setLoginName] = useState('')
+  const [loginPassword, setLoginPassword] = useState('')
+  const [loginId, setLoginId] = useState('')
+  const [loginError, setLoginError] = useState('')
 
   async function handleSubmit(event) {
     event.preventDefault()
-    setError('')
+    setLoginError('')
 
-    const normalizedEmail = email.trim().toLowerCase()
-    if (normalizedEmail !== ADMIN_EMAIL) {
-      setError(`Only ${ADMIN_EMAIL} is allowed to access this page.`)
+    if (
+      loginName !== ADMIN_CREDENTIALS.name ||
+      loginPassword !== ADMIN_CREDENTIALS.password ||
+      loginId !== ADMIN_CREDENTIALS.id
+    ) {
+      setLoginError('Invalid admin credentials. Please check name, password, and ID.')
       return
     }
 
-    if (!password) {
-      setError('Please enter your password.')
-      return
-    }
-
-    const supabaseAuth = await ensureAdminSupabaseSession(password)
+    const supabaseAuth = await ensureAdminSupabaseSession(loginPassword)
     if (!supabaseAuth.ok) {
-      setError(supabaseAuth.error || 'Unable to login. Please check your password.')
+      setLoginError(supabaseAuth.error)
       return
     }
 
-    sessionStorage.setItem(
-      'admin_session',
-      JSON.stringify({ email: ADMIN_EMAIL, loginTime: new Date().toISOString() })
-    )
-    onSuccess()
-  }
-
-  const canSubmit = email.trim().length > 0 && password.length > 0
-  const cardStyle = {
-    width: '100%',
-    maxWidth: '420px',
-    background: '#ffffff',
-    borderRadius: '26px',
-    padding: '32px',
-    boxShadow: '0 28px 80px rgba(0, 0, 0, 0.14)',
+    const session = {
+      name: loginName,
+      id: loginId,
+      email: 'workinehabche@gmail.com',
+      loginTime: new Date().toISOString(),
+    }
+    sessionStorage.setItem('admin_session', JSON.stringify(session))
+    onSuccess(session)
   }
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: '#7DC400',
-        padding: '24px',
-      }}
-    >
-      <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-        <div style={{ fontSize: '1.5rem', marginBottom: '12px' }}>🪙🪙🪙🪙🪙</div>
-        <div style={{ fontSize: '2.65rem', fontWeight: 900, color: '#F5A623', letterSpacing: '0.18em' }}>
-          BLACKROCK
-        </div>
-      </div>
+    <div className="admin-login-page">
+      <div className="admin-login-card">
+        <p style={{ fontSize: '0.6875rem', fontWeight: 700, letterSpacing: '0.14em', color: '#84cc16', textTransform: 'uppercase' }}>
+          Blackrock Admin
+        </p>
+        <h2 style={{ marginTop: '0.5rem', fontSize: '1.35rem', fontWeight: 800, color: '#f8fafc' }}>
+          Operator Login
+        </h2>
 
-      <div style={cardStyle}>
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '28px', background: '#f4f5f7', borderRadius: '999px', padding: '4px' }}>
-          <button
-            type="button"
-            onClick={() => setActiveTab('signin')}
-            style={{
-              flex: 1,
-              border: 'none',
-              borderRadius: '999px',
-              padding: '12px 0',
-              fontWeight: 700,
-              color: activeTab === 'signin' ? '#ffffff' : '#334155',
-              background: activeTab === 'signin' ? '#22A400' : 'transparent',
-              cursor: 'pointer',
-            }}
-          >
-            Sign In
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('register')}
-            style={{
-              flex: 1,
-              border: 'none',
-              borderRadius: '999px',
-              padding: '12px 0',
-              fontWeight: 700,
-              color: activeTab === 'register' ? '#334155' : '#334155',
-              background: activeTab === 'register' ? '#e2e8f0' : 'transparent',
-              cursor: 'pointer',
-            }}
-          >
-            Register
-          </button>
-        </div>
-
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '18px' }}>
-            <label htmlFor="admin-email" style={{ display: 'block', marginBottom: '8px', color: '#111827', fontWeight: 600 }}>
-              Email Address
-            </label>
-            <div style={{ position: 'relative' }}>
-              <span
-                style={{
-                  position: 'absolute',
-                  left: '14px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  color: '#16a34a',
-                  fontSize: '1.05rem',
-                }}
-              >
-                ✉️
-              </span>
-              <input
-                id="admin-email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="name@example.com"
-                style={{
-                  width: '100%',
-                  borderRadius: '18px',
-                  border: '1px solid #d1d5db',
-                  padding: '14px 16px 14px 44px',
-                  fontSize: '1rem',
-                  outline: 'none',
-                }}
-              />
-            </div>
+        <form onSubmit={handleSubmit} style={{ marginTop: '1.25rem' }}>
+          <div className="admin-field">
+            <label htmlFor="admin-name">Admin Name</label>
+            <input id="admin-name" value={loginName} onChange={(e) => setLoginName(e.target.value)} placeholder="Admin" required />
           </div>
-
-          <div style={{ marginBottom: '12px' }}>
-            <label htmlFor="admin-password" style={{ display: 'block', marginBottom: '8px', color: '#111827', fontWeight: 600 }}>
-              Password
-            </label>
-            <div style={{ position: 'relative' }}>
-              <input
-                id="admin-password"
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
-                style={{
-                  width: '100%',
-                  borderRadius: '18px',
-                  border: '1px solid #d1d5db',
-                  padding: '14px 48px 14px 16px',
-                  fontSize: '1rem',
-                  outline: 'none',
-                }}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((prev) => !prev)}
-                style={{
-                  position: 'absolute',
-                  right: '12px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  border: 'none',
-                  background: 'transparent',
-                  color: '#64748b',
-                  fontSize: '1rem',
-                  cursor: 'pointer',
-                }}
-              >
-                {showPassword ? '🙈' : '👁️'}
-              </button>
-            </div>
+          <div className="admin-field">
+            <label htmlFor="admin-id">Admin ID</label>
+            <input id="admin-id" value={loginId} onChange={(e) => setLoginId(e.target.value)} placeholder="15610010" required />
           </div>
-
-          {error && (
-            <div style={{ marginBottom: '16px', color: '#b91c1c', fontWeight: 600 }}>
-              {error}
-            </div>
+          <div className="admin-field">
+            <label htmlFor="admin-password">Password</label>
+            <input
+              id="admin-password"
+              type="password"
+              value={loginPassword}
+              onChange={(e) => setLoginPassword(e.target.value)}
+              placeholder="••••••••"
+              required
+            />
+          </div>
+          {loginError && (
+            <p style={{ marginBottom: '0.75rem', fontSize: '0.8125rem', fontWeight: 600, color: '#fca5a5' }}>{loginError}</p>
           )}
-
-          <button
-            type="submit"
-            style={{
-              width: '100%',
-              borderRadius: '18px',
-              border: 'none',
-              padding: '14px',
-              fontSize: '1rem',
-              fontWeight: 700,
-              color: '#ffffff',
-              background: canSubmit ? '#22A400' : '#9ca3af',
-              cursor: canSubmit ? 'pointer' : 'not-allowed',
-              transition: 'background 0.2s ease',
-            }}
-            disabled={!canSubmit}
-          >
-            Sign In
+          <button type="submit" className="admin-btn admin-btn-approve" style={{ width: '100%', padding: '0.75rem' }}>
+            Login to Console
           </button>
-
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '12px' }}>
-            <button
-              type="button"
-              style={{
-                border: 'none',
-                background: 'transparent',
-                color: '#15803d',
-                fontWeight: 600,
-                cursor: 'pointer',
-              }}
-              onClick={() => setError('Please contact support to reset your admin password.')}
-            >
-              Forgot password?
-            </button>
-          </div>
         </form>
-
-        <div style={{ marginTop: '24px', textAlign: 'center', borderTop: '1px solid #e5e7eb', paddingTop: '18px' }}>
-          <button
-            type="button"
-            style={{
-              border: 'none',
-              background: 'transparent',
-              color: '#F5A623',
-              fontWeight: 700,
-              textDecoration: 'underline',
-              cursor: 'pointer',
-            }}
-            onClick={() => setError('Please review the terms and conditions with the administrator.')}
-          >
-            Terms and Conditions
-          </button>
-        </div>
       </div>
     </div>
   )

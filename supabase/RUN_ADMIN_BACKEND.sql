@@ -687,10 +687,6 @@ DROP POLICY IF EXISTS "Users insert own pending deposit" ON public.deposits;
 CREATE POLICY "Users insert own pending deposit" ON public.deposits
   FOR INSERT WITH CHECK (auth.uid() = user_id AND status = 'pending');
 
-DROP POLICY IF EXISTS "Admins delete deposits" ON public.deposits;
-CREATE POLICY "Admins delete deposits" ON public.deposits
-  FOR DELETE USING (true);
-
 DROP POLICY IF EXISTS "Users insert own pending withdrawal" ON public.withdrawals;
 CREATE POLICY "Users insert own pending withdrawal" ON public.withdrawals
   FOR INSERT WITH CHECK (auth.uid() = user_id AND status = 'pending');
@@ -706,6 +702,5 @@ GRANT EXECUTE ON FUNCTION public.admin_approve_deposit_manual(UUID, NUMERIC, TEX
 GRANT EXECUTE ON FUNCTION public.admin_approve_withdrawal(UUID) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.admin_reject_withdrawal(UUID) TO authenticated;
 GRANT EXECUTE ON FUNCTION public.admin_delete_user(UUID) TO authenticated;
-GRANT DELETE ON public.deposits TO authenticated;
 
 NOTIFY pgrst, 'reload schema';
