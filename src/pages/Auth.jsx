@@ -68,7 +68,7 @@ function AuthIconField({ label, required, icon: Icon, valid, hint, children }) {
   )
 }
 
-export default function Auth() {
+function Auth() {
   const navigate = useNavigate()
   const location = useLocation()
   const [isLogin, setIsLogin] = useState(true)
@@ -629,3 +629,5 @@ export default function Auth() {
     </div>
   )
 }
+
+export default Auth
