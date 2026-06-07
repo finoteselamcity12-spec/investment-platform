@@ -244,7 +244,36 @@ export default function AdminDashboardApp() {
       }
       if (data?.ok) {
         alert('✅ Deposit approved! Balance updated.')
-        await refresh()
+        const approvedAt = new Date().toISOString()
+        setSnapshot((current) => {
+          const deposit = current.pendingDeposits.find((d) => d.id === depositId)
+          if (!deposit) return current
+
+          return {
+            ...current,
+            pendingDeposits: current.pendingDeposits.filter((d) => d.id !== depositId),
+            approvedDeposits: [
+              ...current.approvedDeposits,
+              { ...deposit, status: 'Approved', approvedAt },
+            ],
+          }
+        })
+        setDeposits((current) =>
+          current.map((d) =>
+            d.id === depositId ? { ...d, status: 'approved', approvedAt } : d
+          )
+        )
+        setStats((current) => ({
+          ...current,
+          pendingDeposits: typeof current.pendingDeposits === 'number'
+            ? Math.max(0, current.pendingDeposits - 1)
+            : current.pendingDeposits,
+        }))
+        setRemoteStats((current) =>
+          current && typeof current.pendingDeposits === 'number'
+            ? { ...current, pendingDeposits: Math.max(0, current.pendingDeposits - 1) }
+            : current
+        )
       } else {
         alert('Failed: ' + data?.error)
       }
