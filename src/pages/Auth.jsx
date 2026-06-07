@@ -289,13 +289,27 @@ export default function Auth() {
 
         // Fallback: if auto sign-in failed, redirect user to login
         setFeedback(
-          `Welcome, ${sanitizedName}! Registration successful. Redirecting to login…`,
+          `Welcome, ${sanitizedName}! Logging you in…`,
           'success'
         )
         setForm(initialForm)
+        try {
+          const { data: autoLogin, error: autoErr } = await supabase.auth.signInWithPassword({
+            email: sanitizedEmail,
+            password: form.password,
+          })
+          if (!autoErr && autoLogin?.user) {
+            await supabase.rpc('grant_signup_bonus_if_missing', {
+              p_user_id: autoLogin.user.id,
+            }).catch(() => {})
+            setLoading(false)
+            navigate('/dashboard')
+            return
+          }
+        } catch (_) {}
         setIsLogin(true)
-        setTimeout(() => navigate('/login'), 1500)
         setLoading(false)
+        setTimeout(() => navigate('/login'), 1500)
         return
       }
 
@@ -372,7 +386,11 @@ export default function Auth() {
       localStorage.setItem('admin_user_data', JSON.stringify(userData))
       persistUserBalances(sanitizedEmail, { usdBalance, etbBalance }, user?.id)
 
-      navigate('/dashboard')
+      if (sanitizedEmail === ADMIN_EMAIL) {
+        navigate('/admin-dashboard')
+      } else {
+        navigate('/dashboard')
+      }
     } catch (error) {
       const errorMessage = String(error?.message || error || '')
       if (errorMessage.toLowerCase().includes('invalid')) {
