@@ -225,9 +225,10 @@ export default function AdminDashboardApp() {
   }, [refresh])
 
   const metrics = useMemo(() => {
-    const pendingDepositCount = deposits.filter((d) => String(d.status).toLowerCase() === 'pending').length
+    const safeDeposits = Array.isArray(deposits) ? deposits : []
+    const pendingDepositCount = safeDeposits.filter((d) => String(d?.status).toLowerCase() === 'pending').length
     const totalUsersCount = Math.max(
-      stats.totalUsers ?? 0,
+      stats?.totalUsers ?? 0,
       remoteStats?.totalUsers ?? 0,
       safeUsers.length,
       safeSnapshot.registrationCount ?? 0
@@ -240,7 +241,7 @@ export default function AdminDashboardApp() {
       },
       {
         label: 'Daily Transactions',
-        value: stats.dailyTransactions ?? remoteStats?.dailyTransactions ?? safeSnapshot.dailyTransactions ?? 0,
+        value: stats?.dailyTransactions ?? remoteStats?.dailyTransactions ?? safeSnapshot.dailyTransactions ?? 0,
       },
       {
         label: 'Active Investments',
@@ -248,7 +249,7 @@ export default function AdminDashboardApp() {
       },
       {
         label: 'Pending Deposits',
-        value: pendingDepositCount || stats.pendingDeposits || remoteStats?.pendingDeposits || safePendingDeposits.length,
+        value: pendingDepositCount || stats?.pendingDeposits || remoteStats?.pendingDeposits || safePendingDeposits.length,
       },
     ]
   }, [deposits, safeSnapshot, safeUsers, safePendingDeposits, remoteStats, stats])
@@ -405,7 +406,8 @@ export default function AdminDashboardApp() {
 
   const depositRows = useMemo(
     () => {
-      const paginatedDeposits = deposits.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE)
+      const safeDeposits = Array.isArray(deposits) ? deposits : []
+      const paginatedDeposits = safeDeposits.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE)
       return paginatedDeposits.map((d) => (
         <tr key={d.id}>
             <td>
@@ -483,7 +485,7 @@ export default function AdminDashboardApp() {
 
   const withdrawalRows = useMemo(
     () =>
-      safePendingWithdrawals.map((w) => (
+      (Array.isArray(safePendingWithdrawals) ? safePendingWithdrawals : []).map((w) => (
         <tr key={w.id}>
           <td>
             <div style={{ fontWeight: 600 }}>{w.userName || w.userEmail}</div>
@@ -508,7 +510,7 @@ export default function AdminDashboardApp() {
 
   const userRows = useMemo(
     () =>
-      safeUsers.map((u) => (
+      (Array.isArray(safeUsers) ? safeUsers : []).map((u) => (
         <tr key={u.id || u.email}>
           <td>
             <div style={{ fontWeight: 600 }}>{u.fullName || '—'}</div>
