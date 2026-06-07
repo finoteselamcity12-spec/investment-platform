@@ -187,11 +187,19 @@ export default function AdminDashboardApp() {
     setAuthChecked(true)
   }, [])
 
-  const metrics = useMemo(
-    () => [
+  const metrics = useMemo(() => {
+    const pendingDepositCount = deposits.filter((d) => String(d.status).toLowerCase() === 'pending').length
+    const totalUsersCount = Math.max(
+      stats.totalUsers ?? 0,
+      remoteStats?.totalUsers ?? 0,
+      safeUsers.length,
+      safeSnapshot.registrationCount ?? 0
+    )
+
+    return [
       {
         label: 'Total Users',
-        value: stats.totalUsers ?? remoteStats?.totalUsers ?? safeSnapshot.registrationCount ?? 0,
+        value: totalUsersCount,
       },
       {
         label: 'Daily Transactions',
@@ -203,18 +211,22 @@ export default function AdminDashboardApp() {
       },
       {
         label: 'Pending Deposits',
-        value: stats.pendingDeposits ?? remoteStats?.pendingDeposits ?? safePendingDeposits.length,
+        value: pendingDepositCount || stats.pendingDeposits || remoteStats?.pendingDeposits || safePendingDeposits.length,
       },
-    ],
-    [safeSnapshot, safePendingDeposits, remoteStats, stats]
-  )
+    ]
+  }, [deposits, safeSnapshot, safeUsers, safePendingDeposits, remoteStats, stats])
 
   async function fetchDeposits() {
     const { data, error } = await supabase.rpc('admin_list_pending_deposits')
-    const deposits = Array.isArray(data) ? data : []
-    console.log('raw deposits (rpc):', JSON.stringify(deposits?.[0]))
-    deposits.forEach((d) => console.log(d.id, '→', d.email))
-    setDeposits(deposits)
+    if (error) {
+      console.error('admin_list_pending_deposits RPC failed:', error)
+      setDeposits([])
+      return []
+    }
+
+    const rows = Array.isArray(data) ? data : []
+    setDeposits(rows)
+    return rows
   }
 
   const getAmount = (deposit) => {
