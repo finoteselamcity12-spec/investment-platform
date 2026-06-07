@@ -83,6 +83,11 @@ function App() {
                   : <UserDashboard user={user} />
             }
           />
+<<<<<<< HEAD
+
+          {/* Admin dashboard - only admin */}
+=======
+>>>>>>> parent of b921a0d (fix: admin and user dashboard routing)
           <Route
             path="/admin-dashboard"
             element={
@@ -93,6 +98,11 @@ function App() {
                   : <AdminDashboard user={user} />
             }
           />
+<<<<<<< HEAD
+
+          {/* Catch all */}
+=======
+>>>>>>> parent of b921a0d (fix: admin and user dashboard routing)
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
