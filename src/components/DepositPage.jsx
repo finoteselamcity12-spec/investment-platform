@@ -135,19 +135,15 @@ export default function DepositPage({ ctx = {} }) {
         return
       }
 
-      const payload = {
+      const result = await submitPendingDeposit({
         user_id: currentAuthUserId,
-        payment_method: selectedPaymentData.id,
+        userEmail: activeUserEmail,
+        amount: depositAmount,
         amount_etb: currency === 'ETB' ? depositAmount : null,
         amount_usd: currency === 'USD' ? depositAmount : null,
-        transaction_id: trimmedTxId,
-        status: 'pending',
-      }
-
-      const result = await submitPendingDeposit({
-        ...payload,
-        userEmail: activeUserEmail,
         currency: depositCurrency,
+        paymentMethod: selectedPaymentData.label,
+        transaction_id: trimmedTxId,
         receiptFile,
       })
 
