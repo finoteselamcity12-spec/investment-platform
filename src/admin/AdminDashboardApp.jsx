@@ -232,66 +232,41 @@ export default function AdminDashboardApp() {
   async function approveDeposit(depositId) {
     setLoading(true)
     setBusyId(depositId)
-    console.log('[Admin Dashboard] approveDeposit start', { depositId })
     try {
+      // Fetch deposit to get the full object
       const { data: deposit, error: depositFetchError } = await supabase
         .from('deposits')
         .select('*')
         .eq('id', depositId)
         .single()
 
-      if (depositFetchError) {
-        alert('Error fetching deposit: ' + depositFetchError.message)
-        return
-      }
-      if (!deposit) {
-        alert('Deposit not found')
-        return
-      }
+      if (depositFetchError) throw depositFetchError
+      if (!deposit) throw new Error('Deposit not found')
 
-      const userId = deposit.user_id
-      if (!userId) {
-        alert('Error: deposit record missing user_id')
-        return
-      }
+      // 1. Update deposit status
+      await supabase.from('deposits').update({ status: 'approved' }).eq('id', deposit.id)
 
-      const { error: updateDepositError } = await supabase
-        .from('deposits')
-        .update({ status: 'approved' })
-        .eq('id', depositId)
-
-      if (updateDepositError) {
-        alert('Error updating deposit status: ' + updateDepositError.message)
-        return
-      }
-
-      const { data: profile, error: profileFetchError } = await supabase
-        .from('profiles')
-        .select('balance')
-        .eq('id', userId)
+      // 2. Fetch current balance
+      const { data: balanceData, error: fetchError } = await supabase
+        .from('balances')
+        .select('etb_balance')
+        .eq('user_id', deposit.user_id)
         .single()
 
-      if (profileFetchError) {
-        alert('Error fetching profile: ' + profileFetchError.message)
-        return
-      }
+      if (fetchError) throw fetchError
 
-      const newBalance = Number(profile.balance ?? 0) + Number(deposit.amount ?? 0)
-      const { error: updateProfileError } = await supabase
-        .from('profiles')
-        .update({ balance: newBalance })
-        .eq('id', userId)
+      // 3. Update balance
+      const newBalance = (balanceData.etb_balance || 0) + deposit.amount
+      await supabase
+        .from('balances')
+        .update({ etb_balance: newBalance })
+        .eq('user_id', deposit.user_id)
 
-      if (updateProfileError) {
-        alert('Error updating profile balance: ' + updateProfileError.message)
-        return
-      }
-
-      alert('✅ Deposit approved! Balance updated.')
+      alert('Approved successfully!')
       await fetchDeposits()
-    } catch (e) {
-      console.log('[Admin Dashboard] approveDeposit exception', e)
-      alert('Exception: ' + e.message)
+    } catch (err) {
+      console.error('Error:', err)
+      alert('Failed to approve: ' + (err?.message || String(err)))
     } finally {
       setLoading(false)
       setBusyId(null)
