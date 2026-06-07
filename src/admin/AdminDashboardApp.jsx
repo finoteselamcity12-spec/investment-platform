@@ -129,7 +129,20 @@ export default function AdminDashboardApp() {
     return () => { mounted = false }
   }, [])
 
-  async function refresh() {
+  const fetchDeposits = useCallback(async () => {
+    const { data, error } = await supabase.rpc('admin_list_pending_deposits')
+    if (error) {
+      console.error('admin_list_pending_deposits RPC failed:', error)
+      setDeposits([])
+      return []
+    }
+
+    const rows = Array.isArray(data) ? data : []
+    setDeposits(rows)
+    return rows
+  }, [])
+
+  const refresh = useCallback(async () => {
     setIsRefreshing(true)
     const local = loadAdminSnapshot()
     console.log('[Admin Dashboard] refresh start', { localUsers: local.users?.length })
@@ -186,7 +199,7 @@ export default function AdminDashboardApp() {
     } finally {
       setIsRefreshing(false)
     }
-  }
+  }, [fetchDeposits])
 
   useEffect(() => {
     const stored = JSON.parse(sessionStorage.getItem('admin_session') || 'null')
@@ -209,7 +222,7 @@ export default function AdminDashboardApp() {
       refresh()
     }
     setAuthChecked(true)
-  }, [])
+  }, [refresh])
 
   const metrics = useMemo(() => {
     const pendingDepositCount = deposits.filter((d) => String(d.status).toLowerCase() === 'pending').length
@@ -239,19 +252,6 @@ export default function AdminDashboardApp() {
       },
     ]
   }, [deposits, safeSnapshot, safeUsers, safePendingDeposits, remoteStats, stats])
-
-  async function fetchDeposits() {
-    const { data, error } = await supabase.rpc('admin_list_pending_deposits')
-    if (error) {
-      console.error('admin_list_pending_deposits RPC failed:', error)
-      setDeposits([])
-      return []
-    }
-
-    const rows = Array.isArray(data) ? data : []
-    setDeposits(rows)
-    return rows
-  }
 
   const getAmount = (deposit) => {
     if (deposit.currency === 'USD') return `$${Number(deposit.amount_usd || 0).toFixed(2)}`
